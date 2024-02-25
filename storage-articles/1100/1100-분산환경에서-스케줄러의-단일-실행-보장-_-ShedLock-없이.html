@@ -1,0 +1,169 @@
+
+<meta charset="utf-8">
+<html lang="ko">
+<head>
+    <link rel="stylesheet" type="text/css" href="./../style.css" />
+    <title>분산환경에서 스케줄러의 단일 실행 보장 / ShedLock 없이</title>
+</head>
+<body id="tt-body-page" class="">
+<div id="wrap" class="wrap-right">
+    <div id="container">
+        <main class="main ">
+            <div class="area-main">
+                <div class="area-view">
+                    <div class="article-header">
+                        <div class="inner-article-header">
+                            <div class="box-meta">
+                                <h2 class="title-article">분산환경에서 스케줄러의 단일 실행 보장 / ShedLock 없이</h2>
+                                <div class="box-info">
+                                    <p class="category">Server application/Spring framework</p>
+                                    <p class="date">2024-02-23 04:27:20</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="article-view">
+                        <div class="contents_style">
+                            <h4 data-ke-size="size20"><b><span style="color: #333333;">소개 : ShedLock 없이</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">분산 환경에선 각 WAS 마다 스케줄링이 실행되기 때문에 스케줄러가 중복 실행되는 문제가 있다. 이런 중복 실행을 피할 수 있는 대표적인 라이브러리로 <span style="color: #006dd7;"><a style="color: #006dd7;" href="https://github.com/lukas-krecan/ShedLock" target="_blank" rel="noopener">ShedLock</a></span> 를 사용할 수 있다. ShedLock 은 WAS 간 공유할 수 있는 파일이나 메모리를 사용하여 분산 환경에서 한 WAS만 스케줄링을 처리하도록 돕는다. Mysql, Mongo, Redis 등 다양한 형태의 공유 자원 형태를 지원한다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">이번 프로젝트에선 이미 Redis 가 있는 환경이었고 스케줄링이 아니더라도 Redis 분산 락을 사용하던 상황이었다. ShedLock 을 사용하면 좀 쉽겠지만 Redis 락을 사용하는 시점에서 외부 라이브러리 없이 직접 단일 스케줄링 보장을 위한 락을 구현해봐도 재밌겠다는 생각에 만들게 되었다. 혹시 비슷한 생각으로 유사한 기능을 개발하시는 분이 계시다면 힌트가 되었으면 좋겠다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><b><span style="color: #333333;">아이디어</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">WAS 는 스케줄링 전 공유 자원 (Redis) 에 스케줄링을 처리하고 있는 다른 WAS 가 있는지 확인하고 없다면 본인이 사용 중임을 표시한다.&nbsp;</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" width="665" height="460" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img.png" width="665" height="460"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<h4 data-ke-size="size20"><b><span style="color: #333333;">동시성 문제&nbsp;</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">스케줄링을 위한 락 획득을 아래처럼 했다고 가정해보자. LOCK_KEY 에 해당하는 레디스 값을 확인하고 그 값이 false, 즉 아직 사용되지 않은 값이면 LOCK_KEY 를 true 로 하고 스케줄링을 시작한다. 이 로직이 단일 WAS 에서 처리된다면 아무런 문제가 없지만 분산환경이라면 얘기가 다르다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<pre id="code_1708672190553" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public void lock() {
+    var locks = redisTemplate.opsForValue();
+    var isLock = locks.get(LOCK_KEY);
+    if(!isLock) {
+        locks.set(LOCK_KEY, true);
+        // 스케줄러 시작 -&gt; 처리 후 locks.set(LOCK_KEY, false);
+    }
+}</code></pre>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">아래는 서로 다른 WAS가 동시에 locks.get(LOCK_KEY)를 수행했을 때 시점별 Redis 명령어 처리이다. <span style="color: #333333; text-align: start;">두 개 WAS에서 동시 조회를 수행했다고 하더라도<span> </span></span>레디스는 싱글 스레드로 처리되기에 동일 시점에서 두가지 명령어가 실행될 수 없다. 서로 다른 1, 2 시점에 조회 쿼리가 발생하고, Application 측에선 이 값을 isLock 변수에 담고 조건문을 수행하게 된다. 아직 lock 을 set 한 게 없기에 두 WAS 모두 동일한 조회 결과를 얻어 isLock 은 false 이다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" width="665" height="177" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_1.png" width="665" height="177"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">그렇기에 두 WAS 모두 현재 락이 걸려있지 않음을 확인하고 서로 LOCK 을 획득했다고 생각하고 스케줄링을 시작하게 되겠다. 동시성 문제가 발생한 것이다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><b><span style="color: #333333;">원자성이 보장된 명령어</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">위 문제는 결국 락 정보 조회와 획득이 서로 다른 시점에서 수행되어서라고 생각할 수 있다. Redis의 SETNX 명령어는 Key 값이 존재하는지를 확인하고 존재하지 않는다면 SET 을 수행하는 연산을 단일 명령으로 처리한다. 이를 사용하여 LOCK의 존재와 획득을 단일 시점에 처리하여 동시성 문제를 해결할 수 있다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" width="705" height="128" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_2.png" width="705" height="128"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">Spring data redis 을 사용하면 아래와 같이 구현할 수 있다. setIfAbsent 를 사용하여 LOCK_KEY 에 해당하는 key 가 있는지 확인하고 없다면 생성 후 스케줄링을 시작한다. 스케줄러의 시간 간격을 TTL 로 두어 스케줄이 일찍 마쳐도 시간 간격동안 다른 WAS 가 스케줄링을 할 수 없음을 보장한다. </span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">LOCK_KEY가 이미 존재한다면 다른 WAS 가 이미 스케줄링 중일 것이다. while 문으로 1ms 간격으로 SETNX를 반복하여 이미 선점한 스케줄러가 작업을 완료했나 확인한다.&nbsp;</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">당연한 얘기겠지만 스케줄러의 시간 간격은 스케줄링으로 처리하는 작업의 처리 시간보다 길어야 할 것이다. 스케줄링으로 작업 처리 도중 Lock 을 빼앗기면 다른 스케줄러가 실행될 것이고 두 작업이 공존하는 문제가 발생할 수 있어서이다. 물론 동시 처리를 의도한 경우도 있겠지만.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<pre id="code_1708629964188" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public void schedule(int rate) throws TimeoutException {
+    var lockTtl = rate;
+    var locks = redisTemplate.opsForValue();
+    var startTime = System.currentTimeMillis();
+    while (true) {
+        if (locks.setIfAbsent(LOCK_KEY, true, lockTtl, TimeUnit.MILLISECONDS)) {
+            return;
+        }
+        Thread.sleep(1);
+    }
+    // 스케줄링 시작
+}</code></pre>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><b><span style="color: #333333;">조회 성능 개선</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">위에선 1ms 마다 lock 이 있는지 확인한다. 이 간격을 크게 하면 이전 스케줄링 간 간격이 벌어지기 좋다. 예를 들면 스케줄링 간격이 10초인데 락 조회가 2초마다 한 번이라고 하면 스케줄을 마치고 최대 2초의 텀이 발생할 것이다. 반대로 락 조회 간격을 지금처럼 작게 하면 스케줄링 간격 텀 발생에는 안전하겠지만 Redis에 요청이 너무 많이 발생하게 될 것이다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">Redisson 의 pub/sub lock 을 사용하면 반복문으로 레디스에 락 획득 요청이 아닌, 락 사용이 끝나면 이벤트를 발행하고, 대기하는 스레드에서 이를 받을 수 있도록 하여 락 조회 확인을 위한 반복에서 벗어날 수 있다.&nbsp;</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">원하는 플로우는 다음과 같다. 구독으로 락 획득까지 TTL 만큼 대기한다. 이때 레디스에 지속적인 부하는 없다. 락을 획득한다면 스케줄링할 잡을 실행 한다. 그리고 시간 간격을 지키기 위해 (스케줄링 간격 - 잡 실행 시간) 만큼 딜레이를 준다. 딜레이 이후에는 TTL 에 따라 락 제한이 풀리게 되고, 다음 락 획득자가 스케줄링을 처리하게 된다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" width="613" height="486" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_3.png" width="613" height="486"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">3단계의 (스케줄링 간격 - 잡 실행 간격) 만큼의 딜레이가 왜 필요한지 이 플로우 차트에선 알 수 없다. 이 딜레이가 없다면 스케줄링을 처리한 WAS가 반복문에 의해 바로 "1단계 : 락 획득까지 대기" 에 들어갈 것이고, 아직 락이 만료되지 않았지만 동일 스레드의 요청이기에 락을 획득한 것으로 처리된다. 그럼 지연 없이 스케줄링 잡이 실행되게 되고 스케줄링 간격과 상관없이 TTL 시간 동안 무한히 잡을 실행하게 될 것이다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><b><span style="color: #333333;">코드로 확인</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">먼저 스케줄러 자체를 실행하는 로직이다. 비동기로 스레드 하나를 할당하여 요청 처리 스레드들과 독립적으로 스케줄링이 실행될 수 있도록 했다. 아래 예시에선 rate 이 1000ms, 잡이 현재 시간 출력으로 1초 간격으로 락을 획득하고 현재 시간을 출력하고 락 반환하고를 반복한다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<pre id="code_1708676549868" class="java" data-ke-language="java" data-ke-type="codeblock"><code>// 1. 스케줄러 실행, 1초마다 현재 시간 출력
+@Async
+public void schedule() {
+    var rate = 1000;
+    while (true) {
+        fixedRate(rate, () -&gt; {
+            System.out.println(LocalDateTime.now());
+        });
+    }
+}</code></pre>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">동일 시간 간격으로 잡을 실행 시킨다. (2-1) 락 점유 시도와 대기를 반복하다가 만약 점유에 성공하면 (2-2) 잡을 실행하게 된다. 잡 실행 후 바로 스케줄링을 빠져나오는 경우를 막기 위해 (2-3) 스케줄링 간격 - 잡 실행 간격만큼 추가 대기하고, (2-4) 스케쥴링 간격에 따라 Lock 이 만료되어 다른 락 점유 시도가 성공하고 이 스케줄링은 끝나게 된다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<pre id="code_1708676730314" class="java" data-ke-language="java" data-ke-type="codeblock"><code>// 2. 스케줄링 수행
+public void fixedRate(long rate, Runnable command) {
+    // 2-1. 락 점유 시도/대기를 반복한다.
+    while (true) {
+        if (locks.tryLock(rate, rate, TimeUnit.MILLISECONDS)) {
+            break;
+        }
+    }
+    // 2-2. 잡을 실행한다.
+    var startCommandTime = System.currentTimeMillis();
+    command.run();
+    
+    // 2-3. 잡 실행 후 blocking 한다.
+    var jobDuration = System.currentTimeMillis() - startCommandTime;
+    Thread.sleep(rate - jobDuration);
+    
+    // 2-4. Redis TTL (rate) 에 따라 lock 이 lease 되고 다른 사용자가 lock 을 획득한다.
+}</code></pre>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><b><span style="color: #333333;">결과 보기</span></b></h4>
+<p data-ke-size="size16"><span style="color: #333333;">아래는 3개 스케줄러에서 공유 레디스에 락을 사용하여 하나의 WAS 만 잡 실행된 상황이다. 예시 상황을 위해 스케줄링 시간 간격을 1초로 하고, 실행되는 잡을 현재 시간 출력으로 하였다. 1초마다 3개 중 하나의 WAS에서만 작업이 실행되는 것을 확인할 수 있다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" >
+    <span data-lightbox="lightbox">
+        <img src="./img/화면 기록 2024-02-23 오후 5.36.40.gif"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+                        </div>
+                        <br/>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 package me.blog.data;
 
-import me.blog.ariticle.Article;
+import me.blog.content.Article;
 
 public class ArticleRowMapper {
 
@@ -9,7 +9,7 @@ public class ArticleRowMapper {
     private static final int INDEX_OF_CATEGORY_ID = 3;
     private static final int INDEX_OF_PATH = 4;
 
-    public static Article toArticle(String[] line) {
+    public static Article toEntity(String[] line) {
         return new Article(
             Integer.parseInt(line[INDEX]),
             line[INDEX_OF_TITlE],
