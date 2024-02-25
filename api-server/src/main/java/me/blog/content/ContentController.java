@@ -18,19 +18,19 @@ public class ContentController {
     private final Categories categories;
 
     @GetMapping("/api/article/{id}")
-    public ResponseEntity<Article> find(@PathVariable int id) {
+    public ResponseEntity<Article> findArticle(@PathVariable int id) {
         var result = articles.findById(id);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/api/article")
-    public ResponseEntity<List<Article>> findAll(Pageable pageable) {
+    public ResponseEntity<List<Article>> findAllCategory(Pageable pageable) {
         var results = articles.findAll(pageable.getPageSize(), pageable.getPageNumber());
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/api/article/search")
-    public ResponseEntity<List<Article>> search(
+    public ResponseEntity<List<Article>> searchArticle(
         @RequestParam(required = false, defaultValue = "") String title,
         Pageable pageable
     ) {
@@ -39,7 +39,7 @@ public class ContentController {
     }
 
     @GetMapping("/api/category")
-    public ResponseEntity<List<Category>> findAll() {
+    public ResponseEntity<List<Category>> findAllCategory() {
         return ResponseEntity.ok(categories.findAll());
     }
 }
