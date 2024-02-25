@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.9'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'com.google.cloud.tools.jib' version '3.1.4'
+}
+
+group 'ecsimsw-blog'
+version 'latest'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+
+    // Spring
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Prometheus
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // Google Guava
+    implementation 'com.google.guava:guava:33.0.0-jre'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // Slack alert
+    implementation 'com.slack.api:slack-api-client:1.6.2'
+
+    // ShutDown
+    implementation 'com.github.ecsimsw:api-shutdown:0.0.5'
+
+    // Mysql
+    runtimeOnly 'com.mysql:mysql-connector-j'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jib {
+    from.image = "adoptopenjdk/openjdk11:jre-11.0.10_9-alpine"
+    to.image = "ghcr.io/ecsimsw/blog"
+    to.tags = ["latest"]
+    container {
+        jvmFlags = ['-XX:NewRatio=2', '-XX:SurvivorRatio=8', '-XX:MaxRAMPercentage=25']
+    }
+}
