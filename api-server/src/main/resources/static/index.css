@@ -1,0 +1,52 @@
+.content-title {
+    border-bottom: 1px solid #ccc;
+}
+
+.category-name {
+    text-decoration: unset;
+    color: inherit;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+.container {
+    display: flex;
+}
+.sidebar {
+    width: 20%;
+    background-color: #f2f2f2;
+    padding: 20px;
+    height: 100vh; /* 화면의 높이에 맞추기 위해 100vh 사용 */
+    overflow-y: auto; /* 사이드바가 화면을 넘어갈 경우 스크롤바 표시 */
+}
+.content {
+    flex: 1;
+    padding: 20px;
+}
+.category-list {
+    list-style: none;
+    padding: 0;
+    line-height: 30px;
+}
+.post-list {
+    list-style: none;
+    padding: 0;
+}
+.post-list li:last-child {
+    border-bottom: none; /* 마지막 아이템의 아래 선 제거 */
+}
+.post-list li h2 {
+    margin-bottom: 5px;
+}
+.post-list li p {
+    color: #666;
+    margin: 0;
+}
+.post-list li a {
+    font-weight: 500;
+    text-decoration: none;
+    color: #333;
+}
+
