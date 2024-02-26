@@ -49,4 +49,11 @@ body {
     text-decoration: none;
     color: #333;
 }
-
+.category-name:hover {
+    color: darkgray;
+    cursor: default;
+}
+.post-list-item:hover {
+    color: darkgray;
+    cursor: default;
+}

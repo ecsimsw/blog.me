@@ -36,7 +36,7 @@ public class Articles {
             .collect(Collectors.toList());
         return collect.subList(
             Math.min(collect.size(), pageNumber * pageSize),
-            Math.min(pageNumber * pageSize + pageSize, collect.size())
+            Math.min(collect.size(), pageNumber * pageSize + pageSize)
         );
     }
 
@@ -47,7 +47,7 @@ public class Articles {
             .collect(Collectors.toList());
         return collect.subList(
             Math.min(collect.size(), pageNumber * pageSize),
-            Math.min(pageNumber * pageSize + pageSize, collect.size())
+            Math.min(collect.size(), pageNumber * pageSize + pageSize)
         );
     }
 
@@ -58,7 +58,17 @@ public class Articles {
             .collect(Collectors.toList());
         return collect.subList(
             Math.min(collect.size(), pageNumber * pageSize),
-            Math.min(pageNumber * pageSize + pageSize, collect.size())
+            Math.min(collect.size(), pageNumber * pageSize + pageSize)
         );
+    }
+
+    public int countByCategory(int category) {
+        return (int) articles.stream()
+            .filter(it -> it.categoryId() == category)
+            .count();
+    }
+
+    public int count() {
+        return articles.size();
     }
 }

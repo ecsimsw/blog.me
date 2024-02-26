@@ -1,12 +1,10 @@
 package me.blog.content;
 
-import java.util.Optional;
-import me.blog.data.CategoryDao;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import me.blog.data.CategoryDao;
+import org.springframework.stereotype.Component;
 
 @Component
 public class Categories {
@@ -30,6 +28,10 @@ public class Categories {
         return categories.stream()
             .filter(it -> it.name().equals(categoryName))
             .findFirst()
-            .orElseThrow(()-> new NoSuchElementException("No category name with " + categoryName));
+            .orElseThrow(() -> new NoSuchElementException("No category name with " + categoryName));
+    }
+
+    public int size() {
+        return categories.size();
     }
 }

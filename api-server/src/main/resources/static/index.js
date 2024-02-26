@@ -11,20 +11,22 @@ document.addEventListener("DOMContentLoaded", function () {
 // 카테고리 목록을 조회하여 그리는 함수
 function loadCategories() {
     const categoryList = document.getElementById("category-list");
-    addCategory(categoryList, DEFAULT_CATEGORY_POST_ALL);
+    fetchData(serverUrl + "/api/article/count", function (count) {
+        addCategory(categoryList, DEFAULT_CATEGORY_POST_ALL, count);
+    })
     fetchData(serverUrl + "/api/category", function (categories) {
         categories.forEach(function (category) {
-            addCategory(categoryList, category.name);
+            addCategory(categoryList, category.name, category.numberOfPosts);
         });
     })
 }
 
 // 카테고리 하위 내용을 추가하는 함수
-function addCategory(categoryList, categoryName) {
+function addCategory(categoryList, categoryName, numberOfPosts) {
     const li = document.createElement("li");
     const a = document.createElement("a");
     a.className = "category-name"
-    a.textContent = categoryName;
+    a.textContent = categoryName + "(" + numberOfPosts + ")";
     a.addEventListener('click', function () {
         let contentTitle = document.getElementById("content-title");
         contentTitle.textContent = categoryName
@@ -47,8 +49,8 @@ function updatePosts(posts) {
         const a = document.createElement("a");
         const h3 = document.createElement("h3");
         const p = document.createElement("p");
-
-        a.href = post.path + "/" + post.path + ".html"; // 각 글에 대한 링크
+        a.href = post.path;
+        a.className = "post-list-item"
         a.textContent = post.title;
         h3.appendChild(a);
         li.appendChild(h3);
