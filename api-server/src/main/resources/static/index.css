@@ -57,3 +57,11 @@ body {
     color: darkgray;
     cursor: default;
 }
+.pagination {
+    margin-top: 30px;
+    text-align: left; /* 페이지네이션을 가운데 정렬 */
+}
+.pagination button {
+    margin-right: 5px;
+    cursor: pointer;
+}

@@ -27,7 +27,7 @@ public class CategoryDao {
                 .skip(1)
                 .filter(it -> !it.isBlank())
                 .map(it -> {
-                    log.info("read article data :" + it);
+                    log.info("read category data :" + it);
                     return CategoryRowMapper.toEntity(it.split("\\|"));
                 })
                 .collect(Collectors.toList());
