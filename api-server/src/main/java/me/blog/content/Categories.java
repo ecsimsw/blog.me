@@ -1,5 +1,6 @@
 package me.blog.content;
 
+import java.util.Optional;
 import me.blog.data.CategoryDao;
 import org.springframework.stereotype.Component;
 
@@ -23,5 +24,12 @@ public class Categories {
 
     public List<Category> findAll() {
         return categories;
+    }
+
+    public Category getByName(String categoryName) {
+        return categories.stream()
+            .filter(it -> it.name().equals(categoryName))
+            .findFirst()
+            .orElseThrow(()-> new NoSuchElementException("No category name with " + categoryName));
     }
 }

@@ -1,5 +1,6 @@
 package me.blog.content;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,29 +17,25 @@ public class ContentController {
 
     private final Articles articles;
     private final Categories categories;
+    private final ContentService contentService;
 
     @GetMapping("/api/article/{id}")
     public ResponseEntity<Article> findArticle(@PathVariable int id) {
-        var result = articles.findById(id);
+        var result = articles.getById(id);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/api/article")
-    public ResponseEntity<List<Article>> findAllArticle(Pageable pageable, @RequestParam(required = false) String category) {
-        if(category == null) {
-            var results = articles.findAll(pageable.getPageSize(), pageable.getPageNumber());
-            return ResponseEntity.ok(results);
-        } else {
-            return ResponseEntity.ok(List.of());
-        }
+    public ResponseEntity<List<Article>> findAllArticle(Pageable pageable, @RequestParam Optional<String> category) {
+        var results = contentService.articlesInCategory(category, pageable);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/api/article/search")
     public ResponseEntity<List<Article>> searchArticle(
-        @RequestParam(required = false, defaultValue = "") String title,
-        Pageable pageable
+        @RequestParam(required = false, defaultValue = "") String keyword, Pageable pageable
     ) {
-        var results = articles.search(title, pageable.getPageSize(), pageable.getPageNumber());
+        var results = contentService.search(keyword, pageable);
         return ResponseEntity.ok(results);
     }
 

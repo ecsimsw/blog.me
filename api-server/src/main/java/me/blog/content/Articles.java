@@ -1,5 +1,7 @@
 package me.blog.content;
 
+import java.util.Collections;
+import java.util.Comparator;
 import me.blog.data.ArticleDao;
 import org.springframework.stereotype.Component;
 
@@ -17,10 +19,11 @@ public class Articles {
         if (articles.isEmpty()) {
             throw new NoSuchElementException("File data is empty");
         }
+        Collections.sort(articles, Comparator.reverseOrder());
         this.articles = articles;
     }
 
-    public Article findById(int id) {
+    public Article getById(int id) {
         return articles.stream()
             .filter(it -> it.index() == id)
             .findAny()
@@ -37,9 +40,20 @@ public class Articles {
         );
     }
 
-    public List<Article> search(String title, int pageSize, int pageNumber) {
+    public List<Article> findAllByCategory(int categoryId, int pageSize, int pageNumber) {
         var collect = articles.stream()
-            .filter(it -> it.title().contains(title))
+            .filter(it -> it.categoryId() == categoryId)
+            .limit(pageNumber * pageSize + pageSize)
+            .collect(Collectors.toList());
+        return collect.subList(
+            Math.min(collect.size(), pageNumber * pageSize),
+            Math.min(pageNumber * pageSize + pageSize, collect.size())
+        );
+    }
+
+    public List<Article> findAllByTitleContains(String keyword, int pageSize, int pageNumber) {
+        var collect = articles.stream()
+            .filter(it -> it.title().contains(keyword))
             .limit(pageNumber * pageSize + pageSize)
             .collect(Collectors.toList());
         return collect.subList(
