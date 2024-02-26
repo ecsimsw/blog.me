@@ -1,4 +1,4 @@
-const DEFAULT_CATEGORY_POST_ALL = "Article"
+const DEFAULT_CATEGORY_POST_ALL = "Articles"
 
 const serverUrl = "http://localhost:8080"
 
@@ -36,6 +36,11 @@ function addCategory(categoryList, categoryName) {
 
 // 게시글 목록을 그리는 함수
 function updatePosts(posts) {
+    const oldPostList =document.querySelectorAll('#post-list li')
+    oldPostList.forEach(oldPost => {
+        oldPost.parentNode.removeChild(oldPost);
+    });
+
     const postList = document.getElementById("post-list");
     posts.forEach(function (post) {
         const li = document.createElement("li");
