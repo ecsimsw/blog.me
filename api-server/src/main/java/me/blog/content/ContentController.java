@@ -24,9 +24,13 @@ public class ContentController {
     }
 
     @GetMapping("/api/article")
-    public ResponseEntity<List<Article>> findAllCategory(Pageable pageable) {
-        var results = articles.findAll(pageable.getPageSize(), pageable.getPageNumber());
-        return ResponseEntity.ok(results);
+    public ResponseEntity<List<Article>> findAllArticle(Pageable pageable, @RequestParam(required = false) String category) {
+        if(category == null) {
+            var results = articles.findAll(pageable.getPageSize(), pageable.getPageNumber());
+            return ResponseEntity.ok(results);
+        } else {
+            return ResponseEntity.ok(List.of());
+        }
     }
 
     @GetMapping("/api/article/search")

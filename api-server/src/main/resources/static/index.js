@@ -10,11 +10,11 @@ function loadCategories() {
     const li = document.createElement("li");
     const a = document.createElement("a");
     a.className = "category-name"
-    a.textContent = "All";
+    a.textContent = "Articles";
     a.addEventListener('click', function () {
         let contentTitle = document.getElementById("content-title");
-        contentTitle.textContent = "All"
-        // loadPosts()
+        contentTitle.textContent = a.textContent
+        loadPosts()
     })
     li.appendChild(a);
     categoryList.appendChild(li)
@@ -28,6 +28,7 @@ function loadCategories() {
             a.addEventListener('click', function () {
                 let contentTitle = document.getElementById("content-title");
                 contentTitle.textContent = category.name
+                loadPosts(category.name)
             })
             li.appendChild(a);
             categoryList.appendChild(li);
