@@ -90,7 +90,7 @@ function renderPosts(posts) {
         const a = document.createElement("a")
         const h3 = document.createElement("h3")
         const p = document.createElement("p")
-        a.href = post.path
+        a.href = "/article/"+post.index
         a.className = "post-list-item"
         a.textContent = post.title
         h3.appendChild(a)

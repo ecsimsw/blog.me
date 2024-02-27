@@ -46,6 +46,13 @@ dependencies {
 
     // Jsoup
     implementation 'org.jsoup:jsoup:1.14.2'
+
+    // Redisson
+    implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
+
+    // H2
+    implementation 'com.h2database:h2:1.4.199'
+    testRuntimeOnly 'com.h2database:h2:1.4.199'
 }
 
 test {

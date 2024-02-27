@@ -13,17 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-public class ContentController {
+public class ContentRestController {
 
-    private final Articles articles;
-    private final Categories categories;
     private final ContentService contentService;
-
-    @GetMapping("/api/article/{id}")
-    public ResponseEntity<Article> findArticle(@PathVariable int id) {
-        var result = articles.getById(id);
-        return ResponseEntity.ok(result);
-    }
 
     @GetMapping("/api/article")
     public ResponseEntity<List<Article>> findAllArticle(@RequestParam Optional<String> category, Pageable pageable) {

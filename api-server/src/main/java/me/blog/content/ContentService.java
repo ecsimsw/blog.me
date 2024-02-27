@@ -45,4 +45,8 @@ public class ContentService {
             .map(it -> CategoryResponse.of(it, articles.countByCategory(it.index())))
             .collect(Collectors.toList());
     }
+
+    public Object getPathById(int id) {
+        return articles.getById(id).path();
+    }
 }
