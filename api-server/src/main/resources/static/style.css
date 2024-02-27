@@ -1471,8 +1471,10 @@ figure.imageblock.alignCenter {
 
 /* main */
 .main {
+    margin-top: 30px;
     width: 100%;
-    margin: 0 auto; }
+}
+    /*margin: 0 auto; }*/
 .main.outline-use, .main.bordercolorwhite, .main.bordercolorblack {
     /* box-sizing: initial; */
     box-sizing: border-box; }
@@ -1528,7 +1530,7 @@ figure.imageblock.alignCenter {
     display: block;
     width: 100%;
     margin: 7px 0 8px 0;
-    font-size: 36px;
+    font-size: 30px;
     font-weight: 400;
     line-height: normal; }
 .article-header .box-info {
@@ -1980,7 +1982,8 @@ figure.imageblock.alignCenter {
 /* // area-write */
 
 .article-view p {
-    margin-bottom: 28px;
+    margin-bottom: 0px;
+    margin-top: 0px;
     font-size: 16px;
     line-height: 26px;
     color: rgba(51, 51, 51, 0.7); }
@@ -2006,7 +2009,7 @@ figure.imageblock.alignCenter {
     line-height: 1.4; }
 
 .article-view h4 {
-    font-size: 18px;
+    font-size: 19px;
     line-height: 1.33; }
 
 .article-view blockquote {
@@ -2065,7 +2068,7 @@ figure.imageblock.alignCenter {
     padding: 20px;
     background: rgba(0, 0, 0, 0.05);
     font-size: 16px;
-    color: rgba(34, 85, 51, 0.87);
+    color: black;
     white-space: pre-wrap; }
 
 .article-view .cap1 {
