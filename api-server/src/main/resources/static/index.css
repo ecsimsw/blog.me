@@ -1,3 +1,29 @@
+.introduce-element {
+    display: inline-block;
+    margin-top: 20px;
+    margin-right: 10px;
+    position:absolute;
+    bottom:70px;
+}
+
+.introduce-element:hover {
+    color: inherit;
+    color: darkgray;
+    cursor: default;
+}
+
+#ecsimsw-about {
+
+}
+
+#ecsimsw-tistory {
+    margin-left: 60px;
+}
+
+#ecsimsw-github {
+    margin-left: 120px;
+}
+
 .content-title {
     border-bottom: 1px solid #ccc;
 }
@@ -15,10 +41,11 @@ body {
     display: flex;
 }
 .sidebar {
-    width: 20%;
+    max-width: 200px;
+    width: 30%;
     background-color: #f2f2f2;
     padding-top: 20px;
-    padding-left: 40px;
+    padding-left: 30px;
     height: 100vh; /* 화면의 높이에 맞추기 위해 100vh 사용 */
     overflow-y: auto; /* 사이드바가 화면을 넘어갈 경우 스크롤바 표시 */
 }
@@ -32,7 +59,10 @@ body {
     padding: 0;
     line-height: 40px;
 }
-
+.category-name:hover {
+    color: darkgray;
+    cursor: default;
+}
 .post-list {
     list-style: none;
     padding-left: 0px;
@@ -55,10 +85,7 @@ body {
     text-decoration: none;
     color: #333;
 }
-.category-name:hover {
-    color: darkgray;
-    cursor: default;
-}
+
 .post-list-item:hover {
     color: darkgray;
     cursor: default;

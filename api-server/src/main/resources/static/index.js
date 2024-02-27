@@ -9,6 +9,16 @@ let currentCategory = DEFAULT_CATEGORY_POST_ALL
 
 // 초기화
 document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("ecsimsw-about").addEventListener('click', function () {
+        window.location.href = '/pages/aboutMe.html';
+    })
+    document.getElementById("ecsimsw-tistory").addEventListener('click', function () {
+        window.location.href = 'https://ecsimsw.tistory.com/';
+    })
+    document.getElementById("ecsimsw-github").addEventListener('click', function () {
+        window.location.href = 'https://github.com/ecsimsw';
+    })
+
     loadCategories()
     loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
     fetchData(SERVER_URL + "/api/article/count", function (count) {
