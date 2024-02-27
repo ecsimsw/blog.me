@@ -24,6 +24,7 @@ body {
 .content {
     flex: 1;
     padding: 20px;
+    margin-left: 50px;
 }
 .category-list {
     list-style: none;
@@ -58,6 +59,7 @@ body {
     cursor: default;
 }
 .pagination {
+    padding-left: 0px;
     margin-top: 30px;
     text-align: left; /* 페이지네이션을 가운데 정렬 */
 }
@@ -65,3 +67,26 @@ body {
     margin-right: 5px;
     cursor: pointer;
 }
+.page-btn {
+    display:block;
+    margin:0 3px;
+    float:left;
+    border:1px solid #e6e6e6;
+    width:28px;
+    height:28px;
+    line-height:28px;
+    text-align:center;
+    background-color:#fff;
+    font-size:13px;
+    color:#999999;
+    text-decoration:none;
+}
+.page-btn:hover {
+    background-color:darkgray;
+}
+.selected {
+    color: black;
+    font-weight: bolder;
+    border: 1px solid darkgray;
+}
+

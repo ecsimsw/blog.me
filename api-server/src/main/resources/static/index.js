@@ -9,7 +9,9 @@ let currentPage = 1
 document.addEventListener("DOMContentLoaded", function () {
     loadCategories()
     loadPosts(DEFAULT_CATEGORY_POST_ALL)
-    renderPagination(100)
+    renderPagination(1000)
+    document.getElementById('page-btn-'+ currentPage)
+        .classList.add('selected');
 });
 
 // 카테고리 목록을 조회하여 그리는 함수
@@ -34,7 +36,9 @@ function addCategory(categoryList, categoryName, numberOfPosts) {
     a.addEventListener('click', function () {
         let contentTitle = document.getElementById("content-title")
         contentTitle.textContent = categoryName
+        currentPage = 1
         loadPosts(categoryName)
+        renderPagination(numberOfPosts)
     })
     li.appendChild(a)
     categoryList.appendChild(li)
@@ -71,54 +75,58 @@ function loadPosts(categoryName) {
 // 페이지네이션 생성
 function renderPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / itemPerPage);
+    const startPageIndex = Math.min(currentPage, currentPage - (currentPage % paginationBarPageSize) + 1)
+    const endPageIndex = Math.min(startPageIndex + paginationBarPageSize, totalPages)
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
 
-    if(currentPage > paginationBarPageSize) {
-        const prevBtn = document.createElement("button");
-        prevBtn.textContent = "이전";
-        prevBtn.addEventListener("click", function() {
-            if (currentPage > 1) {
-                currentPage -= paginationBarPageSize;
-                if (currentPage < 1) {
-                    currentPage = 1;
-                }
-                fetchData("/api/posts", function(data) {
-                    renderPosts(data);
-                });
-            }
+    if (startPageIndex > paginationBarPageSize) {
+        const prevBtn = document.createElement("li");
+        prevBtn.textContent = "<";
+        prevBtn.className = "page-btn";
+        prevBtn.addEventListener("click", function () {
+            currentPage = startPageIndex - paginationBarPageSize
+            renderPagination(totalItems)
         });
         pagination.appendChild(prevBtn);
     }
 
-    for (let i = 1; i <= totalPages; i++) {
-        const button = document.createElement("button");
+    for (let i = startPageIndex; i < endPageIndex; i++) {
+        const button = document.createElement("li")
         button.textContent = i;
-        button.addEventListener("click", function() {
-            currentPage = parseInt(this.textContent);
-            fetchData("/api/posts", function(data) {
+        button.className = "page-btn";
+        button.id = "page-btn-" + i;
+        button.addEventListener("click", function () {
+            if(document.getElementsByClassName("selected").length > 0) {
+                document.getElementsByClassName("selected")[0]
+                    .classList.remove("selected")
+            }
+            document.getElementById('page-btn-'+ i)
+                .classList.add('selected')
+            fetchData("/api/posts", function (data) {
                 renderPosts(data);
             });
         });
         pagination.appendChild(button);
     }
 
-    const startPageIndex = currentPage - (currentPage % paginationBarPageSize)
-    if(startPageIndex + paginationBarPageSize <= totalPages - 1)
-    const nextBtn = document.createElement("button");
-    nextBtn.textContent = "다음";
-    nextBtn.addEventListener("click", function() {
-        if (currentPage < totalPages) {
-            currentPage += paginationBarPageSize;
-            if (currentPage > totalPages) {
-                currentPage = totalPages;
-            }
-            fetchData("/api/posts", function(data) {
-                renderPosts(data);
-            });
-        }
-    });
-    pagination.appendChild(nextBtn);
+    if (startPageIndex + paginationBarPageSize < totalPages) {
+        const nextBtn = document.createElement("li");
+        nextBtn.textContent = ">";
+        nextBtn.className = "page-btn";
+        nextBtn.addEventListener("click", function () {
+            currentPage = startPageIndex + paginationBarPageSize
+            renderPagination(totalItems)
+        });
+        pagination.appendChild(nextBtn);
+    }
+
+    if(document.getElementsByClassName("selected").length > 0) {
+        document.getElementsByClassName("selected")[0]
+            .classList.remove("selected")
+    }
+    document.getElementById('page-btn-'+ currentPage)
+        .classList.add('selected')
 }
 
 // 서버에서 데이터를 받아오는 함수
