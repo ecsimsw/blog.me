@@ -43,6 +43,9 @@ dependencies {
 
     // Mysql
     runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Jsoup
+    implementation 'org.jsoup:jsoup:1.14.2'
 }
 
 test {
