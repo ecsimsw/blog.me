@@ -1,3 +1,21 @@
+.main {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.area-main{
+    margin: auto;
+}
+
+.article-header {
+    border-bottom: 1px solid black;
+}
+
+pre > code {
+    font-size: 13px;
+    line-height: 25px;
+}
+
 /* 텍스트 */
 h1, h1[data-ke-size] { font-size:2em; }
 h2, h2[data-ke-size] { font-size:1.62em; }
@@ -1182,9 +1200,9 @@ body {
 .wrap-right .area-aside-top {
     display: none; }
 
-.wrap-left .article-header,
-.wrap-right .article-header {
-    border-bottom: none; }
+/*.wrap-left .article-header,*/
+/*.wrap-right .article-header {*/
+/*    border-bottom: none; }*/
 
 .wrap-left .box-profile,
 .wrap-right .box-profile {
@@ -1474,7 +1492,7 @@ figure.imageblock.alignCenter {
     margin-top: 30px;
     width: 100%;
 }
-    /*margin: 0 auto; }*/
+/*margin: 0 auto; }*/
 .main.outline-use, .main.bordercolorwhite, .main.bordercolorblack {
     /* box-sizing: initial; */
     box-sizing: border-box; }
@@ -2132,3 +2150,14 @@ figure.imageblock.alignCenter {
 @media screen and (max-width: 768px) {
     .article-view {
         margin-top: 40px; } }
+
+.article-header > a {
+    display: none;
+}
+
+.article-header {
+    font-size: 22px;
+    border-bottom: 1px solid black;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
