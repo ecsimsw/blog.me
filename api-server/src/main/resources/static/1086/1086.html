@@ -1,0 +1,175 @@
+
+<meta charset="utf-8">
+<html lang="ko">
+<head>
+    <link rel="stylesheet" type="text/css" href="./../style.css" />
+    <title>AWS S3 의 비용이 부담된다면 / Vultr Object storage 소개하기</title>
+</head>
+<body id="tt-body-page" class="">
+<div id="wrap" class="wrap-right">
+    <div id="container">
+        <main class="main ">
+            <div class="area-main">
+                <div class="area-view">
+                    <div class="article-header">
+                        <div class="inner-article-header">
+                            <div class="box-meta">
+                                <h2 class="title-article">AWS S3 의 비용이 부담된다면 / Vultr Object storage 소개하기</h2>
+                                <div class="box-info">
+                                    <p class="category">Architecture/Infrastructure</p>
+                                    <p class="date">2023-12-31 18:19:51</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="article-view">
+                        <div class="contents_style">
+                            <h4 style="color: #000000; text-align: start;" data-ke-size="size20"><span style="color: #000000;"><b>Vultr의 Object storage</b></span></h4>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">PicUp 은 사진 업로드하고 다운로드 할 수 있다. 사용자의 사진 스토리지에 문제가 생길 상황을 대비하여 Object storage를 추가하고 백업 스토리지로 사용하기로 하였다. </span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">AWS S3 에서 벗어나 Object storage 선택지를 늘려보고 싶어서 여러 선택지를 확인했고, </span><span style="color: #000000;">Vultr 라는 회사의 Object storage 를 사용하기로 했다. </span><span style="color: #000000;">이 글에서는 <span style="color: #000000; text-align: start;">Vultr 의 Object storage 를 선택한 이유와 간단한 사용 방법, 추천 대상을 소개한다.</span></span><span style="color: #000000;"><span style="color: #000000; text-align: start;"></span></span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><b>1. 저렴한 비용</b></span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">익숙한 AWS가 아니라 Vultr 의 Object storage를 이용한건 비용의 문제가 가장 컸다. 사용되는 storage와 bandwith를 동일하게 1TB 라고 했을 때 AWS는 23$, Vultr는 6$로 훨씬 저렴했다. 그리고 Vultr는 단위 금액 결제가 아주 쉬워서 요금 과금 걱정이 덜했다. 작은 단위의 금액을 수동 결제하고 원하는 리소스를 구매할 수 있다. (테스트로 10$을 먼저 선결제하고 Object storage를 테스트했다.)</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><b>2. AWS S3 SDK 를 사용할 수 있는 API 지원</b></span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000; text-align: left;">"Vultr Object Storage supports the S3 API, enabling easy integration with S3-enabled applications and third party tools."</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">S3 API를 지원하고 있다는 점도 선택의 큰 이유가 되었다. Object storage를 다루는데 익숙하고 자료가 많은 AWS S3와 코드 상 아무런 차이가 없었다. </span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">심지어 Amazon S3 SDK를 사용해서 코드를 짤 수 있어서 전혀 이질감이 없다. 설정에서 url 과 key 값 정도만 바꿔주면 Vultr &lt;-&gt; AWS 전환에 전혀 문제되는 것이 없다. 물론 콘솔의 차이는 매우 매우 매우 컸지만, 콘솔로 S3를 다룰 필요가 많이 없는 나에겐 그렇게까지 큰 오점은 아니었다.&nbsp;</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><b>3. 부족한 Region 과 문서, 커뮤니티</b></span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">그렇다고 단점이 없는 것은 아니다. 확실히 AWS보다는 작은 회사여서 아쉬운 부분도 있다. 가장 큰 문제는 Region 수가 AWS 대비해 매우 적고 특히 우리나라 근처에 Region이 없다. 그나마 싱가포르에 하나가 있었는데,,, 음 그냥 new jersey 였나 검색으로 후기나 언급이 가장 많은 Region을 선택했다.&nbsp;</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">또 문서나 커뮤니티가 확실히 많이 부족하다. 뭘 검색해보려고 하거나, 방법을 찾을 때는 정말 많지 않다. 이전에 AWS 만 사용하던터라 그 차이가 확실히 더 느껴지는 것도 있는 것 같지만, 그래도 많이 부족하다.</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><b>4. 그래서 추천?</b></span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">혹시 AWS 의 과금이 무섭거나 개발 과정에서 당장 비용이 비싸다고 느껴지는 사람이 있다면, 큰 비용이 안드는 선에서 사이드 프로젝트를 기획 중이거나 프리티어가 끝난 학생들이 있다면 Vultr 추천하고 싶다. 확실히 값이 싼 것도 있고, 단위 결제가 가능하다는 점이 크게 와닿았다.&nbsp;</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">AWS 생각하면 당연히 아쉽지만 그래도 있을만한 서비스는 다 있다. AWS 서비스 이름을 기준으로 나열하면 EC2, EKS, EBS, S3, Route53, LoadBallancer, DBMS (mysql, postgreSQL, Redis) 등이 있다.&nbsp;</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">Region 문제로 속도를 걱정하는거라면 사이드 프로젝트 수준에선 크게 차이를 느끼지 못할 정도로 큰 문제는 없다. 솔직히 AWS S3와 수치로 비교해보지 않았지만 체감상 느리다는 것은 못 느꼈고, 혹 서비스에 문제가 생길 정도라면 어차피 S3 API 지원하니 그땐 설정 파일만 조금 바꿔 AWS S3 넘어가면 그만이라는 생각이다.</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">그럼에도 AWS를 경험하지 않은 학생 개발자 분들에게는 AWS 의 S3, 다른 서비스들을 먼저 경험해보길 추천하고 싶다. <span style="color: #000000;">콘솔의 친절함 차이가 크고, 자료가 훨씬 적어 처음부터 Vultr를 사용하기엔 조금 어려울 수 있을 것도 같다.</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">내가 생각하는 Vultr 의 추천 대상은 AWS 를 이미 경험했고 AWS sdk 를 사용할줄 알아 콘솔 영향을 덜 받으면서, 사이드 프로젝트로 스토리지가 필요한데 당장은 성능보다는 가성비가 더 중요한 분들께 추천하고 싶다.&nbsp;</span></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img.png"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><b><span style="color: #000000;">5. 간단한 사용 예시 - Spring 에서 Vultr object storage 사용하기</span></b></p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">5-1. Build.gradle : AWS sdk s3 추가</span></p>
+<pre id="code_1704013737294" class="nginx" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="java"><code>dependencies {
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.343'
+}</code></pre>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">5-2. Application.properties : Bucket 정보 입력</span></p>
+<pre id="code_1704014216577" class="java" data-ke-language="java" data-ke-type="codeblock"><code># backup storage
+s3.vultr.host.url=${PICUP_OBJECT_STORAGE_URL}
+s3.vultr.host.region=${PICUP_OBJECT_STORAGE_HOST_REGION}
+s3.vultr.credential.accessKey=${PICUP_OBJECT_STORAGE_BUCKET_ACCESS_KEY}
+s3.vultr.credential.secretKey=${PICUP_OBJECT_STORAGE_BUCKET_SECRET_KEY}
+s3.vultr.bucket.name=${PICUP_OBJECT_STORAGE_BUCKET_NAME}</code></pre>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">5-2. S3 Config : Bucket 정보 load, Amazon S3 빈 등록</span></p>
+<pre id="code_1704013737294" class="java" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="java" data-ke-type="codeblock"><code>@Configuration
+public class S3Config {
+
+    @Bean
+    public AmazonS3 s3Client(
+        @Value("${s3.vultr.host.url}") String hostUrl,
+        @Value("${s3.vultr.host.region}") String region,
+        @Value("${s3.vultr.credential.accessKey}") String accessKey,
+        @Value("${s3.vultr.credential.secretKey}") String secretKey
+    ) {
+        AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard().withCredentials(
+            new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey))
+        );
+        EndpointConfiguration endPoint = new EndpointConfiguration(hostUrl, region);
+        s3ClientBuilder.setEndpointConfiguration(endPoint);
+        return s3ClientBuilder.build();
+    }
+}</code></pre>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;">5-3. S3Client API : AmazonS3 를 이용한 간단한 CRD 코드</span></p>
+<pre id="code_1704013737296" class="java" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="java"><code>public class ObjectStorage {
+
+    private final AmazonS3 storageClient;
+    private final String bucketName;
+
+    public ObjectStorage(
+        @Value("${s3.vultr.bucket.name}") String bucketName,
+        AmazonS3 s3Client
+    ) {
+        this.storageClient = s3Client;
+        this.bucketName = bucketName;
+    }
+
+    public void create(String resourceKey, ImageFile imageFile) {
+        try {
+            if (storageClient.doesObjectExist(bucketName, resourceKey)) {
+                throw new IllegalArgumentException("Resource already exists");
+            }
+            var metadata = new ObjectMetadata();
+            metadata.setContentType(imageFile.getFileType().name());
+            metadata.setContentLength(imageFile.getSize());
+
+            var accessControlList = new AccessControlList();
+            accessControlList.grantPermission(GroupGrantee.AuthenticatedUsers, Permission.Read);
+
+            var inputStream = new ByteArrayInputStream(imageFile.getFile());
+            var request = new PutObjectRequest(bucketName, resourceKey, inputStream, metadata);
+            request.setAccessControlList(accessControlList);
+            storageClient.putObject(request);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Object storage server exception while uploading", e);
+        }
+    }
+
+    public byte[] read(String resourceKey) {
+        try {
+            if (!storageClient.doesObjectExist(bucketName, resourceKey)) {
+                throw new FileNotFoundException("File does not exists : " + resourceKey);
+            }
+            var object = storageClient.getObject(new GetObjectRequest(bucketName, resourceKey));
+            return IOUtils.toByteArray(object.getObjectContent());
+        } catch (AmazonS3Exception e) {
+            throw new IllegalArgumentException("Fail to read : " + resourceKey + ", please check access key or resource key");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Object storage server exception while reading", e);
+        }
+    }
+
+    public void delete(String resourceKey) throws FileNotFoundException {
+        if (!storageClient.doesObjectExist(bucketName, resourceKey)) {
+            throw new IllegalArgumentException("File does not exists : " + resourceKey);
+        }
+        storageClient.deleteObject(bucketName, resourceKey);
+    }
+}</code></pre>
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+                        </div>
+                        <br/>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

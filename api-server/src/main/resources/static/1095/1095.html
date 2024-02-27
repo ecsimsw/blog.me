@@ -1,0 +1,202 @@
+
+<meta charset="utf-8">
+<html lang="ko">
+<head>
+    <link rel="stylesheet" type="text/css" href="./../style.css" />
+    <title>Rate Limit 을 직접 구현해보자 / Leaky bucket algorithm</title>
+</head>
+<body id="tt-body-page" class="">
+<div id="wrap" class="wrap-right">
+    <div id="container">
+        <main class="main ">
+            <div class="area-main">
+                <div class="area-view">
+                    <div class="article-header">
+                        <div class="inner-article-header">
+                            <div class="box-meta">
+                                <h2 class="title-article">Rate Limit 을 직접 구현해보자 / Leaky bucket algorithm</h2>
+                                <div class="box-info">
+                                    <p class="category">Server application/Spring framework</p>
+                                    <p class="date">2024-02-01 00:37:55</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="article-view">
+                        <div class="contents_style">
+                            <h4 data-ke-size="size20"><span style="color: #333333;"><b>미리 보기</b></span></h4>
+<p data-ke-size="size16"><span style="color: #333333;">핸들러의 요청 처리 속도를 제한한다. 아래 핸들러는 0.1초에 한 번으로 처리 속도가 제한되고, 5개까지 보관해 두었다가 속도에 맞춰 처리한다.</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p><figure class="imageblock alignCenter" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img.png"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">10 개의 요청을 동시에 전송했을 때 5개만 처리되고 나머지는 429 (Too Many Requests) 를 응답받는 것을 확인할 수 있다. 그리고 처리되는 5개의 요청은 속도 제한에 따라 0.1초에 하나씩 처리된다.</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" width="540" height="473" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_1.png" width="540" height="473"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>Leaky bucket algorithm</b></span></h4>
+<p data-ke-size="size16"><span style="color: #333333;">처리 속도를 일정하게 정하여 네트워크 트래픽 체증을 제어한다. bucket 크기를 미리 지정하여 순차적으로 처리하고, 버킷 크기를 넘어선 요청은 버려진다.</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p><figure class="imageblock alignCenter" width="768" height="250" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_2.png" width="768" height="250"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>즉시 처리</b></span></h4>
+<p data-ke-size="size16"><span style="color: #333333;">rate는 0.1초, 사이즈는 3 인 버킷에, 5개의 패킷이 동시에 도착하고 0.2초 후에 3개의 패킷이 이어 도착했다고 가정해 보자. </span><span style="color: #333333;">처음 5개 패킷이 도착한 시점을 0.0 이라고 하면 0.0초에 3개가 들어오고 2개가 버려지고, 0.2초엔 2개가 더 들어오고, 1개가 버려진다. 정상적으로 0.1초 간격으로 요청을 처리하도록 제어했지만 3번 요청과 7번 요청은 모두 3 사이클이나 지난 후에나 처리될 것이다.</span></p>
+<p data-ke-size="size16"><br /><span style="color: #333333;">요청을 들어온 즉시 처리하면 어떨까. 즉시 처리하되 대기열만 제대로 유지한다면 0.0초 ~ 0.5초까지는 크게 볼 때 0.1초에 한건이라는 속도 제한을 만족할 것이다. 동시에 3번 요청과 7번 요청 모두 요청이 전달된 시점에 지연 없이 처리된다</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_3.png"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><br /><span style="color: #333333;">물론 그렇다고 즉시 처리가 언제나 옳은 것은 아니다. 단순히 네트워크 혼잡 제어 목적이 아닌, 서버가 처리하는 양 / 흐름을 조절하려고 한다면 즉시 처리는 위험할 수 있을 것 같다. 서버가 처리할 수 있는 양보다 동시에 요청되어 즉시 처리된 요청의 수가 더 크다면 문제가 될 테니 말이다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" width="597" height="487" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_4.png" width="597" height="487"  />
+    </span>
+    <figcaption>즉시 처리를 설정했을 때</figcaption>
+</figure></p>
+<p data-ke-size="size16">&nbsp;</p>
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>구현하기</b></span></h4>
+<p data-ke-size="size16"><span style="color: #333333;">스케줄러와 큐를 사용하여 간단한 Leaky bucket 을 구현한다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16"><span style="color: #333333;">- 핸들러의 @RateLimit 어노테이션을 읽어 RateLimitFilter 를 등록한다.</span></p>
+<p data-ke-size="size16"><span style="color: #333333;">- RateLimitFilter 는 사용자의 요청을 대기열에 저장하고 대기한다.</span></p>
+<p data-ke-size="size16"><span style="color: #333333;">- 스케줄러가 요청 제한 시간 간격으로 대기열에서 요청을 방출한다.</span></p>
+<p data-ke-size="size16"><span style="color: #333333;">- 사용자 스레드는 대기열에서 본인 요청이 방출되었는지를 확인한다.</span></p>
+<p data-ke-size="size16"><span style="color: #333333;">- 대기열에서 방출되었음을 확인하면 Handler 로 넘어가 요청이 처리된다.</span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<p data-ke-size="size16">&nbsp;</p>
+<p><figure class="imageblock alignCenter" >
+    <span data-lightbox="lightbox">
+        <img src="./img/img_5.png"  />
+    </span>
+    <figcaption></figcaption>
+</figure></p>
+<p data-ke-size="size16"><br /><span style="color: #333333;">&nbsp;</span></p>
+<p data-ke-size="size18"><span style="color: #333333;"><b>1. </b><b>Leaky bucket&nbsp;구현</b></span></p>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">- Capacity 만큼 담을 수 있는 큐를 구현하여 leacky bucket 의 대기열로 한다.</span><br /><span style="color: #333333;">- 스레드에 안전한 큐이면서, Capacity를 지정할 수 있는 BlockingQueue 를 사용하였다.</span><br /><span style="color: #333333;">- flowRate 간격으로 스케줄링하면서 대기열에 하나씩 Release 한다.</span></p>
+<p data-ke-size="size16">- 각 요청 스레드는 flowRate 간격으로 대기열을 확인하며 본인이 방출되었는지, 아닌지 검사한다.</p>
+<p data-ke-size="size16">- 방출되었음으로 요청 처리가 가능함을 확인하고 대기모드를 마친다.<br /><span style="color: #333333;">&nbsp;</span></p>
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>public class LeakyBucket&lt;T&gt; {
+
+&nbsp;&nbsp;&nbsp;&nbsp;private final BlockingQueue&lt;T&gt; waitings = new ArrayBlockingQueue&lt;&gt;(capacity);
+
+&nbsp;&nbsp;&nbsp;&nbsp;public void fixdedFlow(int flowRate, int capacity) {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var scheduleService = Executors.newScheduledThreadPool(1);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scheduleService.scheduleAtFixedRate(() -&gt; {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!waitings.isEmpty()) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitings.poll();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 0, flowRate, TimeUnit.MILLISECONDS);
+&nbsp;&nbsp;&nbsp;&nbsp;}
+
+&nbsp;&nbsp;&nbsp;&nbsp;public void put(T id) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitings.add(id);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} catch (IllegalStateException e) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new BucketFullException("bucket full");
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;}
+
+&nbsp;&nbsp;&nbsp;&nbsp;public void putAndWait(T id) throws TimeoutException {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;put(id);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (duration &lt; flowRate * capacity) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!waitings.contains(id)) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sleep(flowRate);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TimeoutException("time out");
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}</code></pre>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p data-ke-size="size18"><span style="color: #333333;"><b>2. RateLimitFilter 정의</b></span></p>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">- 대기열이 꽉 찬 상태라면 429 (Too many requests) 로 응답한다.</span><br /><span style="color: #333333;">- noDelay 옵션이 적용되어 있다면 bucket 에 대기열을 올리고 즉시 처리한다.</span><br /><span style="color: #333333;">- noDelay 옵션이 적용되지 않았다면 bucket 에 대기열을 올리고 fixedFlow 에 의해 요청이 처리 가능해질 때까지 대기한다.</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>@Override
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+&nbsp;&nbsp;&nbsp;&nbsp;var id = requestIds.getAndIncrement();
+&nbsp;&nbsp;&nbsp;&nbsp;try {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (noDelay) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bucket.put(id);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterChain.doFilter(request, response);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bucket.putAndWait(id);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterChain.doFilter(request, response);
+&nbsp;&nbsp;&nbsp;&nbsp;} catch (BucketFullException | TimeoutException e) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;responseTooManyRequest(response);
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}</code></pre>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p data-ke-size="size18"><span style="color: #333333;"><b>3. 핸들러별 Filter 등록</b></span></p>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">- ComponentScan 대상 패키지의 Controller 를 읽고, 그 안에 @RateLimit이 정의된 핸들러를 모두 찾는다.</span><br /><span style="color: #333333;">- @RateLimit 조건에 따라 RateLimitFilter 를 생성하고 Bean 으로 등록한다.</span></p>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span></p>
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>@Component
+public class FilterRegister implements BeanFactoryPostProcessor {
+
+&nbsp;&nbsp;&nbsp;&nbsp;@Override
+&nbsp;&nbsp;&nbsp;&nbsp;public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (var handler : rateLimitHandlers) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;registerRateLimitFilter(
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;beanFactory,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handler.getDeclaredAnnotation(RateLimit.class),
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handler.getDeclaredAnnotation(RequestMapping.class).path()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;}
+
+&nbsp;&nbsp;&nbsp;&nbsp;private static void registerRateLimitFilter(ConfigurableListableBeanFactory beanFactory, RateLimit rateLimitConfig, String[] urlPaths) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var registrationBean = new FilterRegistrationBean&lt;&gt;();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;registrationBean.setFilter(new RateLimitFilter(
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rateLimitConfig.rate(),
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rateLimitConfig.burst(),
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rateLimitConfig.noDelay()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;));
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;beanFactory.registerSingleton(filterName, registrationBean);
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}</code></pre>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p data-ke-size="size18"><span style="color: #333333;"><b>4. @RateLimit 을 표시에 따라 요청 처리 속도 제한</b></span></p>
+<p data-ke-size="size16">&nbsp;</p>
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>@RestController
+public class MainController {
+
+&nbsp;&nbsp;&nbsp;&nbsp;@RateLimit(rate = 100, burst = 5, noDelay = true)
+&nbsp;&nbsp;&nbsp;&nbsp;@RequestMapping("/foo")
+&nbsp;&nbsp;&nbsp;&nbsp;ResponseEntity&lt;String&gt; handleFoo() {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ResponseEntity.ok("hi");
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}</code></pre>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">&nbsp;</span></p>
+<p data-ke-size="size18"><span style="color: #333333;"><b>5. 전체 코드</b></span></p>
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br /><span style="color: #333333;">전체 코드는 <a style="color: #333333;" href="https://github.com/ecsimsw/java-rate-limit" target="_blank" rel="noopener">https://github.com/ecsimsw/java-rate-limit</a> 에서 확인 할 수 있다.</span><br /><span style="color: #333333;">&nbsp;</span></p>
+                        </div>
+                        <br/>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>
