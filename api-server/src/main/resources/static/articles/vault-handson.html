@@ -1,0 +1,297 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Vault hands-on, 가장 기본적인 기능들             </div>
+             <div class="article-view">
+                 <h4 style="text-align: left;" data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b>V<span style="color: #000000;">ault&nbsp;시작하기&nbsp;</span></b></span></h4> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Vault의 가장 기본적인 기능들을 소개한다.</span></p> 
+<pre id="code_1682253633357" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>0. Vault dev server 실행
+1. Secret Engine의 개념과 Secret 생성
+2. Seal / Unseal
+3. Auth engine / Auth method
+4. Policy로 접근 가능 리소스, 액션 제한
+5. Entity, 여러 인증 방식을 사용자로 묶어 관리
+6. Group, 여러 Entity를 집합으로 관리</code></pre> 
+<h4 style="text-align: left;" data-ke-size="size20">&nbsp;</h4> 
+<h4 style="text-align: left;" data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b>0. 간단한 Dev&nbsp;server&nbsp;실행</b></span></h4> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Dev server 설치가 간단해서 로컬에서 먼저 테스트해 보기 좋다. 실 서버는 정책이나 설정, Audit을 저장할 저장소가 필요하지만&nbsp;개발 서버는 인 메모리로 실행되어 Vault 외 준비할 것들이 없다.</span><br><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">1.&nbsp;vault&nbsp;설치</span></b></span></p> 
+<pre id="code_1682250352611" class="armasm" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>brew tap hashicorp/tap
+brew install hashicorp/tap/vault</code></pre> 
+<p style="text-align: left;" data-ke-size="size16"><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">2.&nbsp;개발&nbsp;모드로&nbsp;서버&nbsp;활성화</span></b></span></p> 
+<pre id="code_1682250352613" class="routeros" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>vault server -dev</code></pre> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">3. 서버를 실행하면 아래와 같은 설정 상태가 출력된다.</span></b></span></p> 
+<pre id="code_1682250352614" class="groovy" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>==&gt; Vault server configuration:
+Api Address: http://127.0.0.1:8200
+Cgo: disabled
+Cluster Address: https://127.0.0.1:8201
+Environment Variables: GODEBUG, HOME, HOMEBREW_CELLAR, HOMEBREW_PREFIX, HOMEBREW_REPOSITORY, INFOPATH, JAVA_HOME, LC_CTYPE, LOGNAME, LaunchInstanceID, MANPATH, OLDPWD, PATH, PWD, SECURITYSESSIONID, SHELL, SHLVL, SSH_AUTH_SOCK, TERM, TERM_PROGRAM, TERM_PROGRAM_VERSION, TERM_SESSION_ID, TMPDIR, USER, XPC_FLAGS, XPC_SERVICE_NAME, _, __CFBundleIdentifier
+Go Version: go1.20.1
+Listener 1: tcp (addr: "127.0.0.1:8200", cluster address: "127.0.0.1:8201", max_request_duration: "1m30s", max_request_size: "33554432", tls: "disabled")
+Log Level: 
+Mlock: supported: false, enabled: false
+Recovery Mode: false
+Storage: inmem
+Version: Vault v1.13.1, built 2023-03-23T12:51:35Z
+Version Sha: 4472e4a3fbcc984b7e3dc48f5a8283f3efe6f282
+
+The unseal key and root token are displayed below in case you want to
+seal/unseal the Vault or re-authenticate.
+
+Unseal Key: Nt/l0dkyduoT1PFZO2iu3eK5ZIJa0/OGFfKTca5NOxE=
+Root Token: hvs.3GA3ysUB88mj8mf7ZC5Fh4AS
+
+Development mode should NOT be used in production installations!</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">이 중 기억해야 할 값은 Api Address, Unseal key, Root token이다. Api address는 Vault 서버 요청 주소가 되고, Unseal key는 Vault를 Seal/Unseal 할 때 사용되는 키 값이 된다. Root token은 모든 Vault의 메인 권한이 된다. 은행장을 인증할 방법이라고 생각하면 된다.&nbsp;</span></p> 
+<pre id="code_1682250352618" class="routeros" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>export VAULT_ADDR='http://127.0.0.1:8200'
+export VAULT_DEV_ROOT_TOKEN_ID=hvs.3GA3ysUB88mj8mf7ZC5Fh4AS</code></pre> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">우선 최초 설정을 위해 ROOT_TOKEN으로 Vault를 접속한다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16"><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4.&nbsp;Check&nbsp;status</span></b></span></p> 
+<pre id="code_1682250352620" class="ebnf" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>vault status</code></pre> 
+<pre id="code_1682250352620" class="routeros" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>Key             Value
+---             -----
+Seal Type       shamir
+Initialized     true
+Sealed          false
+Total Shares    1
+Threshold       1
+Version         1.13.1
+Build Date      2023-03-23T12:51:35Z
+Storage Type    inmem
+Cluster Name    vault-cluster-d2f82bdf
+Cluster ID      06cf1ff5-cd73-4c2a-73a1-3823b47c2306
+HA Enabled      false</code></pre> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">이렇게 Vault 설치가 끝났다. 이제 이 개발 모드로 Vault를 먼저 테스트할 수 있다.&nbsp;</span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b>5. Vault GUI</b></span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="color: #000000; text-align: start;">Vault는 GUI를 제공한다. 관리자 설정을 할 때나 처음 사용법을 익힐 때는 GUI가 편할 것 같다.&nbsp;`http://127.0.0.1:8200`으로 접속하면 로그인을 요구할 텐데 처음 초기 설정에선 root token으로 접속한다.&nbsp;</span><span style="text-align: start;">재밌는게&nbsp;root&nbsp;token&nbsp;은&nbsp;브라우저에&nbsp;저장&nbsp;자체를&nbsp;안 해서&nbsp;매번&nbsp;접속마다,&nbsp;새로고침마다&nbsp;토큰을&nbsp;입력해줘야 한다.</span></span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1164" data-origin-height="566">
+ <span data-url="https://blog.kakaocdn.net/dn/M2Ui1/btsbSEffcf3/tasPq50tfzSlVKlkEMKAP1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/M2Ui1/btsbSEffcf3/tasPq50tfzSlVKlkEMKAP1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FM2Ui1%2FbtsbSEffcf3%2FtasPq50tfzSlVKlkEMKAP1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="502" height="244" data-origin-width="1164" data-origin-height="566"></span>
+</figure> 
+<p></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<h4 style="color: #000000; text-align: start;" data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">1. Secrets&nbsp;Engines&nbsp;/&nbsp;Secret</span></b></span></h4> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Vault에 비밀 키를 저장해 볼 것이다. Vault는 다양한 형태의 키 저장을 제공한다. 실습에선 Key:Value 값을 저장한다.</span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">1-1.&nbsp;Create&nbsp;Scecret&nbsp;engine</span></b></span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="color: #000000;">어떤&nbsp;시크릿&nbsp;형태를&nbsp;저장할지&nbsp;선택한다.</span><span style="color: #000000;"></span><span style="color: #000000;"></span></span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1652" data-origin-height="1244">
+ <span data-url="https://blog.kakaocdn.net/dn/r4CVB/btscjj0OsvR/A84K8WyMc7xRxmNRzEhITK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/r4CVB/btscjj0OsvR/A84K8WyMc7xRxmNRzEhITK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fr4CVB%2Fbtscjj0OsvR%2FA84K8WyMc7xRxmNRzEhITK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="739" height="556" data-origin-width="1652" data-origin-height="1244"></span>
+</figure> 
+<p></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">예시로는&nbsp;KV&nbsp;형태의&nbsp;시크릿을&nbsp;담는&nbsp;Secret&nbsp;engine을&nbsp;생성했다.</span></p> 
+<pre id="code_1682251117151" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>Type : KV
+EngineName : onboarding/test
+VersionCode : v2</code></pre> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000; text-align: start;">1-2&nbsp;SecretEngine에&nbsp;Secret을&nbsp;저장한다.</span></b></span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">onboarding/test를 path로 secretEngine에&nbsp;두 개의&nbsp;Secret을&nbsp;저장해 보았다.&nbsp;</span></p> 
+<p style="color: #000000; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2692" data-origin-height="680">
+ <span data-url="https://blog.kakaocdn.net/dn/bwcY1K/btscmKKFMB6/9R35nXGsFVILhOhUnSoNkK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bwcY1K/btscmKKFMB6/9R35nXGsFVILhOhUnSoNkK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbwcY1K%2FbtscmKKFMB6%2F9R35nXGsFVILhOhUnSoNkK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2692" data-origin-height="680"></span>
+</figure> 
+<p></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">1-3 이번에는 vault CLI 툴로 'onboarding/test'에 생성한 KV list를 출력해 본다.</span></b></span></p> 
+<pre id="code_1682251266336" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault kv list onboarding/test</code></pre> 
+<pre id="code_1682251289025" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>Keys
+----
+MyPasswordList
+MyPersonalInfo</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">1-4. 키 'MyPersonalInfo'에 해당하는 값을 가져온다.&nbsp;</span></b></span></p> 
+<pre id="code_1682251352479" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault kv get onboarding/test/MyPersonalInfo</code></pre> 
+<pre id="code_1682251362809" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>=========== Secret Path ===========
+onboarding/test/data/MyPersonalInfo
+
+======= Metadata =======
+Key                Value
+---                -----
+created_time       2023-04-18T08:09:06.704805Z
+custom_metadata    &lt;nil&gt;
+deletion_time      n/a
+destroyed          false
+version            1
+
+======= Data =======
+Key            Value
+---            -----
+Age            99
+Name           Jinhwan
+NickName       ecsimsw
+PhoneNumber    01012341234</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">2. Seal&nbsp;/&nbsp;Unseal</span></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Seal&nbsp;/&nbsp;Unseal로&nbsp;Vault&nbsp;접근&nbsp;전체를&nbsp;봉인하고&nbsp;풀&nbsp;수&nbsp;있다.</span></p> 
+<pre id="code_1682251458011" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault operator seal</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">루트 권한으로 Seal 하면 Vault의 모든 권한이 무효된다. Root 권한조차 어떤 값도 읽어 올 수 없다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1248" data-origin-height="172">
+ <span data-url="https://blog.kakaocdn.net/dn/byy8VS/btsb1REcuZ8/3h1xoHa85Iwn4rw4JSzWp0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/byy8VS/btsb1REcuZ8/3h1xoHa85Iwn4rw4JSzWp0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fbyy8VS%2Fbtsb1REcuZ8%2F3h1xoHa85Iwn4rw4JSzWp0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1248" data-origin-height="172"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Unseal은 Vault를 처음 실행시켰을 때 출력되는 unseal 키로 해제할 수 있다. 더 나아가면 unseal 키를 여러 개 생성하고 지정 개수 이상의 키 입력이 되었을 때만 unseal 할 수 있도록 설정할 수 있다. 예를 들어 이 값을 5 / 3으로 하게 되면 5개의 unseal 키가 생성되어 다섯 명의 관리자에게 뿌려지고 unseal 하고 싶을 때는 이 다섯 명의 관리자 중 3명이 이상이 본인 unseal 키를 입력하여 해제를 동의한 후에나 unseal이 가능하게 된다.</span></p> 
+<pre id="code_1682251548100" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault operator unseal</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">3. Auth method</span></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">이번에는 Vault 인증 방식을 정의하려고 한다. Github auth engine을 생성한다는 얘기는 사용자가 Github 토큰으로 Vault를 인증할 수 있다는 말이 된다.&nbsp;</span></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Access&nbsp;→&nbsp;Auth&nbsp;methods에서&nbsp;새로운&nbsp;인증&nbsp;방식을&nbsp;생성한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1428" data-origin-height="1404">
+ <span data-url="https://blog.kakaocdn.net/dn/z1Mbo/btsbUQFROrq/mtLiR1JJkdTSFMAL832QOK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/z1Mbo/btsbUQFROrq/mtLiR1JJkdTSFMAL832QOK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fz1Mbo%2FbtsbUQFROrq%2FmtLiR1JJkdTSFMAL832QOK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="591" height="581" data-origin-width="1428" data-origin-height="1404"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">&nbsp;</span><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">여러&nbsp;인증&nbsp;방식을 제공한다.&nbsp;내&nbsp;경우에는&nbsp;아마&nbsp;Github&nbsp;토큰이나,&nbsp;Kubernetes&nbsp;SA를&nbsp;이용한&nbsp;인증을&nbsp;가장&nbsp;많이&nbsp;사용할&nbsp;것&nbsp;같다.&nbsp;예시에서는&nbsp;Username&nbsp;&amp;&nbsp;Password&nbsp;방식을&nbsp;이용하려&nbsp;한다.</span><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">&nbsp;</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1792" data-origin-height="398">
+ <span data-url="https://blog.kakaocdn.net/dn/ta10f/btscmKRrIzr/YQG4tJiSkoy5kccrTqmNvk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/ta10f/btscmKRrIzr/YQG4tJiSkoy5kccrTqmNvk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fta10f%2FbtscmKRrIzr%2FYQG4tJiSkoy5kccrTqmNvk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1792" data-origin-height="398"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">이렇게&nbsp;만든&nbsp;인증&nbsp;방식은&nbsp;auth-engine에&nbsp;저장된다.&nbsp;예시에선&nbsp;auth-engine의&nbsp;‘users’&nbsp;path를&nbsp;생성했다.&nbsp;Secret-engine&nbsp;이랑&nbsp;방식이&nbsp;똑같다.&nbsp;저장하려는&nbsp;데이터/인증&nbsp;타입으로&nbsp;XXX-engine을&nbsp;path로&nbsp;만들고&nbsp;그&nbsp;아래&nbsp;데이터/인증을&nbsp;쌓는&nbsp;식이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">앞서&nbsp;생성한&nbsp;username/password로&nbsp;vault에&nbsp;인증할&nbsp;수&nbsp;있다.&nbsp;</span></p> 
+<pre id="code_1682251979693" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault login -method=userpass username=ecsimsw -path=users</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4. Policy</span></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">접근할&nbsp;수&nbsp;있는&nbsp;리소스들,&nbsp;실행할&nbsp;수&nbsp;있는&nbsp;액션,&nbsp;key&nbsp;retation&nbsp;period&nbsp;등을&nbsp;정책으로&nbsp;만들&nbsp;수&nbsp;있다.&nbsp;hcl&nbsp;format을&nbsp;사용한다. <a style="color: #000000;" href="https://developer.hashicorp.com/vault/docs/concepts/policies" target="_blank" rel="noopener">https://developer.hashicorp.com/vault/docs/concepts/policies</a></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4-0. Policy&nbsp;생성&nbsp;</span></b></span></p> 
+<pre id="code_1682252085279" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault policy write policy-name {policy-file.hcl}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4-1.&nbsp;Policy&nbsp;예시&nbsp;1</span></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">‘onboarding-test-list’를&nbsp;정의했다.&nbsp;'onboarding/test'&nbsp;secret&nbsp;engine에&nbsp;하위에&nbsp;정의된&nbsp;secret&nbsp;리스트를&nbsp;조회할&nbsp;수&nbsp;있도록&nbsp;한다.</span></p> 
+<pre id="code_1682252113339" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>path "onboarding/test/*" {
+  capabilities = ["list"]
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">이&nbsp;정책을&nbsp;사용하는&nbsp;유저는&nbsp;아래와&nbsp;같이&nbsp;onboarding/test&nbsp;아래&nbsp;secret&nbsp;목록은&nbsp;확인할&nbsp;수&nbsp;있지만&nbsp;그&nbsp;secret&nbsp;내부를&nbsp;읽을&nbsp;순&nbsp;없다.&nbsp;</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1790" data-origin-height="604">
+ <span data-url="https://blog.kakaocdn.net/dn/nDmOp/btsbVc9QSNc/8K9fok4HoKL9tjuIuMXkUK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/nDmOp/btsbVc9QSNc/8K9fok4HoKL9tjuIuMXkUK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FnDmOp%2FbtsbVc9QSNc%2F8K9fok4HoKL9tjuIuMXkUK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1790" data-origin-height="604"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4-2.&nbsp;Policy&nbsp;예시&nbsp;2</span></b></span></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">‘onboarding-test-mypersonalinfo-readonly’을&nbsp;정의했다.&nbsp;onboarding/test의&nbsp;Secret&nbsp;중&nbsp;MyPersonalInfo라는&nbsp;Secret만&nbsp;read와&nbsp;list&nbsp;권한을&nbsp;부여한다.</span></p> 
+<pre id="code_1682252158842" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>path "onboarding/test/data/MyPersonalInfo" {
+  capabilities = ["read", "list"]
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">path에&nbsp;secretEngine&nbsp;path(onboarding/test)와&nbsp;secret&nbsp;name(MyPersonalInfo)&nbsp;사이에&nbsp;'data’가&nbsp;추가된&nbsp;이유는&nbsp;해당&nbsp;secretEngine이&nbsp;KV&nbsp;version2&nbsp;타입이기&nbsp;때문이다. (<a style="color: #000000;" href="https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2" target="_blank" rel="noopener">https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2</a>)</span></p> 
+<p data-ke-size="size16"><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4-3.&nbsp;생성된&nbsp;정책</span></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">생성된&nbsp;정책&nbsp;목록은&nbsp;다음과&nbsp;같다.</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1810" data-origin-height="520">
+ <span data-url="https://blog.kakaocdn.net/dn/d3G6ca/btsbUqAtToG/Bg82NNAykRfZzKO0cuGXk1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/d3G6ca/btsbUqAtToG/Bg82NNAykRfZzKO0cuGXk1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fd3G6ca%2FbtsbUqAtToG%2FBg82NNAykRfZzKO0cuGXk1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1810" data-origin-height="520"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">이&nbsp;두&nbsp;정책이&nbsp;동시에&nbsp;추가된&nbsp;유저의&nbsp;경우&nbsp;onboarding/test&nbsp;아래&nbsp;secret&nbsp;들은&nbsp;목록을&nbsp;조회할&nbsp;수&nbsp;있으면서,&nbsp;그&nbsp;값을&nbsp;읽을&nbsp;수&nbsp;있는&nbsp;것은&nbsp;onboarding/test/MyPersonalInfo&nbsp;뿐이&nbsp;되는&nbsp;것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">4-4.&nbsp;TIP&nbsp;::&nbsp;This&nbsp;most&nbsp;specific&nbsp;path&nbsp;will&nbsp;win!</span></b><b><span style="color: #000000;"></span></b></span></p> 
+<blockquote data-ke-style="style2">
+ <span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">If&nbsp;you&nbsp;have&nbsp;two&nbsp;paths:&nbsp;secret/*&nbsp;and&nbsp;secret/abc/*&nbsp;in&nbsp;the&nbsp;same&nbsp;policy&nbsp;and&nbsp;try&nbsp;to&nbsp;interact&nbsp;with&nbsp;secret&nbsp;in&nbsp;path&nbsp;secret/abc/123,&nbsp;then&nbsp;the&nbsp;capabilities&nbsp;in&nbsp;the&nbsp;latter&nbsp;path&nbsp;will&nbsp;apply.</span>
+</blockquote> 
+<h4 data-ke-size="size20"><br><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">5.&nbsp;Entity로&nbsp;인증&nbsp;방식&nbsp;묶기</span></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">한&nbsp;사람이&nbsp;여러&nbsp;인증&nbsp;방식을&nbsp;가질&nbsp;수&nbsp;있다. A라는&nbsp;사람이&nbsp;Vault&nbsp;인증을&nbsp;github과&nbsp;username&nbsp;방식&nbsp;둘&nbsp;다를&nbsp;사용하고자&nbsp;하는&nbsp;상황을&nbsp;대비한다.&nbsp;물론&nbsp;하나의&nbsp;토큰으로&nbsp;관리되는&nbsp;상황이&nbsp;가장&nbsp;좋겠지만 당장 여러 인증 방식을 사용하고 있는 서비스에서 한 번에&nbsp;Vault&nbsp;하나의&nbsp;인증&nbsp;방식으로&nbsp;바꾸기&nbsp;보다&nbsp;기존에&nbsp;사용하던&nbsp;방식&nbsp;유지와&nbsp;동시에&nbsp;이&nbsp;여러&nbsp;인증&nbsp;방식들을&nbsp;묶은&nbsp;vault&nbsp;유저&nbsp;하나를&nbsp;만들어&nbsp;공존할&nbsp;수&nbsp;있도록&nbsp;하려&nbsp;한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1462" data-origin-height="874">
+ <span data-url="https://blog.kakaocdn.net/dn/xU9TN/btsbSM5fNg6/MXP2uL2lTkOTfHOhahBwTk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/xU9TN/btsbSM5fNg6/MXP2uL2lTkOTfHOhahBwTk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FxU9TN%2FbtsbSM5fNg6%2FMXP2uL2lTkOTfHOhahBwTk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="466" height="279" data-origin-width="1462" data-origin-height="874"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">5-1.&nbsp;Entities&nbsp;</span></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Vault에&nbsp;테스트&nbsp;세 auth-method를&nbsp;준비했다.&nbsp;모두 다른 방식의 인증 방식이지만 다&nbsp;나를&nbsp;부르는&nbsp;다른&nbsp;이름들이다.&nbsp;각&nbsp;이름으로&nbsp;어디에서&nbsp;사용되는지,&nbsp;누가&nbsp;사용하는지&nbsp;한번에&nbsp;확인하기&nbsp;어렵다.&nbsp;이를&nbsp;묶고&nbsp;규칙 있는&nbsp;이름으로&nbsp;부르고&nbsp;싶다.&nbsp;(ex,&nbsp;사번,&nbsp;실명&nbsp;등)&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2576" data-origin-height="758">
+ <span data-url="https://blog.kakaocdn.net/dn/DMyi5/btsbVchIOpb/jeJYEGlxqTUGye2RmgoLbk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/DMyi5/btsbVchIOpb/jeJYEGlxqTUGye2RmgoLbk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FDMyi5%2FbtsbVchIOpb%2FjeJYEGlxqTUGye2RmgoLbk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2576" data-origin-height="758"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">User로&nbsp;Vault에&nbsp;최초&nbsp;로그인&nbsp;시&nbsp;Entity가&nbsp;생성된다.&nbsp;현재는&nbsp;각각의&nbsp;인증&nbsp;방식이&nbsp;모두&nbsp;하나의&nbsp;Entity로&nbsp;사용되고&nbsp;있는&nbsp;상황이다.</span><br><br></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2532" data-origin-height="702">
+ <span data-url="https://blog.kakaocdn.net/dn/Hh0u1/btsbV7m36AO/bkQmLKnozv8ZlrkD8NWrxK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/Hh0u1/btsbV7m36AO/bkQmLKnozv8ZlrkD8NWrxK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FHh0u1%2FbtsbV7m36AO%2FbkQmLKnozv8ZlrkD8NWrxK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2532" data-origin-height="702"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">5-2. Create Entity</span></b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">&nbsp;</span><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">아래처럼&nbsp;Entity를&nbsp;생성한다.&nbsp;Name을&nbsp;Vault&nbsp;사용자&nbsp;공통의&nbsp;규칙으로&nbsp;작성하는&nbsp;것을&nbsp;추천한다.&nbsp;예시의&nbsp;경우&nbsp;영문&nbsp;성+이름을&nbsp;규칙으로&nbsp;했고&nbsp;Policy로&nbsp;해당&nbsp;Entity에게&nbsp;부여할&nbsp;권한&nbsp;정책을&nbsp;추가해 주었다.&nbsp;MetaData는&nbsp;Tag&nbsp;개념으로&nbsp;Team을&nbsp;표시했다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2568" data-origin-height="1148">
+ <span data-url="https://blog.kakaocdn.net/dn/bmffCp/btsb2TWandY/KoUzkCdl5oZNFkn5AxIsj1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bmffCp/btsb2TWandY/KoUzkCdl5oZNFkn5AxIsj1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbmffCp%2Fbtsb2TWandY%2FKoUzkCdl5oZNFkn5AxIsj1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2568" data-origin-height="1148"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">5-3.&nbsp;Merge&nbsp;entities</span></b></span></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">미리&nbsp;생성되었던&nbsp;세 개의&nbsp;서로&nbsp;다른&nbsp;entity&nbsp;(ecsimsw,&nbsp;jinhwan,&nbsp;nick)을&nbsp;방금&nbsp;생성한&nbsp;하나의&nbsp;entity(KimJinHwan)에&nbsp;merge 하려고&nbsp;한다.&nbsp;KimJinHwan에&nbsp;정의된&nbsp;Name과&nbsp;Policies,&nbsp;MetaData로&nbsp;나머지&nbsp;세&nbsp;인증&nbsp;방식을&nbsp;합칠&nbsp;수&nbsp;있다.&nbsp;</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2556" data-origin-height="1004">
+ <span data-url="https://blog.kakaocdn.net/dn/zQdql/btscjlRRZ4C/87Tcek2SBnmiLHabcKFFik/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/zQdql/btscjlRRZ4C/87Tcek2SBnmiLHabcKFFik/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FzQdql%2FbtscjlRRZ4C%2F87Tcek2SBnmiLHabcKFFik%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2556" data-origin-height="1004"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">merge&nbsp;후&nbsp;entity&nbsp;목록은&nbsp;다음과&nbsp;같다.&nbsp;인증&nbsp;방식마다&nbsp;따로&nbsp;존재하던&nbsp;entity들이&nbsp;KimJinHwan의&nbsp;aliases로&nbsp;포함되었다.&nbsp;포함된&nbsp;인증&nbsp;방식은&nbsp;모두&nbsp;같은&nbsp;Entity에&nbsp;속하게&nbsp;되므로&nbsp;KimJinHwan의&nbsp;정책과&nbsp;MetaData를&nbsp;따르게&nbsp;된다.&nbsp;merged&nbsp;된&nbsp;인증&nbsp;방식으로&nbsp;기존에&nbsp;KimJinHwan에&nbsp;추가했던&nbsp;정책을&nbsp;따라&nbsp;권한이&nbsp;생긴&nbsp;것을&nbsp;확인할&nbsp;수&nbsp;있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2532" data-origin-height="498">
+ <span data-url="https://blog.kakaocdn.net/dn/beHmta/btsbURrdfu2/kM0BBSJIZeMjcosYs5snnK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/beHmta/btsbURrdfu2/kM0BBSJIZeMjcosYs5snnK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbeHmta%2FbtsbURrdfu2%2FkM0BBSJIZeMjcosYs5snnK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2532" data-origin-height="498"></span>
+</figure> 
+<p></p> 
+<h4 data-ke-size="size20"><br><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">6.&nbsp;Group으로&nbsp;사용자&nbsp;묶기&nbsp;</span></b></span></h4> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">6-0.&nbsp;여러&nbsp;Entity를&nbsp;Group으로&nbsp;묶어&nbsp;관리할&nbsp;수&nbsp;있다.</span></b></span></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">한&nbsp;사람이&nbsp;여러&nbsp;인증&nbsp;방식을&nbsp;갖는&nbsp;것을&nbsp;Entity로&nbsp;묶어&nbsp;관리하였다.&nbsp;이번에는&nbsp;여러&nbsp;사람을&nbsp;Group으로&nbsp;묶어&nbsp;관리될&nbsp;수&nbsp;있도록&nbsp;한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2548" data-origin-height="1124">
+ <span data-url="https://blog.kakaocdn.net/dn/c28rny/btscfAhlbCM/cztaZTqNTStjknbcKWVLlK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/c28rny/btscfAhlbCM/cztaZTqNTStjknbcKWVLlK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fc28rny%2FbtscfAhlbCM%2FcztaZTqNTStjknbcKWVLlK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2548" data-origin-height="1124"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">위&nbsp;Entity에서&nbsp;June,&nbsp;Juan은&nbsp;DevOps&nbsp;팀,&nbsp;Nancy,&nbsp;Jean,&nbsp;Eric은&nbsp;Backend&nbsp;팀,&nbsp;Nick은&nbsp;두&nbsp;팀&nbsp;모두에&nbsp;속하도록&nbsp;설정할&nbsp;것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">6-1.&nbsp;Group&nbsp;예시&nbsp;</span></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">‘Team-DevOps’로&nbsp;Group을&nbsp;생성한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2428" data-origin-height="1538">
+ <span data-url="https://blog.kakaocdn.net/dn/bS6Ogl/btsb5j1vaDj/fjSNYy9gK7A1jtvSotRnr1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bS6Ogl/btsb5j1vaDj/fjSNYy9gK7A1jtvSotRnr1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbS6Ogl%2Fbtsb5j1vaDj%2FfjSNYy9gK7A1jtvSotRnr1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2428" data-origin-height="1538"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Entity&nbsp;생성과&nbsp;마찬가지로&nbsp;Group&nbsp;전체에&nbsp;추가할&nbsp;정책과&nbsp;MetaData,&nbsp;그룹에&nbsp;포함될&nbsp;멤버를&nbsp;선택한다. 두&nbsp;그룹에&nbsp;Policy&nbsp;정의된 대로&nbsp;멤버들이&nbsp;권한을&nbsp;갖게&nbsp;된다.</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2430" data-origin-height="562">
+ <span data-url="https://blog.kakaocdn.net/dn/eHBwlZ/btsca0N6fqe/YA7x0MGkDKx6QG5d9Cpk3K/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/eHBwlZ/btsca0N6fqe/YA7x0MGkDKx6QG5d9Cpk3K/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FeHBwlZ%2Fbtsca0N6fqe%2FYA7x0MGkDKx6QG5d9Cpk3K%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2430" data-origin-height="562"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">6-2.&nbsp;두&nbsp;그룹에&nbsp;공통으로&nbsp;포함된&nbsp;유저는&nbsp;어떻게&nbsp;권한을&nbsp;갖게&nbsp;될까</span></b></span></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">공통으로&nbsp;포함된&nbsp;유저는&nbsp;본인에게&nbsp;적용된&nbsp;모든&nbsp;정책에&nbsp;capabilities로&nbsp;allow 된&nbsp;합집합에&nbsp;대한&nbsp;권한을&nbsp;갖게&nbsp;된다.&nbsp;위&nbsp;예시에서&nbsp;Nick이&nbsp;모든&nbsp;액션이&nbsp;가능한&nbsp;Team-DevOps와&nbsp;읽기&nbsp;액션만&nbsp;가능한&nbsp;Team-Backend에&nbsp;공통으로&nbsp;포함되었다고&nbsp;하면&nbsp;예시의&nbsp;Nick은&nbsp;Team-DevOps를&nbsp;따라&nbsp;모든&nbsp;권한이&nbsp;부여된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">단,&nbsp;‘Deny’가&nbsp;‘Allow’&nbsp;보다&nbsp;더&nbsp;우선순위가&nbsp;높다.&nbsp;Team-DevOps에&nbsp;allow&nbsp;권한이&nbsp;있다고&nbsp;하더라도&nbsp;아래와&nbsp;같이&nbsp;Team-Backend에&nbsp;deny&nbsp;정책이&nbsp;있다면&nbsp;Nick은&nbsp;해당&nbsp;Secret을&nbsp;접근할&nbsp;수&nbsp;없게&nbsp;된다. (AWS의 IAM Policy의 정책과 같다.)</span></p> 
+<pre id="code_1682252915644" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>path "devops/data/AWS_CREDENTIALs" {
+  capabilities = ["deny"]
+}</code></pre>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

@@ -1,0 +1,90 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Route53의 private hosted zone으로 내부 서비스 도메인 관리하기             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b><span style="color: #000000;">How to add new hosted VPC</span></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">회사 내부에서 사용하는 내부 서비스 도메인이 public하게 열려있었다. 이를 외부에 노출되지 않도록 하고 싶었다. 개발/테스트/배포 환경 등 서비스 환경에 따라 다른 AWS 계정과 리전, 인프라가 분리되어 있었고, 모든 각 계정/리전마다 사용할 DNS를 등록하는 것이 아닌 전면의 한 계정에서 공통된 도메인을 갖고, 노출된 VPC만 따로 등록하는 식으로 관리 포인트를 줄일 수 있었다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Route53의 private dns를 사용해서 지정된 VPC 안에서만 접근할 수 있는 내부용 DNS를 만들 수 있었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1032" data-origin-height="518">
+ <span data-url="https://blog.kakaocdn.net/dn/IxrAO/btrWmmk3X3c/ZloyZITH2wDJw0ip10CVOK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/IxrAO/btrWmmk3X3c/ZloyZITH2wDJw0ip10CVOK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FIxrAO%2FbtrWmmk3X3c%2FZloyZITH2wDJw0ip10CVOK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1032" data-origin-height="518"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-how-to-configure" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#how-to-configure" aria-hidden="true"></a><b>How to configure</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Route53에서 Dns를 생성할 때 private hosted zone 를 선택할 수 있다.&nbsp;이때 같은 도메인 이름으로 public hosted zone이 이미 존재해도 상관없다. 예를 들면 public hosted zone 'ecsimsw.app'가 이미 존재해도 private hosted zone 'ecsimsw.app'를 만들 수 있는 것이다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">(이때 DNS 쿼리에서 우선 되었던 쪽은 기억이 안난다. public hosted zone이었던 것 같긴한데 사용하시는 분이 있다면 확인하시고 사용하시길 바란다.)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="705" data-origin-height="543">
+ <span data-url="https://blog.kakaocdn.net/dn/duPC4p/btrWg0QBHKL/dwfaBPQH8wWB0zf6596HP1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/duPC4p/btrWg0QBHKL/dwfaBPQH8wWB0zf6596HP1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FduPC4p%2FbtrWg0QBHKL%2FdwfaBPQH8wWB0zf6596HP1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="705" data-origin-height="543"></span>
+</figure> 
+<p></p> 
+<h4 data-ke-size="size20">&nbsp;</h4> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-attach-vpc-to-be-used" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#attach-vpc-to-be-used" aria-hidden="true"></a><b>Attach VPC to be used</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">접근할 수 있는 VPC를 선택한다. 여기까지는 일반적인 Route53을 사용하는 방법과 다르지 않다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="736" data-origin-height="335">
+ <span data-url="https://blog.kakaocdn.net/dn/PAD4k/btrWeX7KOHw/3qeJAu99eU3qFzEZVJjl1k/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/PAD4k/btrWeX7KOHw/3qeJAu99eU3qFzEZVJjl1k/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FPAD4k%2FbtrWeX7KOHw%2F3qeJAu99eU3qFzEZVJjl1k%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="736" data-origin-height="335"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">다만 회사 상황처럼 host 되어야할 VPC가 외부 계정이나 리전이 다를 경우, 이를 등록하고자 한다면 다음과&nbsp;같은 에러가 출력된다.</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1332" data-origin-height="80">
+ <span data-url="https://blog.kakaocdn.net/dn/SPAr1/btr8T4zrTuh/dkObCKQrWJgsrBJHfBbf7K/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/SPAr1/btr8T4zrTuh/dkObCKQrWJgsrBJHfBbf7K/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FSPAr1%2Fbtr8T4zrTuh%2FdkObCKQrWJgsrBJHfBbf7K%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1332" data-origin-height="80"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-route53-private-hosted-zone" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#route53-private-hosted-zone" aria-hidden="true"></a><b>Associate vpc with hosted zone</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Route53을 설정하는 계정 밖의 VPC를 hosted zoned으로 등록하기 위한 과정이다.&nbsp;AWS CLI로 두 계정에 접근할 수 있어야 한다. route53을 설정하는 계정을 Host account, 접근하려는 VPC의 계정을 Hosted account라고 칭하겠다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">글 작성 당시엔 AWS console를 사용할 수 있는 방법이 없다. CLI도 어렵지 않으니 겁먹지 않아도 된다. 결국 하고 싶은 것은 Host account에선 다른 계정의 VPC에 접근 허가를 요청해야하고, Hosted account에선 이 요청을 허락하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-host-account--create-association-authorization" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#host-account--create-association-authorization" aria-hidden="true"></a>Host account : create association authorization</span></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Host account에서 Client account에 vpc association 허가를 요청한다.</span></p> 
+<div> 
+ <pre class="html xml" data-ke-language="html"><code>export AWS_PROFILE=&lt;host_profile_name&gt;
+aws route53 create-vpc-association-authorization --hosted-zone-id &lt;hosted-zone-id&gt; --vpc VPCRegion=&lt;region&gt;,VPCId=&lt;vpc-id&gt; --region &lt;region&gt;</code></pre> 
+ <p data-ke-size="size16">&nbsp;</p> 
+ <h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-client-account--associate-vpc-with-hosted-zone" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#client-account--associate-vpc-with-hosted-zone" aria-hidden="true"></a><b>Hosted account : associate vpc with hosted zone</b></span></h4> 
+ <p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Hosted account에서 요청을 확인한다.</span></p> 
+ <div> 
+  <pre class="html xml" data-ke-language="html"><code>export AWS_PROFILE=&lt;client_profile_name&gt;
+aws route53 associate-vpc-with-hosted-zone --hosted-zone-id &lt;hosted-zone-id&gt; --vpc VPCRegion=&lt;region&gt;,VPCId=&lt;vpc-id&gt; --region &lt;region&gt;</code></pre> 
+  <h3 data-ke-size="size23">&nbsp;</h3> 
+  <h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-host-account--delete-association" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#host-account--delete-association" aria-hidden="true"></a><b>Host account : delete association</b></span></h4> 
+  <p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Association을 삭제하려면 Host account에서 다음 명령어를 수행한다. 사용이 끝난 vpc association은 제거하는걸 추천한다.</span></p> 
+  <div> 
+   <pre class="html xml" data-ke-language="html"><code>export AWS_PROFILE=&lt;host_profile_name&gt;
+aws route53 delete-vpc-association-authorization --hosted-zone-id &lt;hosted-zone-id&gt; --vpc VPCRegion=&lt;region&gt;,VPCId=&lt;vpc-id&gt; --region &lt;region&gt;</code></pre> 
+   <p data-ke-size="size16">&nbsp;</p> 
+   <p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Ref,&nbsp;<a style="color: #000000;" href="https://aws.amazon.com/ko/premiumsupport/knowledge-center/route53-private-hosted-zone/">https://aws.amazon.com/ko/premiumsupport/knowledge-center/route53-private-hosted-zone/</a></span></p> 
+   <h4 data-ke-size="size20">&nbsp;</h4> 
+   <h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-check-hosted-zone" style="color: #000000;" href="https://github.com/ecsimsw/daily-note/tree/main/devOps#check-hosted-zone" aria-hidden="true"></a><b>Check hosted zone</b></span></h4> 
+   <p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Hosted zone에 VPC가 추가된 것이 확인되면 성공이다.</span></p> 
+   <p data-ke-size="size16">&nbsp;</p> 
+   <figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="616" data-origin-height="287">
+    <span data-url="https://blog.kakaocdn.net/dn/kzh0Q/btrWc2oEiJ4/atoZNoLpRwUETYakF1xJLk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/kzh0Q/btrWc2oEiJ4/atoZNoLpRwUETYakF1xJLk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fkzh0Q%2FbtrWc2oEiJ4%2FatoZNoLpRwUETYakF1xJLk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="616" data-origin-height="287"></span>
+   </figure> 
+   <p data-ke-size="size16">&nbsp;</p> 
+  </div> 
+ </div> 
+</div> 
+<p data-ke-size="size16">&nbsp;</p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

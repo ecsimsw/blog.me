@@ -1,4 +1,7 @@
 |id|title|
 |1|Project|
-|2|Spring|
+|2|Spring, Web|
 |3|Java|
+|4|Database|
+|5|Infrastructure|
+|6|Daily note|

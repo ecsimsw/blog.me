@@ -1,0 +1,177 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Vault Dynamic secret 으로 AWS 키를 보다 안전하게 관리하는 방법             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Dynamic&nbsp;secret</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">정적인 Secret은 위험하다.&nbsp;사용자가&nbsp;모두&nbsp;같은&nbsp;키&nbsp;공유하기&nbsp;때문에&nbsp;하나의&nbsp;키만&nbsp;탈취당해도 모든 권한을&nbsp;갖는다.&nbsp;마찬가지로&nbsp;하나의&nbsp;키를&nbsp;공유하여 여러&nbsp;서비스가 사용하고 있기에 퇴사자가&nbsp;생기거나&nbsp;탈취&nbsp;상황에서&nbsp;키를&nbsp;만료시키기&nbsp;쉽지&nbsp;않다. 극단적인 예로 하나의 AWS 키를 모든 개발자와 CI/CD agent가 사용하다가 퇴사자가 나쁜 마음을 먹고 키를 사용한다고 가정해 보자. 키를 revoke -&gt; renew 하는 사이 시간 동안 모든 개발 작업, CI/CD 동작들이 멈출 것이다.</span><br><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Dynamic&nbsp;secret은&nbsp;미리&nbsp;정의한&nbsp;사용자&nbsp;허가&nbsp;범위에&nbsp;따라&nbsp;임시&nbsp;키를&nbsp;만들어 사용자에게&nbsp;반환한다.&nbsp;그&nbsp;임시&nbsp;키는&nbsp;사용자마다&nbsp;공통되지&nbsp;않고,&nbsp;만료&nbsp;기간이&nbsp;정의되어&nbsp;있어&nbsp;기간&nbsp;외엔&nbsp;사용할&nbsp;수&nbsp;없는&nbsp;키가&nbsp;되버린다.&nbsp;또&nbsp;관리자&nbsp;측에서&nbsp;임시&nbsp;키의&nbsp;권한을&nbsp;빼앗을&nbsp;수도&nbsp;있다.</span><br><br></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Vault의 Dynamic secret 요청과 생명 주기 시나리오는 다음과 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682351998687" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>1. 인증된 사용자가 Vault에 key 요청
+2. Vault는 정의된 Role에 따라 허용된 액션, 만료 기간, 리소스 범위 확인
+3. 허용된 액션, 만료 기간, 리소스 범위를 갖는 임시 키 생성
+4. 사용자에 반환
+5. 관리자 측에서 해당 키를 revoke 하거나 renew 할 수 있다.
+6. 만료기한 이후엔 키 자동 삭제</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>AWS&nbsp;Dynamic&nbsp;secret</b></span></h4> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Vault는&nbsp;AWS&nbsp;Dynamic&nbsp;secret 을 지원한다.&nbsp;인증된&nbsp;사용자가&nbsp;원하는 role에&nbsp;해당하는&nbsp;키를&nbsp;요청하면&nbsp;Vault는&nbsp;사용자가&nbsp;요청한&nbsp;role를&nbsp;가질&nbsp;권한이&nbsp;있는지&nbsp;확인한다.&nbsp;권한이&nbsp;있다면&nbsp;role에&nbsp;정의된&nbsp;액션,&nbsp;자원,&nbsp;만료&nbsp;기간을&nbsp;바탕으로&nbsp;임시&nbsp;IAM&nbsp;user를&nbsp;생성하여&nbsp;access&nbsp;key를&nbsp;반환한다.&nbsp;만료&nbsp;기간&nbsp;전까지&nbsp;해당&nbsp;사용자는&nbsp;반환받은&nbsp;key를&nbsp;이용하여&nbsp;AWS에&nbsp;접근하는&nbsp;것으로&nbsp;사용자에&nbsp;마다&nbsp;다른&nbsp;임시&nbsp;key,&nbsp;사용자마다의&nbsp;다른&nbsp;권한,&nbsp;만료&nbsp;기간과&nbsp;권한&nbsp;뺏기가&nbsp;가능해진다.</span><br><br></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1512" data-origin-height="802">
+ <span data-url="https://blog.kakaocdn.net/dn/UWrPp/btscAp0P6eJ/FI9DwjV4IhGigdUW1J6zk0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/UWrPp/btscAp0P6eJ/FI9DwjV4IhGigdUW1J6zk0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FUWrPp%2FbtscAp0P6eJ%2FFI9DwjV4IhGigdUW1J6zk0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="721" height="382" data-origin-width="1512" data-origin-height="802"></span>
+</figure> 
+<p></p> 
+<h4 data-ke-size="size20">&nbsp;</h4> 
+<h4 data-ke-size="size20"><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>AWS&nbsp;vault&nbsp;root&nbsp;user&nbsp;생성</b></span><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Vault&nbsp;임시&nbsp;사용자를&nbsp;만들어&nbsp;access&nbsp;key를&nbsp;반환할&nbsp;수&nbsp;있도록 하는 user를&nbsp;생성한다.&nbsp;이후에는&nbsp;이&nbsp;Vault가&nbsp;사용할&nbsp;User를&nbsp;‘AWS-Vault-Root-User’라고&nbsp;말하겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2676" data-origin-height="714">
+ <span data-url="https://blog.kakaocdn.net/dn/becYdD/btscyG2WnqJ/mZ7GeBKxcyCr0JedVoIYD0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/becYdD/btscyG2WnqJ/mZ7GeBKxcyCr0JedVoIYD0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbecYdD%2FbtscyG2WnqJ%2FmZ7GeBKxcyCr0JedVoIYD0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2676" data-origin-height="714"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">이 User는 임시&nbsp;user를&nbsp;생성하고&nbsp;access키를&nbsp;발급&nbsp;받을 수 있어야 한다. 그러기 위해선 아래 IAM 권한들이 필요하다.&nbsp;아래&nbsp;rule로&nbsp;policy를&nbsp;만들어 AWS-Vault-Root-User에게&nbsp;할당한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682352260245" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": [
+            "iam:CreateUser",
+            "iam:DeleteUser",
+            "iam:CreateAccessKey",
+            "iam:DeleteAccessKey",
+            "iam:AttachUserPolicy",
+            "iam:ListUserPolicies",
+            "iam:TagUser",
+            "iam:CreateAccessKey",
+            "iam:CreateLoginProfile",
+            "iam:RemoveUserFromGroup",
+            "iam:AddUserToGroup",
+            "iam:ListGroupsForUser",
+            "iam:ListAttachedUserPolicies",
+            "iam:PutUserPolicy",
+            "iam:DetachUserPolicy",
+            "iam:GetLoginProfile",
+            "iam:DeleteLoginProfile",
+            "iam:ListUserTags",
+            "iam:ListAccessKeys",
+            "iam:ListPolicies",
+            "iam:ListRoles",
+            "iam:ListUsers",
+            "iam:ListGroups"
+        ],
+    "Resource": "*"
+  }
+}</code></pre> 
+<p data-ke-size="size16"><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000; text-align: start;">정책은 Vault가 IAM 유저를 만들고 유저를 제거하고, Policy를 붙이고 만들 수 있다 등 임시 유저를 생성하고 정책을 붙이며, 기간이 만료되면 해당 임시 유저를 제거하는데 필요한 액션들을 허용한다.&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000; text-align: start;">&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Resource는 예시에선 *으로 하였는데 꼭 본인 환경에 맞도록 임시 유저가 생성되고 사라질 리소스 범위를 구체적으로 적어줬으면 좋겠다. &nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Vault Secret engine&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">아래 명령어로 Vault에 AWS Secret engine 를 하나 추가한다. MY_PATH에는 이 secret engine이 위치할 논리 위치를 넣어주면 된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682519423097" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault secrets enable -path={MY_PATH} aws   
+
+// ex
+vault secrets enable -path=aws aws</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Vault Root&nbsp;user&nbsp;추가</b><b></b></span></h4> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Secret engine의 root user를 등록한다. Secret engine에 Secret을 요청하면 키를 준다. Dynamic secret은 이 키를 만들어 반환하기 위해 root가 필요하다. root user가 AWS에 임시 user를 생성하고 그 키를 반환하는 역할이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">앞서&nbsp;생성한&nbsp;‘AWS-Vault-Root-User’를&nbsp;Vault&nbsp;aws&nbsp;config root로 추가할 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682352470816" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault write ${AWS_SECRET_ENGINE}/config/root \
+    access_key=${AWS-Vault-Root-User_ACCESS_KEY} \
+    secret_key=${AWS-Vault-Root-User_SECRET_KEY}  \
+    region=${REGION}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Success!&nbsp;Data&nbsp;written&nbsp;to:&nbsp;aws/config/root<span style="text-align: start;"></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Role&nbsp;추가하기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Role을 정의한다. 사용자가&nbsp;AWS&nbsp;키를&nbsp;요청하면&nbsp;Vault는&nbsp;이&nbsp;role을&nbsp;읽어 정의된 권한을 갖는 User를&nbsp;반환한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="text-align: start;">아래는&nbsp;'ec2-temp-user'라는&nbsp;이름으로&nbsp;ec2&nbsp;모든&nbsp;자원의,&nbsp;모든&nbsp;액션을&nbsp;허용하는&nbsp;policy가&nbsp;추가된&nbsp;role을&nbsp;생성한다. 만약 Vault에 인증한 유저가 &nbsp;이 '</span><span style="text-align: start;">ec2-temp-user'의 role에 secret을 요청하면 Vault는 이 policy에 맞는 임시 유저를 만들어 반환하게 된다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682352792344" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault write ${AWS_SECRET_ENGINE}/roles/${NEW_ROLE_PATH} \
+        credential_type=iam_user \ 
+        ttl=10m \ 
+        policy_document=-&lt;&lt;EOF         
+{                        
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1426528957000",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+EOF</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000; text-align: start;"><span style="text-align: start;">Success!&nbsp;Data&nbsp;written&nbsp;to:&nbsp;aws/roles/ec2-temp-user</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Role에 키&nbsp;요청</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">아래&nbsp;vault&nbsp;커멘드로&nbsp;'ec2-temp-user'에&nbsp;해당하는&nbsp;임시&nbsp;user를&nbsp;생성하고&nbsp;그&nbsp;Access&nbsp;key를&nbsp;반환&nbsp;받을&nbsp;수&nbsp;있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682352892330" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault read ${AWS_SECRET_ENGINE}/creds/${ROLE_NAME}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000; text-align: start;">물론 이를 요청하는 Vault user (Entity)에 해당 위치 키를 읽을 수 있는 권한이 있어야 한다. 만약 읽는데 문제가 있다면 1. Policy를 정의했는지, 2. Policy에 Secret path가 정의되어 있는지, 3. Policy에 read credentials가 정의되어 있는지, 4. 그 Policy가 인증한 유저에 적용이 되었는지 확인한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">반환에&nbsp;성공&nbsp;시&nbsp;응답&nbsp;메시지는&nbsp;다음과&nbsp;같다. Default 값 한달로 만료기간이 제한되고 IAM policy 권한이 '<span style="text-align: start;">ec2-temp-user' 의 권한과 같은 임시 키가 발행된 것이다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682352919027" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>Key                Value
+---                -----
+lease_id           aws/creds/ec2-temp-user/9rgHayCHqtFMhNvK0GyyGIlL
+lease_duration     10m
+lease_renewable    true
+access_key         AKIA2X42PZNOCYHOJ36U
+secret_key         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
+security_token     &lt;nil&gt;</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>키&nbsp;무효화&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">아래 커멘드로 만료 기한 이전에도 키를 무효화할 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682353526514" class="bash" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>vault lease revoke ${AWS_SECRET_ENGINE}/creds/${ROLE_NAME}/${LEASE_ID}</code></pre> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">All&nbsp;revocation&nbsp;operations&nbsp;queued&nbsp;successfully!</span></p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">아래 코멘드로는 특정 role에서 생성된 유효한 임시 키를 모두 revoke 할 수 있다.</span><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"></span></p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682353526516" class="bash" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>vault lease revoke -prefix vault lease revoke ${AWS_SECRET_ENGINE}/creds/${ROLE_NAME}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b>TIP : AWS&nbsp;IAM&nbsp;group으로 관리하기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">AWS&nbsp;IAM에&nbsp;임시&nbsp;user가&nbsp;생성된&nbsp;것을&nbsp;확인&nbsp;할&nbsp;수&nbsp;있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2628" data-origin-height="662">
+ <span data-url="https://blog.kakaocdn.net/dn/kzhnJ/btscoGiSQhr/bQkZR2szNCB1KiMI08kluK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/kzhnJ/btscoGiSQhr/bQkZR2szNCB1KiMI08kluK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FkzhnJ%2FbtscoGiSQhr%2FbQkZR2szNCB1KiMI08kluK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2628" data-origin-height="662"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">임시&nbsp;User로&nbsp;생성되는&nbsp;User에&nbsp;태깅과&nbsp;Group&nbsp;설정이&nbsp;되면&nbsp;유저&nbsp;관리와&nbsp;권한&nbsp;관리에&nbsp;더&nbsp;좋을&nbsp;것&nbsp;같다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="caret-color: #000000;">이번에는 AWS_Group 을 만들고 그 그룹 안에 Policy를 적용했다. 예를 들면 cicd 용 임시 키 발급에 사용되는 user라면 group을 'vault-cicd-temp-users'라고 만들고 필요한 policy를 그 그룹에 붙이는 것이다.</span></span><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="caret-color: #000000;"></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1682353455199" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>vault write ${AWS_SECRET_ENGINE}/roles/${ROLE_NAME} \
+    iam_groups=${AWS_GROUP_NAME} \
+    credential_type=iam_user</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">그럼 Role을 만들 때 앞선 Policy를 직접 정의하지 않아도 되는, 관리 가능한 임시 유저를 생성 할 수 있으면서 Group으로 관리되기에 IAM user를 확인하거나 한번에 작업하기에도 편하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

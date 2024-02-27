@@ -1,0 +1,160 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Flyway와 DB Migration / 우리 팀에서 Flyway를 사용하는 이유             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20"><span style="color: #000000;"><b>Flyway 소개하기</b></span><span style="color: #000000;"><b></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><b><a href="https://www.youtube.com/watch?v=pxDlj5jA9z4" target="_blank" rel="noopener&nbsp;noreferrer">https://www.youtube.com/watch?v=pxDlj5jA9z4</a></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1888" data-origin-height="960">
+ <span data-url="https://blog.kakaocdn.net/dn/B8Sa7/btsEMYhWpZV/dK3URUbZwq34cARKwUlLr1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/B8Sa7/btsEMYhWpZV/dK3URUbZwq34cARKwUlLr1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FB8Sa7%2FbtsEMYhWpZV%2FdK3URUbZwq34cARKwUlLr1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1888" data-origin-height="960"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">DB Migration</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">DB Migration의 필요를 모를 수 있다. 솔직히 나는 몰랐다.&nbsp;배포 후 데이터를 관리해본 경험이 없었고<b>, 유지 보수 중 스키마 구조가 바뀌는 상황</b>에&nbsp;어떻게 대처하는지 생각해본 적 없었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사실 flyway를 검색하면 사용 방법이 아주 자세히 잘 나와있다. 그런데도 내가 이 글을 쓰는 이유는 배포 후 DB를 관리하고<b> 유지 보수 해본 경험이 전혀 없는 학생들에게</b> '당신에게 곧 이런 문제 사항이 생길 것이고, flyway라는 툴은 이걸 이렇게 풀어준다.'를 소개하고 싶었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">나중에 그런 경험을 만났을 때, '<b>DB Migration 또는 Flyway tool 라는 키워드가 있었던 거 같은데~</b>' 정도의 생각이 들면, 나는 성공이다. 키워드 수준이라도 문제 해결의 방향을 알고 모르고의 차이는 크니까.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">당신에게 곧 이런 문제 사항이 생길 것이고, 그걸 해결할 수 있는 flyway라는 툴이 있더라</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">상황을 하나 보여주려고 한다. SampleEntity를 예제로 사용할 것인데, 배포가 이미 완료된 더 복잡하고 이미 쌓인 정보도 많은 데이터라고 상상해주길 바란다.</span></p> 
+<pre id="code_1626452774293" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@Entity
+public class SampleEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이런 필드로 SampleEntity가 배포되고 데이터가 쌓였던 상황인데, 신기술을 개발하는 도중에 int age라는 필드를 추가하게 되었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626453091749" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@Entity
+public class SampleEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private Integer age;
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자, 이런 상황에서 당신은 어떻게 이 SampleEntity 변화를 처리할 것인가. 잠시 고민해봤으면 좋겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">나는 배포 서버 DB에 직접 들어가서 테이블을 직접 수정해왔다. 그건 쉬운 작업이 아니다. 솔직히 엄청 귀찮다. 배포 후 기능을 추가하면서 스키마가 변경되는 일이 많았고, <b>매번 일일히 작업하는 게 번거로울 뿐 아니라 실수하기도 딱 좋다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626461753461" class="sql" style="display: block; overflow: auto; padding: 20px; color: #383a42; background-color: #f8f8f8; font-size: 14px; font-family: 'SF Mono', Menlo, Consolas, Monaco, monospace; border: 1px solid #ebebeb; line-height: 1.71; margin: 20px auto 0px; cursor: default; z-index: 1; font-style: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; text-decoration: none; background-position: initial initial; background-repeat: initial initial;" data-ke-language="sql" data-ke-type="codeblock"><code>ALTER TABLE sample_entity ADD COLUMN age integer default 0</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">로컬에서 DB 변경 사항을 추가하는 것으로 배포 이후에는 알아서 관리될 수 있다면 얼마나 좋을까. 그냥 <b>코드를 관리하는 것처럼 DB 변경 사항을 관리할 순 없을까?</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Flyway라는 툴을 사용하면 그걸 해소할 수 있다. Flyway를 사용하고 해결하는 과정을 천천히 보여주려고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">직접 적용 과정을 보여드리겠습니다.</span></b><i></i></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>예외 확인하기 : Caused&nbsp;by:&nbsp;java.sql.SQLSyntaxErrorException:&nbsp;Unknown&nbsp;column&nbsp;'age'&nbsp;in&nbsp;'field&nbsp;list'</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">우선 sampleEntity 데이터를 미리 3개 넣어두었다. 이 상황에서 int age 필드가 추가하고 DB 스키마를 수정하지 않으면 SQL 에러가 뜨는 것을 확인한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>자 이제 flyway를 적용할 것이다.</b> </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">궁극적인 적용 목표는 다음과 같다. (환경은 gradle, spring boot, mySql 를 기준으로 한다.)</span><span style="color: #000000;"></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">1. DB에 접속해서 table을 직접 건들지 않고, 나이를 포함한 신규 데이터를 저장한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">2. 동시에 이전 나이가 포함되지 않은 데이터는 나이 필드를 0으로 초기화한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">3. git으로 관리할 것이기 때문에, 해당 작업을 파일로 관리할 수 있어야 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">1. 의존성 추가 : build.gradle</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626456886831" class="sql" data-ke-language="sql" data-ke-type="codeblock"><code>dependencies {
+    implementation('org.flywaydb:flyway-core:6.4.2')
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">2. 어플리케이션 설정 추가 : application.properties</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626457358824" class="sql" data-ke-language="sql" data-ke-type="codeblock"><code>#data source 설정 / 본인 환경에 맞게 수정해주세요.
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:13306/flyway
+spring.datasource.username=ecsimsw
+spring.datasource.password=1234
+
+#flyway 설정
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+spring.flyway.enabled=true
+spring.jpa.generate-ddl=false
+
+#Spring boot 2 이상의 경우 아래 설정 추가
+spring.flyway.baselineOnMigrate = true</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">3. init 파일 추가 : resources/db/migration/V1__init.sql</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">flyway를 등록하려는 시점의 db 스키마 구조를 입력해야 한다. 이 파일을 기준으로 flyway가 DB 버전 관리를 하게 된다. 지우면 안 된다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">resources/db/migration/V1__init.sql, 파일 경로와 파일명을 똑같이 해야 한다.&nbsp;</span></p> 
+<pre id="code_1626457524328" class="sql" data-ke-language="sql" data-ke-type="codeblock"><code># 이전 table를 지우고
+drop table if exists sample_entity;
+
+# 초기 스케마를 정의하고
+create table sample_entity(
+    id   bigint auto_increment,
+    name varchar(255),
+    primary key (id)
+);
+
+# history를 추가한다.
+INSERT into sample_entity (name) values ('ecsimsw');
+INSERT into sample_entity (name) values ('코기');
+INSERT into sample_entity (name) values ('김진환');</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">4. 스키마 구조 변경 사항 파일 추가 : resources/db/migration/V2__add_age.sql</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 flyway를 적용한 시점(아직 age 사용 x)에서 작업을 하다가, 스키마 구조가 변경되는 상황(age 필요)이 생겼다고 하자. 이때 변경 사항을 파일에 저장하는 것이다. 이때 파일명은 flyway의 규칙을 따라야 한다. 어렵다면 일단 'V {숫자}__{설명}. sql' 정도만 알고 넘어가자.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="896" data-origin-height="578">
+ <span data-url="https://blog.kakaocdn.net/dn/nOhM5/btq9NX7So54/XYN2wEonSMFIsbi8otPwkk/img.png" data-lightbox="lightbox" data-alt="https://flywaydb.org/documentation/concepts/migrations.html"><img src="https://blog.kakaocdn.net/dn/nOhM5/btq9NX7So54/XYN2wEonSMFIsbi8otPwkk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FnOhM5%2Fbtq9NX7So54%2FXYN2wEonSMFIsbi8otPwkk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="724" height="467" data-origin-width="896" data-origin-height="578"></span>
+ <figcaption>
+  https://flywaydb.org/documentation/concepts/migrations.html
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">다시 예제로 돌아와 'resources/db/migration/V2__add_age.sql'을 작성할 것이다. 파일에 스키마 변경 사항을 작성해주는 것이다. 마찬가지로 파일 위치와 파일명에 유의하길 바란다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626458697952" class="sql" data-ke-language="sql" data-ke-type="codeblock"><code>ALTER TABLE sample_entity ADD COLUMN age integer default 0</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 하고 다시 age를 포함한 데이터를 추가하면 이제는 에러 없이 잘 들어감을 확인할 수 있다. 이제는<b> 개발 도중 스키마가 변경되면 직접 배포 서버의 DB를 들어가 스키마를 변경하지 않고, &nbsp;변경 사항을 코드로 관리</b>할 수 있게 된 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">5. flyway_schema_history 확인하기</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">마지막으로 DB에 저장된 flyway_schema_history를 확인한다. V1__init.sql과 V2__add_age.sql이 히스토리로 저장된 것을 확인할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="711" data-origin-height="62">
+ <span data-url="https://blog.kakaocdn.net/dn/lwvvi/btq9MFGRQJ7/dvvG42NBNlVNY8i15dczC0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/lwvvi/btq9MFGRQJ7/dvvG42NBNlVNY8i15dczC0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Flwvvi%2Fbtq9MFGRQJ7%2FdvvG42NBNlVNY8i15dczC0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="711" data-origin-height="62"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">추가 : 초기 설정 도중 아래의 에러를 만난다면 : Detected&nbsp;failed&nbsp;migration&nbsp;to&nbsp;version&nbsp;1&nbsp;(init)</span></b></h4> 
+<pre id="code_1626459767231" class="sql" data-ke-language="sql" data-ke-type="codeblock"><code>org.springframework.beans.factory.BeanCreationException: 
+  Error creating bean with name 'flywayInitializer' defined in class path resource ...
+  Invocation of init method failed; 
+  nested exception is java.lang.reflect.InvocationTargetException
+
+Caused by: java.lang.reflect.InvocationTargetException: null
+
+Caused by: org.flywaydb.core.api.FlywayException: Validate failed: 
+Detected failed migration to version 1 (init)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">설정 중 잘못된 flyway history 파일이 생겼을 수 있다. 내 경우에는 DB에 직접 접속해서 flyway_schema_history를 직접 제거하고 다시 실행시키니 해결되었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

@@ -1,0 +1,205 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+비관적 락의 DB 커넥션 점유 문제를 해결하는 과정들             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20"><span style="color: #333333;"><b>대기에 DB Connection 을 점유하는 비관적 락</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;"><a style="color: #333333;" title="이전 글" href="https://www.blog.ecsimsw.com/entry/%EB%8F%99%EC%8B%9C%EC%84%B1-%ED%85%8C%EC%8A%A4%ED%8A%B8%EC%99%80-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EC%95%88" target="_blank" rel="noopener">이전 글</a> 에서 프로젝트에서 생긴 동시성 문제가 왜 발생했는지 소개하고 이를 해결할 수 있는 락 종류를 소개했다. 추가적인 인프라와 적은 코드 수정, 그리고 확실한 동시성 문제 처리를 원했기에 비관적 락을 선택했다. 인덱스 조건을 수정하여 사용자별 로우락을 유도해 불필요한 대기를 없앴다. 그리고 얼마 후 DB 락 대기 시간 동안 커넥션을 점유하고 있음을 로그로 확인했다. <span style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Apple SD Gothic Neo', Arial, sans-serif; letter-spacing: 0px;">사용자 간 독립적으로 락 처리를 했지만, 한 사용자가 락으로 모든 커넥션을 물고 있으면 </span><b>결국 락이 걸린 로우와 독립적인 다른 사용자는 그 사용자를 대기해야 했다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="950" data-origin-height="513">
+ <span data-url="https://blog.kakaocdn.net/dn/Nnqbd/btsD4keuzWz/MYuyGq4iaLKaP0mtjBTKG1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/Nnqbd/btsD4keuzWz/MYuyGq4iaLKaP0mtjBTKG1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FNnqbd%2FbtsD4keuzWz%2FMYuyGq4iaLKaP0mtjBTKG1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="950" data-origin-height="513"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #333333; text-align: start;">이 글에서는 동시성 문제를 해결하기 위해 여러 락 방식을 적용하면서 발생했던 에러 사항들과 해결 과정을 소개한다. 목차는 다음과 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1708945736800" class="java" data-ke-language="java" data-ke-type="codeblock"><code>1. DB 락의 커넥션 점유 문제 확인
+2. 낙관적 락으로 변경하여 트랜잭션을 종료하고 대기, 재시도 반복
+3. 지저분한 재시도 처리, DB 엑세스 문제 해결과 분산 락
+4. 성능 개선을 위한 사용자별 락
+
+(추가). hikaricp 상태를 로깅하는 방법
+(추가). JPA 없이 SQL 쿼리로 낙관적 락을 구현하는 방법</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>락으로 커넥션이 모두 점유되는 경우를 확인한다</b><b></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">락으로 커넥션이 점유되는 것을 확인한다. 직접 확인하고 싶은데 DB 쿼리로 실제 커넥션이 물리고 있는 시간은 워낙 짧으니 트랜잭션을 직접 실행하고 배타락을 잡아 확인했다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="sql" data-ke-type="codeblock" data-ke-language="sql"><code>start transaction;
+select * from storage_usage where user_id=1 for update;
+commit;</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">그리고 user_id=1 에 대한 storage_usage 업데이트 요청을 DB connection pool 의 최대 커넥션 개수보다 많이 한다. 프로젝트에선 hikariCP 를 사용했고 기본 Connection pool size인 10을 넘어 50개를 요청을 요청하면 아래와 같이 10개의 커넥션이 모두 점유된 채로 대기할 것이다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="sql" data-ke-type="codeblock" data-ke-language="sql"><code>activeConnections : 10
+idleConnections : 0
+waitingConnections : 40</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">이때 다른 DB 커넥션을 사용하는 요청이 발생하는 경우 idle 커넥션이 생길 때까지 대기하게 되고, 다른 사용자도 한 사용자의 동시성 문제 해결을 위한 락에 영향을 받게 되는 상황이 발생하는 상황이 발생한다. 위 테스트에서 직접 수행한 트랜잭션의 배타락을 제거하면 (commit 을 수행하면), 락 때문에 수행되지 못하고 대기하던 transaction 들이 순차적으로 처리되어 waitingConnections가 40부터 39, 38, 37 ... 1 으로 내려가는 것을 확인할 수 있다. 그렇게 idleConnections 이 생길 때까지 사용자에 상관없이 어떤 DB 요청도 처리되지 못하고 병목 된다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>트랜잭션을 마치고 대기하기 위한 방법 -&gt; 낙관적 락과 재시도 처리, 트랜잭션 분리</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="text-align: start;">커넥션 점유를 해결하기 위해 DB 락 다음으로 동시성 처리를 위해 고민한 방식은 낙관적 락이다. 조회에 버전 정보를 함께 읽고 수정에서 조회와 같은 버전으로 업데이트 하는지를 확인한다. 버전 정보가 맞을 때까지, <b>즉 동시성 문제에서 자유로울 때까지</b></span><b>&nbsp;액세스를 반복하는 것이다</b>. 일단 동시성 문제가 발생하지 않는다고 생각하고 공유 자원에 접근하고 버전 정보와 같이 동시성 문제를 확인할 수 있는 방법을 사용해서 문제가 발생하지 않는 경우만 자원을 실제로 변경하는 것이다. 문제가 발생하면 롤백하고 재시도하거나 문제 자체를 회피한다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>@Retryable(
+&nbsp;&nbsp;&nbsp;&nbsp;value = ObjectOptimisticLockingFailureException.class,
+&nbsp;&nbsp;&nbsp;&nbsp;maxAttempts = 3,
+&nbsp;&nbsp;&nbsp;&nbsp;backoff = @Backoff(delay = 100),
+&nbsp;&nbsp;&nbsp;&nbsp;recover = "recoverCreate"
+)
+@Transactional
+public AlbumInfoResponse updateUsage(Long userId, FileResourceInfo resource) {
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">낙관적 락을 선택하고 재시도 처리를 위해 @Retryable 으로 코드 추가를 줄이고 재시도 정책을 명확하게 보이려고 했다. 위 코드 예시에서 예외가 발생했을 때 0.1초의 delay와 함께 3회 반복함을 명확히 확인할 수 있다. 그리고 끝내 처리에 실패하는 경우 사용자에게 너무 많은 동시 요청임을 알리며 처리 실패를 응답하도록 하였다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2408" data-origin-height="1020">
+ <span data-url="https://blog.kakaocdn.net/dn/2hkp4/btsDRJUgXDC/LZPXFluBaIiVfXzCHhe7R1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/2hkp4/btsDRJUgXDC/LZPXFluBaIiVfXzCHhe7R1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F2hkp4%2FbtsDRJUgXDC%2FLZPXFluBaIiVfXzCHhe7R1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="784" height="332" data-origin-width="2408" data-origin-height="1020"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;">그렇다고 아예 코드 수정이 없는 건 아니다. JPA 의 <b>낙관적 락은 트랜잭션이 커밋되는 시점에서 버전을 확인</b>한다. 프로젝트에서 기본 전파 유형인 Propagation.REQUIRED 을 사용했기에 최상위 @Transactional 을 감싸 예외처리, @Retryable 을 해야했다.</span><br><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">위 그림처럼 기존 방식은 최상위 트랜잭션에 이미지 파일 업로드와 예외 시 이미지 파일을 제거하는 보상 이벤트 처리가 있었는데, 이번 낙관적 락을 도입하면서 락이 필요한 최상위 트랜잭션에 재시도가 처리되어야 했고, 이미지 파일을 업로드는 재시도되기엔 느리기에 두 로직을 각각의 트랜잭션으로 분리하게 되었다.</span><br><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">락 대기에서 DB 커넥션 점유 없이 동시성 문제를 해결할 수 있었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>지저분한 재시도 처리, DB 액세스 횟수 증가 문제 -&gt; Redis 를 이용한 분산락 처리&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">또 한 번의 수정이 있었다. 앞선 낙관적 락 방식으로 처리를 마무리했다가 또 한번 불편함을 만나고 처리 방식을 변경했다. 우선 코드가 매우 더러워졌다. 낙관적 락은 트랜잭션이 commit 되는 시점에서 버전을 확인한다. 그 덕에 커넥션 점유에서 벗어날 수 있었지만 반대로 재시도 처리를 최상단의 @Transactional 에서 해야 했다. (전파 수준을 기본 값인 Required으로 한다면.) 그 재시도 처리를 @Retryable 로 간단히 하긴 했지만 그래도 지저분한 건 동일했다. 동시성 문제가 발생하는 모든 트랜잭션의 어노테이션들이 쭉 붙게 되었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;">두 번째는 DB 액세스 횟수이다. 커넥션 점유에서 벗어났지만 이번엔 재시도에 따른 DB 엑세스 횟수가 많이 늘었다. 앞선 낙관적 락의 재시도 설정을 최대 3번 0.1초간 처리하는데 만약 한 유저가 100개의 이미지를 동시에 업로드 요청하고 그중 20개 요청에서 동시성 문제가 발생한다면 이들이 20 + 19 + 18개의 무의미한 DB 액세스를 만들게 될 것이다. 물론 동시성 문제가 발생하지 않았던 80개의 액세스도 추가해야 하고 말이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>Redis 를 이용한 분산락 처리</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">DB 대신 Redis 를 사용하여 락을 구현했다. 이때 기존 낙관적 락 방식처럼 원자성이 보장된 명령어를 사용해 락 조회와 획득을 처리해야 했고 Redis 의 SETNX 를 이용했다. Redis의&nbsp;SETNX&nbsp;명령어는&nbsp;Key&nbsp;값이&nbsp;존재하는지를&nbsp;확인하고&nbsp;존재하지&nbsp;않는다면&nbsp;SET&nbsp;을&nbsp;수행하는&nbsp;연산을&nbsp;단일&nbsp;명령으로&nbsp;처리한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1280" data-origin-height="886">
+ <span data-url="https://blog.kakaocdn.net/dn/beJuUS/btsFinO5Phc/lHnWL7RgHj8ucwyC4nimkk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/beJuUS/btsFinO5Phc/lHnWL7RgHj8ucwyC4nimkk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbeJuUS%2FbtsFinO5Phc%2FlHnWL7RgHj8ucwyC4nimkk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="556" height="385" data-origin-width="1280" data-origin-height="886"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;">Spring data redis 을 사용하면 아래와 같이 구현할 수 있다. setIfAbsent&nbsp;를 사용하여 LOCK_KEY 에 해당하는 key 가 있는지 확인하고 없다면 생성 후 함수를 종료한다. 락을 획득한 것이다.&nbsp;LOCK_KEY가 이미 존재한다면 다른 요청에서 이미 KEY 를 사용 중일 것이다. while 문으로 1ms 간격으로 SETNX를 반복하여 이미 선점한 요청 스레드가 작업을 완료했나 확인한다.&nbsp;</span></p> 
+<p style="background-color: #ffffff; color: #555555; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1708943785849" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public void aquire() throws TimeoutException {
+    var locks = redisTemplate.opsForValue();
+    while (true) {
+        if (locks.setIfAbsent(LOCK_KEY, true, lockTtl, TimeUnit.MILLISECONDS)) {
+            return;
+        }
+        Thread.sleep(1);
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>Pub/Sub 방식으로 액세스 횟수 개선</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">앞선 spin lock 방식에선 1ms 마다 lock 이 있는지 확인했다. 이 간격을 크게 하면 대기 시간이 무의미하게 길어질 수 있다. 예를 들면 이 간격을 n초로 했는데 다른 요청이 lease 하자마자 확인했다면 대기하는 스레드는 꼼짝없이 n초간 대기 처리해야 하는 것이다. 반대로 락 조회 간격을 지금처럼 작게 하면 Redis에 너무 많은 요청이 발생하게 될 것이다.</span></p> 
+<p style="background-color: #ffffff; color: #555555; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="background-color: #ffffff; color: #555555; text-align: start;" data-ke-size="size16"><span style="color: #333333;">Redisson 의 pub/sub lock 을 사용하면 반복문으로 레디스에 락 획득 요청이 아닌, 락 사용이 끝나면 이벤트를 발행하고, 대기하는 스레드에서 이를 받을 수 있도록 하여 락 조회 확인을 위한 레디스 액세스 반복에서 벗어날 수 있다.&nbsp;</span></p> 
+<p style="background-color: #ffffff; color: #555555; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1708944218573" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public void acquire() throws TimeoutException {
+    try {
+        var locks = redissonClient.getLock(LOCK_KEY_NAME);
+        if (!locks.tryLock(LOCK_WAIT_TIME, LOCK_TTL, TimeUnit.MILLISECONDS)) {
+            throw new TimeoutException();
+        }
+    } catch (InterruptedException e) {
+        throw new IllegalArgumentException("Thread interrupted");
+    }
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b><span style="background-color: #ffffff;">성능 개선을 위한 사용자 별 락</span></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="background-color: #ffffff;">이렇게 만든 락을 사용량 업데이트 로직 전후에 lock - release 처리했다. 모든 요청에서 아래 addUsage 메서드를 호출하기 전 레디스에 확인하여 해당 메서드를 처리할 수 있는지 여부를 파악하는 것이다.&nbsp;</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1708944522176" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@Transactional
+public void addUsage(long fileSize) {
+    try {
+        storageUsageLock.acquire();
+
+        var storageUsage = getUsage(userId);
+        storageUsage.add(fileSize);
+        storageUsageRepository.save(storageUsage);
+    } catch (TimeoutException e) {
+        throw new IllegalArgumentException("Lock wait time out");
+    } finally {
+        storageUsageLock.release();
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="background-color: #ffffff;">이 로직의 동시성 문제를 addUsage 전부에서 처리할 필요가 있을까? 사용량 정보는 사용자별 row 로 저장되어 있다. addUsage 로직에서 사용량 정보 외에 다른 테이블을 조인하지 않으며 입력된 사용자 id에 따라 딱 해당 row만 업데이트한다. lock 을 사용자별로 걸기만 하면 된다는 것인데 지금 구조는 유저 id에 상관없이 모든 addUsage 가 고립되고 대기가 발생한다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="background-color: #ffffff;">사용자별로 락을 처리하기 위해 Redis 키를 사용자 별로 나눴다. 각 사용자마다 해당 유저가 현재 addUsage() 를 사용 중인지 확인할 수 있는 값을 레디스에 담는 것이다. 다만 이렇게 {사용자 : 레디스_키}가 {1:1} 을 이룬다면 유저마다 레디스 키가 만들어져야 하니 레디스 공간에도 제약이 생길 수 있고 관리도 까다로울 것이다.&nbsp;</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1708945262602" class="reasonml" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-type="codeblock" data-ke-language="java"><code>var lockKeyName = LOCK_KEY_PREFIX + getIdHash(userId);
+var locks = redissonClient.getLock(lockKeyName);
+locks.tryLock();</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="background-color: #ffffff;">해시 값이 동일한 유저끼리 같은 레디스 락 키 값을 사용할 수 있도록 하였다. 간단히 해시 방법을 100으로 나눈 나머지라고 하면, 총 생성되는 레디스 키를 100개로 제한할 수 있는 것이다. 그럴 경우 아쉽지만 100으로 나눈 나머지가 동일한 유저들끼리는 같은 락을 사용하여 대기될 수 있다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="background-color: #ffffff;">그렇게 비관적 락 방식의 DB 커넥션 점유 문제, 낙관적 락 방식의 재시도 코드 관리의 어려움과 DB 액세스 횟수 문제, 레디스 Spin lock 방식의 엑세스 횟수 문제, 사용자 별 락 분리를 거쳐 Redisson pub/sub 방식의 락과 userId 를 해시 값으로 한 lock 키 사용으로 동시성 문제를 해결했다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1708945331087" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@DisplayName("동시 업로드 동시성 문제를 테스트한다.")
+@Test
+public void uploadConcurrentRequest() throws InterruptedException {
+    var executorService = Executors.newFixedThreadPool(CONCURRENT_COUNT);
+    var countDownLatch = new CountDownLatch(CONCURRENT_COUNT);
+    for (int i = 0; i &lt; CONCURRENT_COUNT; i++) {
+        executorService.execute(() -&gt; {
+            try {
+                storageUsageService.addUsage(userId, FILE_SIZE);
+            } finally {
+                countDownLatch.countDown();
+            }
+        });
+    }
+    countDownLatch.await();
+    assertThat(FILE_SIZE * CONCURRENT_COUNT)
+        .isEqualTo(storageUsageService.getUsage(userId).getUsageAsByte());
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;"><span style="background-color: #ffffff;"></span>&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="background-color: #ffffff; color: #333333;"><b>댓글 답변 1 ) HikariCP 상태를 확인하는 방법</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>1.&nbsp;</b><span style="background-color: #ffffff;"><b>HikariCP 로그 출력</b></span></span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>logging.level.com.zaxxer.hikari=TRACE
+logging.level.com.zaxxer.hikari.HikariConfig=DEBUG</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">위를 Application 설정에 추가하는 것으로 Pool 상태를 확인할 수 있다.&nbsp;30초에 한 번씩 아래와 같이 총 커넥션, 현재 사용 중인 커넥션, 놀고 있는 커넥션, 대기 중인 커넥션이 로그로 남는다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<blockquote data-ke-style="style2">
+ <span style="color: #333333;">2024-01-26T21:34:28,983 DEBUG [HikariPool-1 housekeeper] c.z.h.p.HikariPool: HikariPool-1 - Pool stats (total=10, active=0, idle=10, waiting=0)</span>
+</blockquote> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;"><b>2. HikariPoolMXBean 으로 직접 로깅</b></span><br><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;"><span style="background-color: #ffffff;">JMX MBean for HikariCP 를 사용하여 직접 로그를 출력할 수 있다.</span><span style="background-color: #ffffff;"><br></span><span style="background-color: #ffffff;">(</span><a style="color: #333333;" href="https://github.com/brettwooldridge/HikariCP/wiki/MBean-(JMX)-Monitoring-and-Management" target="_self"><span style="background-color: #ffffff;">brettwooldridge -&nbsp;MBean (JMX) Monitoring and Management</span></a><span style="background-color: #ffffff;">)</span></span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>spring.datasource.hikari.register-mbeans=true
+spring.datasource.hikari.pool-name=pool-name</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">MBean 등록을 true 로 허용하고, hikari pool name을 지정한다.&nbsp;</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>@Bean
+public HikariPoolMXBean poolProxy() throws MalformedObjectNameException {
+&nbsp;&nbsp;&nbsp;&nbsp;MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+&nbsp;&nbsp;&nbsp;&nbsp;ObjectName objectName = new ObjectName("com.zaxxer.hikari:type=Pool (pool-name)");
+&nbsp;&nbsp;&nbsp;&nbsp;return JMX.newMBeanProxy(mBeanServer, objectName, HikariPoolMXBean.class);
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;">그리고&nbsp;HikariPoolMXBean 을 빈으로 등록하면 된다. 아래 빈 등록 코드에서 pool-name 은 설정한 pool 이름으로 수정한다.&nbsp;HikariPoolMXBean 의 메서드로&nbsp;총 커넥션, 현재 사용 중인 커넥션, 놀고 있는 커넥션, 대기 중인 커넥션를 얻을 수 있다.</span><br><span style="color: #333333;">&nbsp;</span></p> 
+<pre class="java" data-ke-type="codeblock" data-ke-language="java"><code>@Autowired
+HikariPoolMXBean hikariPoolMXBean;
+
+public void foo() {
+&nbsp;&nbsp;&nbsp;&nbsp;logger.info("\n"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ "activeConnections : " + hikariPoolMXBean.getActiveConnections() + "\n"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ "idleConnections : " + hikariPoolMXBean.getIdleConnections() + "\n"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ "waitingConnections : " + hikariPoolMXBean.getThreadsAwaitingConnection()
+&nbsp;&nbsp;&nbsp;&nbsp;);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;">&nbsp;</span><br><span style="color: #333333;"><b>댓글 답변 2 ) JPA가 아닌 JdbcTemplate 으로 낙관적 락</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">댓글에서 Mybatis 를 사용하시는데 테스트가 원활하지 않아, JPA가 고립 수준을 바꾸는 등 다른 처리가 있는지 질문해 주셨다. <span style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Apple SD Gothic Neo', Arial, sans-serif; letter-spacing: 0px;">JPA의 역할은 수정 시 Transaction이 커밋될 때 이전 조회에서 사용한 version 을 where 조건에 추가, version을 업데이트하는 것이 전부이지 않을까 생각한다.</span><span style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Apple SD Gothic Neo', Arial, sans-serif; letter-spacing: 0px;"></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;">혹시 빠트린건 없을지 JPA 에서 벗어나 JdbcTemplate 으로 버전 정보를 이용한 동시성 문제 인지를 구현해 보았다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1707103450494" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@Transactional(isolation = Isolation.REPEATABLE_READ)
+public void updateWithVersion(DailyCount dailyCount) {
+    int updateRow = jdbcTemplate.update(
+        "UPDATE daily_count " +
+            "SET today_count = " + dailyCount.getTodayCount() +
+            ", version = " + (dailyCount.getVersion() + 1) + " " +
+            "WHERE id = " + dailyCount.getId() + " AND " + "version = " + dailyCount.getVersion()
+    );
+    if(updateRow == 0) {
+        throw new IllegalArgumentException("OptimisticLockingFailureException with " + dailyCount.getId());
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;">테스트하신 내용부터 상황 공유까지 열정이 대단하시다. </span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">큰 동기부여를 받았다.</span></p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

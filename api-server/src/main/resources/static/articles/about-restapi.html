@@ -1,0 +1,134 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Rest API 설계 / 대부분 못 지키고 있는 REST 제약조건             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20"><b><span style="color: #000000;">그런 REST API로 괜찮은가</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">지금껏 RESTful&nbsp;한 API를 설계하고 있는 줄 알았다. 'REST API 설계 가이드'를 구글링하고 다른 블로그 들에서 소개하는 REST&nbsp;API 형식에 따라 <b>적절한 요청 메소드와 URL, 에러 코드와 응답 내용만 맞추면 그게 RESTful&nbsp;하다고 생각하고 있었다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><a style="color: #000000;" href="https://www.youtube.com/watch?v=RP_f5dMoHFc" target="_blank" rel="noopener"><u>이응준님의 그런 REST API로 괜찮은가</u></a>&nbsp;세미나를 보고, <b>그 생각이 완전히 부서졌다.</b> 지금 내 설계를 REST&nbsp;API라는 단어로 표현하면, REST&nbsp;API를 처음 소개하고 제안한 로이 필딩이 노하실 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그래서 왜 Rest API라고 불리우는 인터페이스들이 로이 필딩이 제안한 RESTful이 아닌 건지, 그럼 진짜 REST API는 어떻게 만드는 건지 정리하고자 한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<blockquote data-ke-style="style2">
+ <span style="color: #000000;">"I am getting frustrated by the number of people calling any HTTP-base interface a REST API... Please try to adhere to them or choose some other buzzword for your API." - Roy T. Fielding</span>
+</blockquote> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Rest API는?</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">REST API는 REST를 따라야 한다. 그럼 REST는 뭘까. 다음은 REST는 다음 항목들을 지켜야한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626896725107" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>Client-Server
+Stateless
+Cache
+Uniform Interface
+Layered System
+Code-on-Demand (optional)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">우리의 REST API가 '진짜 REST API'가 아닌 이유는 대개 4번째 항목, <b>Uniform Interface 조건을 못 맞추고 있기 때문</b>이다. HTTP를 따른다는 것에서 그 외의 조건들이 만족되기 때문이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그럼 다시 'Uniform Interface'라는 조건을 들어가보자. 다음 네 가지 항목을 만족해야 Unifrom Interface를 만족한다고 할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626897039482" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>Identification of resources
+Manipulation of resources through representations
+Self-descriptive messages
+Hypermedia as the engine of application state(HATEOAS)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">첫 번째 'Identification&nbsp;of&nbsp;resources'는 리소스가 URI로 식별이 되는지, </span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">두 번째 'Manipulation&nbsp;of&nbsp;resources&nbsp;through&nbsp;representations'는 서버가 클라이언트에서 이해할 수 있는 형식으로 응답하는지를 의미한다. 이를 테면 아래와 같은 요청에, JSON 형식으로 정보를 표현해서 응답하는지 여부를 말하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626897491262" class="html xml" style="display: block; overflow: auto; padding: 20px; color: #383a42; background-color: #f8f8f8; font-size: 14px; font-family: 'SF Mono', Menlo, Consolas, Monaco, monospace; border: 1px solid #ebebeb; line-height: 1.71; margin: 20px auto 0px; cursor: default; z-index: 1; font-style: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; text-decoration: none; background-position: initial initial; background-repeat: initial initial;" data-ke-language="html" data-ke-type="codeblock"><code>GET /stations/1
+Accept: application/json</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">여기까진 '당연한 것 아니야? 까다롭지 않은데?'라고 생각할 수 있을 것 같다. 나도 이전에 REST API 설계 가이드로 여기까지 확인했던 것 같다. 대부분 이 두 항목까진 잘 지켜지고 있으나, 로이 필딩이 말하는 대다수가 못 지키고 있는 조건은 그 다음 항목들이다.&nbsp;이후에는 각 조건이 무엇인지, 왜 문제가 되는지를 설명하고 각 조건을 만족하는 방법을 소개하겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">대부분 못 지키고 있는 REST 제약조건 1 : Self-descriptive messages</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">'Self-descriptive messages' 는 말 그대로 <b>메시지가 스스로 설명되어야 한다는 것</b>이다. 조금 더 지엽적으로 우리에게 맞춘다면,<b>&nbsp;메시지의 모든 요소는 메시지만 보고 그 뜻을 알아야 한다</b>는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">예를 들면 id가 1인 '역' 정보를 조회하는 요청을 보냈다고 하자. 아래 응답을 사람이 아닌, 클라이언트 앱(기계)이 해석할 수 있을까?&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626898224861" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">위 응답이 정상적인 처리에 대한 응답일지 조차 모르는 상황에서 해석이 가능할지 모르겠다. 모든 응답이 정상적이라면 모르겠으나, 실제론 그렇지 않으므로 그 <b>상태를 명시해줘야</b> 할 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그렇다면 HTTP status를 추가한 응답은 어떨까? 다시 이&nbsp;응답을 사람이 아닌, 클라이언트 앱(기계)이 해석할 수 있을까?&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626898368553" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사람은 이 꼴을 보고 대충 id 필드가 1이고 name 필드가 잠실역인 자원이네~ 하겠지만 기계는 그렇지 않다. 이게 <b>어떤 형식(포맷)으로 작성된 정보인지</b> 알아야 필드와 값을 확인할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">마지막이다. Content-type을 JSON으로 알려주면,&nbsp;이&nbsp;응답을 사람이 아닌, 클라이언트 앱(기계)이 해석할 수 있을까?&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626898049401" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+Content-Type: application/json
+{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">JSON 문법을 알아 id는 1, name은 잠실역임 파싱했더라도, "Id"가 뭔지, "name" <b>필드가 뭘 의미하는지 모른다.</b> 괜찮은 응답처럼 보이고, 대부분 이렇게 응답하지만, <b>사실은 self descriptive 조건을 만족하지 않아 RESTful 하지 않은 설계</b>가 된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Self-descriptive messages를 지키는 방법</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">그렇다면 어떻게 Self-descriptive messages 조건을 지킬 수 있을까. "id"와 "name"이 의미하는 바를 명시하라는 것인데, 어떻게 알려줄 수 있을까?</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">먼저 <b>Media type을 정의하는 방법</b>이 있을 것이다. id와 name을 정의하는 미디어 타입을 정의하고 그 타입을 Content-type으로 지정하는 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626899721558" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+Content-Type: application/ecsimsw.subways+json
+{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">매번 Media type을 정의하는 것이 쉽지 않다. 아래처럼 <b>link header에 명세를 확인할 수 있는 링크를 넣어</b> 응답에 넘길 수 도 있을 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626899942758" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+Content-Type: application/json
+Link: &lt;https://ecsimsw.com/docs/subway&gt;; rel="profile"
+{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 하면 응답을 받는 쪽도 id와 name의 의미를 알 수 있다. 이제 이 응답은 스스로를 설명할 수 있는 메시지가 된 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">대부분 못 지키고 있는 REST 제약조건 2 : HATEOAS&nbsp;</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">HATEOAS는 hypermedia as the engine of application state의 약자이다. <b>애플리케이션 상태는 Hyperlink를 이용해서 전이가 되어야한다</b>는 뜻이다. 예를 들면 잠실역 단일 조회 상태에서 잠실역의 세부 정보를 조회하거나, 잠실역의 운행 정보를 보는 식으로 접근 가능한 자원들을 hyperlink로 통해 알려줘야한다는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">hyperlink? HTML이 떠오르지 않은가. a 태그가 존재하고 그것을 통해 다음 상태가 결정되는 HTML은 HATEOAS를 만족한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626900482444" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+Content-Type: text/html
+
+&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+ 	&lt;h2&gt;잠실역&lt;/h2&gt;
+	&lt;h4&gt;&lt;a href="/subways/1/times"&gt;&lt;/a&gt;운행정보&lt;/h4&gt;
+        &lt;h4&gt;&lt;a href="/subways/1/details"&gt;&lt;/a&gt;세부정보&lt;/h4&gt;
+&lt;/body&gt;
+&lt;html&gt;</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">문제는 JSON이다. 보통은 해당 자원만 넘겨주지, 다음 접근 가능 목록을 고민하여 작성하지 않는다. 대부분 이렇게 응답하지만, 사실&nbsp;HATEOAS 조건을 만족하지 않는, RESTful 하지 못한 설계라는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626901484178" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+Content-Type: application/json
+{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">HATEOAS를 지키는 방법과 이유</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Json으로도<b> link, location 헤더를 이용</b>해서 다음 상태를 표시할 수 있다. 또는 <b>JSON으로 하이퍼링크를 표현하는 방법을 정의한 명세를 활용</b>할 수도 있다. 아래는 link, location 헤더를 이용해서 HATEOAS를 만족시킨 예시이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1626900783261" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>HTTP/1.1 200 OK
+Content-Type: application/json
+Link:&lt;/subways/1/times&gt;; rel="times",
+     &lt;/subways/1/detail&gt;; rel="detail"
+
+{"id":1,"name":"잠실역"}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 HATEOAS를 지키면 Client 사이드에서 link나 location 등, 응답의 필드로 정의된 하이퍼링크를 사용하여 다음 상태를 결정하므로, <b>URI 수정이 발생하더라도 Client 사이드의 수정은 불필요하게 된다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">예를 들면 '역 상세 조회'의 uri가 "/subways/detail/{id}" 에서 "/subways/{id}/detail"으로 변경되었다고 해보자. 간단한 url 변경인데도 애플리케이션 내에 "/subways/detail/"을 직접 사용한 부분은 모두 수정되어야 할 것이다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">반면 HATEOAS를 만족하여 서버 쪽 응답의 '역 상세 조회' 링크를 사용해서 요청했다면, 클라이언트 단에서는 수정할 부분이 안생기게 되는 것이다.</span></p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

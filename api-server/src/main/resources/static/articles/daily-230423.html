@@ -1,0 +1,72 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+2023.04.23 / HashiCorp Strategy day 2023             </div>
+             <div class="article-view">
+                 <h4 style="text-align: left;" data-ke-size="size20"><b><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">About&nbsp;Vault</span></b></h4> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">회사에서 키 관리를 위해 HashiCorp 사의 Vault를 도입하였다. 이 글에서는 내가 키 관리를 하면서 어떤 상황들을 고려해야 했는지, Vault는 뭐고 Vault는 그 문제들을 어떻게 해결했는지를 소개하려고 한다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">혼자 공부할 때는 키 관리에 이렇게까지 신경 쓰지 못 했다. 로컬에 들고 있거나 잘해봐야 github private 저장소에 올려 관리하는 정도였다. 회사에서는 여러 사람들이 키를 사용하고, 퇴사자를 고민해야 하고, 사용자 안에서도 권한을 분리해야 하는 등의 여러 요구 사항을 만나면서 이제는 당연하지만 지금까지 고려하지 못했던 것들을 고민할 수 있게 되었다.&nbsp;</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><span style="text-align: left;">이렇게 키 관리에 대한 고민을 전혀 못하고 있던 나에게 팀에서 고려 해야하는 상황과 공부 방향, 정책을 함께 고민해 준 회사와 팀원들에게 감사하다.</span></span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size18"><b><a href="https://ecsimsw.tistory.com/entry/어바웃-Vault" target="_blank" rel="noopener"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><span style="text-align: left;">1. About vault</span></span></a></b></p> 
+<p style="text-align: left;" data-ke-size="size18"><b><a href="https://ecsimsw.tistory.com/entry/Vault-시작하기" target="_blank" rel="noopener"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><span style="text-align: left;">2. Vault 시작하기&nbsp;</span></span></a></b></p> 
+<p style="text-align: left;" data-ke-size="size18"><a href="https://ecsimsw.tistory.com/entry/Vault-Dynamic-secret-AWS-Dynamic-secret" target="_blank" rel="noopener"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><span style="text-align: left;"><b>3. Vault - Dynamic secret 소개 with AWS IAM</b></span></span></a></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<h4 style="text-align: left;" data-ke-size="size20"><b><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">내가&nbsp;해결하고&nbsp;싶은&nbsp;문제</span></b></h4> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">1. 서비스&nbsp;별 키 분산 :&nbsp;접근하고자&nbsp;하는&nbsp;서비스마다 인증 방식 또는 키가 달라 관리에 불편하다. </span></p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">2. 단일&nbsp;키&nbsp;공유&nbsp;:&nbsp;여러&nbsp;사용자에게&nbsp;한&nbsp;키가&nbsp;공유&nbsp;되어&nbsp;있어&nbsp;퇴사자가&nbsp;생기거나&nbsp;사용자&nbsp;권한이&nbsp;바뀌는&nbsp;경우를&nbsp;대처할&nbsp;수&nbsp;없다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">3. 저장&nbsp;위치&nbsp;분산&nbsp;:&nbsp;서비스에&nbsp;접근해야&nbsp;하는&nbsp;모든&nbsp;곳(개발 환경)에&nbsp;키가&nbsp;저장되어&nbsp;있다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">4. 차단&nbsp;불가&nbsp;:&nbsp;특정&nbsp;상황에서&nbsp;한번에&nbsp;모든&nbsp;사용자의&nbsp;접근을&nbsp;막는&nbsp;등의&nbsp;seal&nbsp;불가능하다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<h4 style="text-align: left;" data-ke-size="size20"><b><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Vault는 그걸 어떻게 해결하냐면&nbsp;</span></b></h4> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Vault는 키를 관리하는 커다란 은행이다. 사용자는 그 은행에 자신이 갖고 있는 인증 방식으로 신원을 인증하고, 본인이 갖고 있는 범위 안에서 접근 키를 요청하고 받는다. HashiCorp의 Vault는 그런 은행인데 Github, K8S SA, AWS IAM, Token, Username/Password 등 여러 신원 인증 방식을 지원하고, 저장할 수 있는 키로 <span style="text-align: left;">AWS creds,&nbsp;KeyValue,&nbsp;DB,&nbsp;RabbitMQ 등 여러 서비스 키 방식을 지원한다.&nbsp;</span></span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">여기에 더해 이 은행은 사용자가 키를 요청할 경우, 서비스에 만료 기간이 있는 임시의 키를 반환한다. 사용자가 본인이 들어가고 싶은 창고에 접근 요청을 할 때 그 창고 키를 주는 게 아니라, 그 창고에 10분간만 접속할 수 있는 임시 키를 만들어 반환해 주는 Dynamic Secret 기능을 제공한다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">이 은행 방식을 예시로 한다면<br></span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">1. 서비스 별 키는 모두 Vault에 모아두고 사용자는 개인의 인증 방식만 기억하면 되므로 서비스 별 키 분산 문제가 해결된다.</span></p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">2. 은행이 요청마다 임시 키를 만들어 반환하므로 사용자 모두가 공동된 키를 갖고 있지 않고, 퇴사자가 생기거나 권한이 바뀌는 경우 그 사람의 임시 키 하나만을 무효화하는 것으로 처리할 수 있게 된다.</span></p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">3. 모든 키는 Vault 한 곳에 저장된다. 각 개발자의 개발 환경에 이 키가 저장되지 않고 개발자는 오직 자신의 인증 방법만 기억할 뿐이다.</span></p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">4. 큰 문제가 생기는 경우 은행을 닫아 버릴 수 있다. 고객들에게 더 이상 임시 키를 반환하지 않고 모든 키 권한을 무효화 할 수 있다. 이 은행 문은 은행장 (Vault Root 관리자) 한 사람만 가능하다. 물론 이 은행장이 많아져선 안 되겠다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<h4 style="text-align: left;" data-ke-size="size20"><b><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Vault 구조</span></b></h4> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1542" data-origin-height="874">
+ <span data-url="https://blog.kakaocdn.net/dn/d2xwtn/btsbXJGg7QK/lHXgapGwKYoLjUT7t7BElk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/d2xwtn/btsbXJGg7QK/lHXgapGwKYoLjUT7t7BElk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fd2xwtn%2FbtsbXJGg7QK%2FlHXgapGwKYoLjUT7t7BElk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1542" data-origin-height="874"></span>
+</figure> 
+<p></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">Vault는 이런 구조로 생겼다. Barrier 안의 모든 데이터는 암호화된다. 주요 Component는 다음과 같다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Auth&nbsp;Method</b>&nbsp;:&nbsp;사용자&nbsp;인증.&nbsp;방식으로&nbsp;Token,&nbsp;ID/PW,&nbsp;K8S,&nbsp;Github&nbsp;등을&nbsp;제공한다.</span><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Storage&nbsp;Backend&nbsp;</b>:&nbsp;키&nbsp;정책,&nbsp;토큰,&nbsp;설정&nbsp;값&nbsp;등을&nbsp;저장한다.&nbsp;저장소로&nbsp;S3,&nbsp;MongoDB,&nbsp;Etcd,&nbsp;MySQL,&nbsp;InMemory&nbsp;등을&nbsp;제공한다.</span><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Secret&nbsp;Engine</b>&nbsp;:&nbsp;데이터를&nbsp;저장,&nbsp;생성,&nbsp;암호화한다.&nbsp;(AWS,&nbsp;KeyValue,&nbsp;DB,&nbsp;RabbitMQ&nbsp;등의&nbsp;서비스&nbsp;키&nbsp;데이터를&nbsp;위한&nbsp;Secret&nbsp;Engine을&nbsp;제공한다.)</span><br><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><b>Audit</b>&nbsp;:&nbsp;Vault&nbsp;요청/응답/에러&nbsp;등의&nbsp;모든&nbsp;로그를&nbsp;기록한다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<h4 style="text-align: left;" data-ke-size="size20"><b><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">HashiCorp&nbsp;Strategy&nbsp;day 2023</span></b></h4> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">HashiCorp&nbsp;Strategy&nbsp;day 2023에 다녀왔다. HashiCorp CTO Armon Dadgar의 서비스들 소개, Gmarket의 Vault 사용 전략, 아모레퍼시픽이 Nomad와 WayPoint를 사용하는 방식을 소개하는 세션이 있었다.&nbsp;</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">많이 배웠다. 다른 회사에선 어떤 고민을 하는지 조금은 이해할 수 있었고, 해결하기 위한 고민들을 공유받았다. 특히 아모레퍼시픽이 k8s-EKS에서 벗어나 Nomad와 AWS ecs로 컨테이너를 관리하고 배포 시간을 줄였다는 이야기가 기억에 남는다. 어쩌면 내가 지금까지 너무 안일하게 대중적으로 사용되는 방식만을 공부했고 여러 서비스를 조합하거나 나만의 문제 해결 방식을 찾지 못하고 있진 않은가 되돌아보게 했던 거 같다. 더 솔직히는 아직 어떤 문젯거리가 있는지 조차 못 보고 있는 경우가 더 많을 것이라는 생각도 든다.</span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;">무엇보다 엄청난 동기부여가 되었다. Armon Dadgar가 HashiCorp 서비스 이전에 기존의&nbsp;인프라를 다루는 방식의 비효율을 설명하면서 본인의 서비스는 어떤 설루션을 줄 수 있는지 그 자신 있는 설명에 감탄했다. 함께 했던 Nancy님과 <span style="text-align: left;">Armon Dadgar는 저 젊은 나이에 회사 인프라를 다루면서 생길 문제들을 어떻게 다 꿰고 있을까, 단순히 문제 해결이 아니라 패러다임을 만드는 사람인 것 같다는 얘기들을 나누며 감탄했던 대화들이 기억난다. Vault 도입과 정책을 고민하다던 우리 팀이라 더 잘 와닿았던 것도 같다.&nbsp;</span></span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="text-align: left;" data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"><span style="text-align: left;">Armon Dadgar&nbsp;뿐 아니라 지마켓, 아모레퍼시픽 연사들 모두 멋있었다.&nbsp;</span>나도 언젠가 내 경험과 지식을 저렇게 설명할 수 있는 사람이 되고 싶다는 생각이다.</span><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000;"></span></p> 
+<p style="text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2092" data-origin-height="1566">
+ <span data-url="https://blog.kakaocdn.net/dn/ry9Xi/btsb5lkGKZE/Y83F2xU3G3kbQOAK48hKgK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/ry9Xi/btsb5lkGKZE/Y83F2xU3G3kbQOAK48hKgK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fry9Xi%2Fbtsb5lkGKZE%2FY83F2xU3G3kbQOAK48hKgK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2092" data-origin-height="1566"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif; color: #000000; text-align: left;">ps, 키 노트가 아니라 위 사진처럼 화이트보드로 발표하는 거 좋은 것 같다. 발표 내용에 유연하게 시각 자료를 만들 수 있고 청자들에게도 덜 지루한 발표가 되었던 거 같다. 옛날에 PK가 화이트보드를 쓰면서 발표자는 돌아다니며 눈 맞추는 방식을 얘기했던 것 같은데 이제 더 잘 이해된다. 나도 연습해 봐야겠다.</span></p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>
