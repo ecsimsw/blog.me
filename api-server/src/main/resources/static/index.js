@@ -1,17 +1,21 @@
 const SERVER_URL = "http://localhost:8080"
 const DEFAULT_CATEGORY_POST_ALL = "Articles"
 
-const paginationBarPageSize = 10
-const itemPerPage = 10
+const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
+const PAGE_SIZE = 10
+
 let currentPage = 1
+let currentCategory = DEFAULT_CATEGORY_POST_ALL
 
 // 초기화
 document.addEventListener("DOMContentLoaded", function () {
     loadCategories()
-    loadPosts(DEFAULT_CATEGORY_POST_ALL)
-    renderPagination(1000)
-    document.getElementById('page-btn-'+ currentPage)
-        .classList.add('selected');
+    loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
+    fetchData(SERVER_URL + "/api/article/count", function (count) {
+        renderPagination(count)
+        document.getElementById('page-btn-' + currentPage)
+            .classList.add('selected')
+    })
 });
 
 // 카테고리 목록을 조회하여 그리는 함수
@@ -37,11 +41,34 @@ function addCategory(categoryList, categoryName, numberOfPosts) {
         let contentTitle = document.getElementById("content-title")
         contentTitle.textContent = categoryName
         currentPage = 1
-        loadPosts(categoryName)
+        currentCategory = categoryName
+        loadPosts(categoryName, currentPage, PAGE_SIZE)
         renderPagination(numberOfPosts)
+        document.getElementById('page-btn-' + currentPage)
+            .classList.add('selected')
     })
     li.appendChild(a)
     categoryList.appendChild(li)
+}
+
+// category 에 해당하는 글을 조회하여 그리는 함수
+function loadPosts(categoryName, pageNumber, pageSize) {
+    if (categoryName === DEFAULT_CATEGORY_POST_ALL) {
+        fetchData(
+            SERVER_URL + "/api/article" +
+            "?pageNumber=" + pageNumber +
+            "&pageSize=" + pageSize
+            , renderPosts
+        )
+    } else {
+        fetchData(
+            SERVER_URL + "/api/article" +
+            "?category=" + categoryName +
+            "&pageNumber=" + pageNumber +
+            "&pageSize=" + pageSize
+            , renderPosts
+        )
+    }
 }
 
 // 게시글 목록을 그리는 함수
@@ -63,70 +90,61 @@ function renderPosts(posts) {
     })
 }
 
-// category 에 해당하는 글을 조회하여 그리는 함수
-function loadPosts(categoryName) {
-    if (categoryName === DEFAULT_CATEGORY_POST_ALL) {
-        fetchData(SERVER_URL + "/api/article", renderPosts)
-    } else {
-        fetchData(SERVER_URL + "/api/article?category=" + categoryName, renderPosts)
-    }
-}
-
 // 페이지네이션 생성
 function renderPagination(totalItems) {
-    const totalPages = Math.ceil(totalItems / itemPerPage);
-    const startPageIndex = Math.min(currentPage, currentPage - (currentPage % paginationBarPageSize) + 1)
-    const endPageIndex = Math.min(startPageIndex + paginationBarPageSize, totalPages)
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+    const startPageIndex = Math.min(currentPage, currentPage - (currentPage % NUMBER_OF_PAGE_BTN_IN_A_PAGE) + 1)
+    const endPageIndex = Math.min(startPageIndex + NUMBER_OF_PAGE_BTN_IN_A_PAGE-1, totalPages)
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
+    loadPosts(currentCategory, currentPage, PAGE_SIZE)
 
-    if (startPageIndex > paginationBarPageSize) {
+    if (startPageIndex > NUMBER_OF_PAGE_BTN_IN_A_PAGE) {
         const prevBtn = document.createElement("li");
         prevBtn.textContent = "<";
         prevBtn.className = "page-btn";
         prevBtn.addEventListener("click", function () {
-            currentPage = startPageIndex - paginationBarPageSize
+            currentPage = startPageIndex - NUMBER_OF_PAGE_BTN_IN_A_PAGE
             renderPagination(totalItems)
         });
         pagination.appendChild(prevBtn);
     }
 
-    for (let i = startPageIndex; i < endPageIndex; i++) {
+    for (let i = startPageIndex; i <= endPageIndex; i++) {
         const button = document.createElement("li")
         button.textContent = i;
         button.className = "page-btn";
         button.id = "page-btn-" + i;
         button.addEventListener("click", function () {
-            if(document.getElementsByClassName("selected").length > 0) {
+            if (document.getElementsByClassName("selected").length > 0) {
                 document.getElementsByClassName("selected")[0]
                     .classList.remove("selected")
             }
-            document.getElementById('page-btn-'+ i)
+            currentPage = i
+            document.getElementById('page-btn-' + currentPage)
                 .classList.add('selected')
-            fetchData("/api/posts", function (data) {
-                renderPosts(data);
-            });
+            loadPosts(currentCategory, i, PAGE_SIZE)
         });
         pagination.appendChild(button);
     }
 
-    if (startPageIndex + paginationBarPageSize < totalPages) {
+    if (endPageIndex < totalPages) {
         const nextBtn = document.createElement("li");
         nextBtn.textContent = ">";
         nextBtn.className = "page-btn";
         nextBtn.addEventListener("click", function () {
-            currentPage = startPageIndex + paginationBarPageSize
+            currentPage = startPageIndex + NUMBER_OF_PAGE_BTN_IN_A_PAGE
             renderPagination(totalItems)
         });
         pagination.appendChild(nextBtn);
     }
 
-    if(document.getElementsByClassName("selected").length > 0) {
+    if (document.getElementsByClassName("selected").length > 0) {
         document.getElementsByClassName("selected")[0]
             .classList.remove("selected")
+        document.getElementById('page-btn-' + currentPage)
+            .classList.add('selected')
     }
-    document.getElementById('page-btn-'+ currentPage)
-        .classList.add('selected')
 }
 
 // 서버에서 데이터를 받아오는 함수

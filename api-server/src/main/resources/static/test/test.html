@@ -1,0 +1,255 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+
+            <!-- <h3 class="tit_post">ShedLock 없이 분산 환경에서 스케줄러 단일 실행 보장</h3> -->
+            <div class="article-header">
+                <h2 class="title-article">분산환경에서 스케줄러의 단일 실행 보장 / ShedLock 없이</h2>
+                <p class="date">2024-02-23 04:27:20</p>
+            </div>
+
+            <!-- <div class="tt_article_useless_p_margin contents_style"> -->
+            <div class="article-view">
+                <h4 style="color: #000000; text-align: start;"
+                    data-ke-size="size20"><b><span
+                        style="color: #000000;">Optional로 Null 을 알리는 습관</span></b>
+                </h4>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16"><span
+                        style="color: #000000;"><span
+                        style="caret-color: #000000;">어떤 로직의 계산 결과가 없음을 알리는 방법으로 가장 쉬운 것은 역시 null을 반환해버리는 것이라고 생각한다.<span>&nbsp;</span></span><span
+                        style="caret-color: #000000;">그 계산 결과를 받아서 처리하는 다음 로직에서 null을 어떻게 처리할지를 전혀 신경쓰지 않는다면 말이다.</span></span>
+                </p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16"><span
+                        style="color: #000000;"><span
+                        style="caret-color: #000000;">그렇다면 반환된 결과가 null인지 매번 if문으로 체크를 해야할 것이다. null이 가능함을 생각하지 못하고 오류를 만들 여지가 있고, 처리한다고 하더라도 가독성이 좋지 못한 코드를 만들어야할 것이다.</span></span>
+                </p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16"><span
+                        style="color: #000000;"><span
+                        style="caret-color: #000000;">자바에서도 직접적인 null 비교 (ex, car == null)를 피할 수 있도록 Objects 클래스에 isNull(), nonNull(), requireNonNull() 과 같은 메소드를 제공하고 있다.</span></span>
+                </p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16"><span
+                        style="color: #000000;"><span
+                        style="caret-color: #000000;">Optional을 사용하면 계산의 결과가 null임을 쉽게 알리거나 그런 상황을 대비한 로직을 마련할 수 있다.</span></span>
+                </p>
+                <p style="color: #333333; text-align: start;" data-ke-size="size16"><span
+                        style="color: #000000;"><span
+                        style="caret-color: #000000;">계산의 결과가 '없음'을 null로 리턴하는 것이 아닌</span><span
+                        style="caret-color: #000000;">&nbsp;Optional로 감싸는 것은 어떤지 고민하고 선택의 근거를 잡을 생각이다</span></span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <h4 data-ke-size="size20"><span
+                        style="color: #000000;"><b>Optional 객체 생성 :: of(), ofNullable(), empty()</b></span>
+                </h4>
+                <p data-ke-size="size16"><span style="color: #000000;">Optional.of를 사용해서 value를 담은 Optional 객체를 생성할 수 있다. value가 null인 경우 NullPointerexception을 발생시킨다.</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615821232663" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-function"><span class="hljs-keyword">public</span> <span
+                        class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span
+                        class="hljs-title">of</span><span
+                        class="hljs-params">(String[] args)</span> </span>{
+    Optional&lt;String&gt; opStr1 = Optional.of(<span class="hljs-string">"111"</span>);
+    Optional&lt;String&gt; opStr2 = Optional.of(<span class="hljs-keyword">null</span>); <span class="hljs-comment">// NullPointerException</span>
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <p data-ke-size="size16"><span style="color: #000000;">Optional.ofNullable를 사용하여 value를 담은 Optional 객체를 생성할 수 있다. 이름처럼 value가 null인 경우에도 NPE를 발생시키지 않으며 empty 객체로 초기화 된다.</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615821524067" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-function"><span class="hljs-keyword">public</span> <span
+                        class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span
+                        class="hljs-title">ofNullable</span><span
+                        class="hljs-params">(String[] args)</span> </span>{
+    Optional&lt;String&gt; opStr3 = Optional.ofNullable(<span class="hljs-string">"111"</span>);
+    Optional&lt;String&gt; opStr4 = Optional.ofNullable(<span class="hljs-keyword">null</span>);
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <p data-ke-size="size16"><span style="color: #000000;">empty 객체는 Optional의 value 값이 null인 Optaional이다. Optional을 초기화할 때는 직접 null로 초기화하는 것보다, empty() 객체를 참조하도록 하는 것이 바람직하다. (empty는 제네릭 메소드로 Optional.value의 타입을 지정할 수 있다.)</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <p data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">null을 대입해버리면 의미를 갖지 못한채 NPE를 야기할 수 있지만, empty()를 사용하면 이것으로 '없음'을 나타낼 수 있기 때문이다.</span></span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615821698487" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-function"><span class="hljs-keyword">public</span> <span
+                        class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span
+                        class="hljs-title">empty</span><span
+                        class="hljs-params">(String[] args)</span> </span>{
+    Optional&lt;String&gt; opStr5 = Optional.&lt;String&gt;empty();
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <p data-ke-size="size16"><span style="color: #000000;">Optional 생성과 관련된 자바 코드를 살펴보면 다음과 같다.&nbsp;</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615821894606" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span
+                        class="hljs-class"><span
+                        class="hljs-keyword">class</span> <span class="hljs-title">Optional</span>&lt;<span
+                        class="hljs-title">T</span>&gt; </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span
+                            class="hljs-keyword">final</span> Optional&lt;?&gt; EMPTY = <span
+                            class="hljs-keyword">new</span> Optional&lt;&gt;();
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> T value;
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">Optional</span><span
+            class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">this</span>.value = <span class="hljs-keyword">null</span>;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span>&lt;T&gt; Optional&lt;T&gt; <span
+            class="hljs-title">empty</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-meta">@SuppressWarnings("unchecked")</span>
+        Optional&lt;T&gt; t = (Optional&lt;T&gt;) EMPTY;
+        <span class="hljs-keyword">return</span> t;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">Optional</span><span
+            class="hljs-params">(T value)</span> </span>{
+        <span class="hljs-keyword">this</span>.value = Objects.requireNonNull(value);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span
+                            class="hljs-function">Optional&lt;T&gt; <span class="hljs-title">of</span><span
+                            class="hljs-params">(T value)</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Optional&lt;&gt;(value);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span
+                            class="hljs-function">Optional&lt;T&gt; <span
+                            class="hljs-title">ofNullable</span><span
+                            class="hljs-params">(T value)</span> </span>{
+        <span class="hljs-keyword">return</span> value == <span class="hljs-keyword">null</span> ? empty() : of(value);
+    }
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional value 가져오기 :: get(), orElse(), orElseGet(), orElseThrow()</b></span>
+                </h4>
+                <p data-ke-size="size16"><span style="color: #000000;">Optional에 담긴 value를 가져올 땐 get(), orElse(), orElseGet()을 사용한다.&nbsp; </span><span
+                        style="color: #000000;">get()은 value 값 자체를 반환하고, null 일 경우에는 NoSuchElementException을 발생시킨다.&nbsp;</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <p data-ke-size="size16"><span style="color: #000000;">이를 대비할 수 있는 방법이 orElse()와 orElseGet()인데, orElse는 예외 시 대신하여 리턴할 대체 값을 지정하고, orElseGet은 인자로 받은 &nbsp;supplier를 실행한다.&nbsp;또는 orElseThrow()로 NoSuchElementException 외에도 지정한 예외를 발생시킬 수 있다.&nbsp;</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615827437874" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-function"><span class="hljs-keyword">public</span> <span
+                        class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span
+                        class="hljs-title">main</span><span
+                        class="hljs-params">(String[] args)</span> </span>{
+    Optional&lt;String&gt; opStr1 = Optional.ofNullable(<span class="hljs-string">"something"</span>);
+    System.out.println(opStr1.get()); <span class="hljs-comment">// something</span>
+    System.out.println(opStr1.orElse(<span class="hljs-string">"empty"</span>)); <span
+                            class="hljs-comment">// something</span>
+    System.out.println(opStr1.orElseGet(String::<span class="hljs-keyword">new</span>)); <span class="hljs-comment">// something</span>
+
+    Optional&lt;String&gt; opStr2 = Optional.ofNullable(<span class="hljs-keyword">null</span>);
+    System.out.println(opStr2.get()); <span class="hljs-comment">// NoSuchElementException</span>
+    System.out.println(opStr2.orElse(<span class="hljs-string">"empty"</span>)); <span
+                            class="hljs-comment">// empty</span>
+    System.out.println(opStr2.orElseGet(String::<span class="hljs-keyword">new</span>));
+    opStr2.orElseThrow(IllegalArgumentException::<span class="hljs-keyword">new</span>); <span class="hljs-comment">// IllegalArgumentException</span>
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional value 처리, 가공하기 :: filter(), map(), flatMap()</b></span>
+                </h4>
+                <p data-ke-size="size16"><span style="color: #000000;">Optional 객체에서도 Stream에서처럼 filter(), map(), flatMap()이 구현되어있다. Stream과의 사용이 똑같고, 아래 예제로도 이해가 쉬워 코드로 정리하고 넘어간다.</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615828077347" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-class"><span class="hljs-keyword">class</span> <span
+                        class="hljs-title">Optional</span>처리하기 </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span
+            class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+        Optional&lt;String&gt; opStr1 = Optional.ofNullable(<span class="hljs-string">"something"</span>);
+        Name validName = opStr1.filter(s -&gt; s.length() &gt; <span class="hljs-number">3</span>)
+                .map(Name::<span class="hljs-keyword">new</span>)
+                .orElseThrow(IllegalArgumentException::<span class="hljs-keyword">new</span>);
+    }
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615828088290" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Name</span></span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String name;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Name</span><span
+            class="hljs-params">(<span class="hljs-keyword">final</span> String name)</span></span>{
+        <span class="hljs-keyword">if</span>(name.length() &lt;= <span class="hljs-number">3</span>){
+            <span class="hljs-keyword">new</span> IllegalArgumentException();
+        }
+
+        <span class="hljs-keyword">this</span>.name = name;
+    }
+}</code></pre>
+                <p data-ke-size="size16">&nbsp;</p>
+                <h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional value가 null인 경우 :: isPresent(), ifPresent(), ifPresentOrElse()</b></span>
+                </h4>
+                <p data-ke-size="size16"><span
+                        style="color: #000000;">null인 경우를 확인하거나 null인 경우를 처리할 로직을 정할 수 있다. </span><span
+                        style="color: #000000;">isPresent()는 값이 존재하는지 boolean 값을 반환하고, ifPresent(Consumer&lt;T&gt; action)은 null이 아닐 경우에만 action을 실행한다.</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <p data-ke-size="size16"><span style="color: #000000;"> ifPresentOrElse(Consumer&nbsp;action, Runnable emptyAction)는 value가 null인 경우 처리할 로직과 null이 아닌 경우 처리할 로직을 모두 넘길 수 있다.</span>
+                </p>
+                <p data-ke-size="size16">&nbsp;</p>
+                <pre id="code_1615828678928" class="java" data-ke-language="java"
+                     data-ke-type="codeblock"><code class="hljs"><span
+                        class="hljs-comment">/**
+ * If a value is present, performs the given action with the value,
+ * otherwise does nothing.
+ *
+ * <span class="hljs-doctag">@param</span> action the action to be performed, if a value is present
+ * <span class="hljs-doctag">@throws</span> NullPointerException if value is present and the given action is
+ *         {<span class="hljs-doctag">@code</span> null}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span
+        class="hljs-title">ifPresent</span><span class="hljs-params">(Consumer&lt;? <span
+        class="hljs-keyword">super</span> T&gt; action)</span> </span>{
+    <span class="hljs-keyword">if</span> (value != <span class="hljs-keyword">null</span>) {
+        action.accept(value);
+    }
+}
+
+<span class="hljs-comment">/**
+ * If a value is present, performs the given action with the value,
+ * otherwise performs the given empty-based action.
+ *
+ * <span class="hljs-doctag">@param</span> action the action to be performed, if a value is present
+ * <span class="hljs-doctag">@param</span> emptyAction the empty-based action to be performed, if no value is
+ *        present
+ * <span class="hljs-doctag">@throws</span> NullPointerException if a value is present and the given action
+ *         is {<span class="hljs-doctag">@code</span> null}, or no value is present and the given empty-based
+ *         action is {<span class="hljs-doctag">@code</span> null}.
+ * <span class="hljs-doctag">@since</span> 9
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span
+        class="hljs-title">ifPresentOrElse</span><span class="hljs-params">(Consumer&lt;? <span class="hljs-keyword">super</span> T&gt; action, Runnable emptyAction)</span> </span>{
+    <span class="hljs-keyword">if</span> (value != <span class="hljs-keyword">null</span>) {
+        action.accept(value);
+    } <span class="hljs-keyword">else</span> {
+        emptyAction.run();
+    }
+}</code></pre>
+                <p data-ke-size="size16"><span style="color: #000000;">&nbsp;</span></p>
+                <h4 data-ke-size="size20"><span
+                        style="caret-color: #000000; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Apple SD Gothic Neo', Arial, sans-serif; font-size: 16px; letter-spacing: 0px;">.</span>
+                </h4>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>
