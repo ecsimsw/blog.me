@@ -34,7 +34,7 @@ public class DailyCountCacheService {
     @Scheduled(fixedDelay = 10_000)
     public void schedule() {
         for (var articleId : countCachePerArticle.keySet()) {
-            viewCountService.persist(articleId, countCachePerArticle.remove(articleId));
+            viewCountService.count(articleId, countCachePerArticle.remove(articleId));
         }
     }
 }
