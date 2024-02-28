@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class DailyCountCacheService {
 
-    private final DailyCountService dailyCountService;
+    private final ViewCountService viewCountService;
     private final ConcurrentMap<Integer, Integer> countCachePerArticle;
 
-    public DailyCountCacheService(DailyCountService dailyCountService) {
-        this.dailyCountService = dailyCountService;
+    public DailyCountCacheService(ViewCountService viewCountService) {
+        this.viewCountService = viewCountService;
         this.countCachePerArticle = new ConcurrentHashMap<>();
     }
 
@@ -34,7 +34,7 @@ public class DailyCountCacheService {
     @Scheduled(fixedDelay = 10_000)
     public void schedule() {
         for (var articleId : countCachePerArticle.keySet()) {
-            dailyCountService.persist(articleId, countCachePerArticle.remove(articleId));
+            viewCountService.persist(articleId, countCachePerArticle.remove(articleId));
         }
     }
 }

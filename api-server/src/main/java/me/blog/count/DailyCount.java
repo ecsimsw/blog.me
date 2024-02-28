@@ -5,8 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,8 +15,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-@Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"articleId", "date"})
+@Table(indexes = {
+    @Index(name = "idx_art_date_cnt", columnList = "articleId, date, count", unique = true)
 })
 @Entity
 public class DailyCount {

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.LocalDate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,16 +14,17 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 @DataJpaTest
 class DailyCountCacheServiceTest {
 
-    @Autowired
-    private DailyCountRepository dailyCountRepository;
+    private final DailyCountRepository dailyCountRepository;
+    private final DailyCountCacheService dailyCountCacheService;
 
-    private DailyCountService dailyCountService;
-    private DailyCountCacheService dailyCountCacheService;
-
-    @BeforeEach
-    public void init() {
-        this.dailyCountService = new DailyCountService(dailyCountRepository);
-        this.dailyCountCacheService = new DailyCountCacheService(dailyCountService);
+    public DailyCountCacheServiceTest(
+        @Autowired DailyCountRepository dailyCountRepository,
+        @Autowired TotalCountRepository totalCountRepository
+    ) {
+        this.dailyCountRepository = dailyCountRepository;
+        this.dailyCountCacheService = new DailyCountCacheService(
+            new ViewCountService(dailyCountRepository, totalCountRepository)
+        );
     }
 
     @DisplayName("날짜별 글 조회 수를 캐싱한다.")
