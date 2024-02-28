@@ -19,6 +19,7 @@ public class ContentFileController {
 
     @GetMapping("/article/{id}")
     public String serveArticleFile(@PathVariable int id) {
+        // TODO :: AUTH
         cacheService.count(id, 1);
         var filePath = contentService.getPathById(id);
         return "forward:/" + filePath;

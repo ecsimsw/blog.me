@@ -10,6 +10,3 @@ public record Category (
         return this.index - o.index;
     }
 }
-
-// TODO :: feat ORDER
-

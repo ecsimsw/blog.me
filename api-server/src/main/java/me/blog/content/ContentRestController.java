@@ -43,7 +43,6 @@ public class ContentRestController {
     public ResponseEntity<Integer> count(
         @RequestParam Optional<String> category
     ) {
-        System.out.println(category);
         var results = contentService.countArticleIn(category);
         return ResponseEntity.ok(results);
     }
