@@ -2,7 +2,6 @@ package me.blog.count;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,15 +11,15 @@ import org.springframework.stereotype.Service;
 public class DailyCountCacheService {
 
     private final DailyCountService dailyCountService;
-    private final ConcurrentMap<Integer, Integer> countCache;
+    private final ConcurrentMap<Integer, Integer> countCachePerArticle;
 
     public DailyCountCacheService(DailyCountService dailyCountService) {
         this.dailyCountService = dailyCountService;
-        this.countCache = new ConcurrentHashMap<>();
+        this.countCachePerArticle = new ConcurrentHashMap<>();
     }
 
     public void count(int articleId, int count) {
-        countCache.compute(articleId, (k, v) -> {
+        countCachePerArticle.compute(articleId, (k, v) -> {
             if(v == null) {
                 return count;
             }
@@ -29,13 +28,13 @@ public class DailyCountCacheService {
     }
 
     public int getCached(int articleId) {
-        return countCache.getOrDefault(articleId, 0);
+        return countCachePerArticle.getOrDefault(articleId, 0);
     }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 10_000)
     public void schedule() {
-        for (var articleId : countCache.keySet()) {
-            dailyCountService.persist(articleId, countCache.remove(articleId));
+        for (var articleId : countCachePerArticle.keySet()) {
+            dailyCountService.persist(articleId, countCachePerArticle.remove(articleId));
         }
     }
 }

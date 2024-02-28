@@ -18,7 +18,10 @@ public class ContentRestController {
     private final ContentService contentService;
 
     @GetMapping("/api/article")
-    public ResponseEntity<List<Article>> findAllArticle(@RequestParam Optional<String> category, Pageable pageable) {
+    public ResponseEntity<List<Article>> findAllArticle(
+        @RequestParam Optional<String> category,
+        Pageable pageable
+    ) {
         var results = contentService.articlesInCategory(category, pageable);
         return ResponseEntity.ok(results);
     }
@@ -37,7 +40,10 @@ public class ContentRestController {
     }
 
     @GetMapping("/api/article/count")
-    public ResponseEntity<Integer> count(@RequestParam Optional<String> category) {
+    public ResponseEntity<Integer> count(
+        @RequestParam Optional<String> category
+    ) {
+        System.out.println(category);
         var results = contentService.countArticleIn(category);
         return ResponseEntity.ok(results);
     }
