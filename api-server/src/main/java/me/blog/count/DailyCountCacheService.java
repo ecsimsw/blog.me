@@ -2,6 +2,7 @@ package me.blog.count;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,16 @@ public class DailyCountCacheService {
     }
 
     public void count(int articleId, int count) {
-        var updated = countCache.getOrDefault(articleId, 0) + count;
-        countCache.put(articleId, updated);
+        countCache.compute(articleId, (k, v) -> {
+            if(v == null) {
+                return count;
+            }
+            return v + count;
+        });
+    }
+
+    public int getCached(int articleId) {
+        return countCache.getOrDefault(articleId, 0);
     }
 
     @Scheduled(fixedDelay = 10000)

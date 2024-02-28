@@ -22,7 +22,7 @@ class DailyCountServiceTest {
 
     @DisplayName("날짜별 조회 횟수를 조회한다.")
     @Test
-    public void read() {
+    public void findByDate() {
         var articleId = 1;
         var count = 20;
         var date = LocalDate.now();
