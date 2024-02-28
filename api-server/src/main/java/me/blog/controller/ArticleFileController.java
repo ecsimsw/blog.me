@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
-public class ContentFileController {
+public class ArticleFileController {
 
     private final ContentService contentService;
     private final DailyCountCacheService cacheService;
 
-    public ContentFileController(ContentService contentService, DailyCountCacheService cacheService) {
+    public ArticleFileController(ContentService contentService, DailyCountCacheService cacheService) {
         this.contentService = contentService;
         this.cacheService = cacheService;
     }

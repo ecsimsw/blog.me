@@ -18,6 +18,10 @@ public class ContentService {
     private final Articles articles;
     private final Categories categories;
 
+    public Article findById(int id) {
+        return articles.getById(id);
+    }
+
     public List<Article> search(String keyword, Pageable pageable) {
         var pageSize = pageable.getPageSize();
         var pageNumber = pageable.getPageNumber();

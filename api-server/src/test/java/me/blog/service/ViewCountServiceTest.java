@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.stream.Collectors;
 import me.blog.domain.DailyCount;
 import me.blog.domain.DailyCountRepository;
@@ -97,7 +96,7 @@ class ViewCountServiceTest {
         var n = 2;
         var counts = MOCK_DAILY_COUNT(date);
         dailyCountRepository.saveAll(counts);
-        var result = viewCountService.findTopNDailyCount(n, date).stream()
+        var result = viewCountService.findTopNArticle(n, date).stream()
             .map(DailyCount::getArticleId)
             .collect(Collectors.toList());
         var expected = TOP_N_OF_MOCK_DAILY_COUNT(date, n).stream()

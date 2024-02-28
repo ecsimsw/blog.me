@@ -30,7 +30,7 @@ public class ViewCountService {
     }
 
     @Transactional(readOnly = true)
-    public List<DailyCount> findTopNDailyCount(int n, LocalDate date) {
+    public List<DailyCount> findTopNArticle(int n, LocalDate date) {
         return dailyCountRepository.findAllByDate(
             date,
             PageRequest.of(0, n, Direction.DESC, DailyCount_.COUNT, DailyCount_.ARTICLE_ID)
