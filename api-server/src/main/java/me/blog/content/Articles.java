@@ -1,26 +1,22 @@
 package me.blog.content;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
-import me.blog.data.ArticleDao;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-@Component
 public class Articles {
 
     private final List<Article> articles;
 
-    public Articles(ArticleDao articleDao) {
-        var articles = articleDao.readDataFile();
+    public Articles(List<Article> articles) {
         if (articles.isEmpty()) {
             throw new NoSuchElementException("File data is empty");
         }
-        Collections.sort(articles, Comparator.reverseOrder());
-        this.articles = articles;
+        this.articles = new ArrayList<>(articles);
+        this.articles.sort(Comparator.reverseOrder());
     }
 
     public Article getById(int id) {
@@ -30,7 +26,7 @@ public class Articles {
             .orElseThrow(() -> new NoSuchElementException("Not exists id"));
     }
 
-    public List<Article> findAll(int pageSize, int pageNumber) {
+    public List<Article> findAllOrderByIndexDesc(int pageSize, int pageNumber) {
         var collect = articles.stream()
             .limit(pageNumber * pageSize + pageSize)
             .collect(Collectors.toList());
@@ -40,7 +36,7 @@ public class Articles {
         );
     }
 
-    public List<Article> findAllByCategory(int categoryId, int pageSize, int pageNumber) {
+    public List<Article> findAllByCategoryOrderByIndexDesc(int categoryId, int pageSize, int pageNumber) {
         var collect = articles.stream()
             .filter(it -> it.categoryId() == categoryId)
             .limit(pageNumber * pageSize + pageSize)
@@ -51,7 +47,7 @@ public class Articles {
         );
     }
 
-    public List<Article> findAllByTitleContains(String keyword, int pageSize, int pageNumber) {
+    public List<Article> findAllTitleContainsOrderByIndexDesc(String keyword, int pageSize, int pageNumber) {
         var collect = articles.stream()
             .filter(it -> it.title().contains(keyword))
             .limit(pageNumber * pageSize + pageSize)

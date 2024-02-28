@@ -1,27 +1,26 @@
 package me.blog.content;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import me.blog.data.CategoryDao;
 import org.springframework.stereotype.Component;
 
-@Component
 public class Categories {
 
     private final List<Category> categories;
 
-    public Categories(CategoryDao categoryDao) {
-        var categories = categoryDao.readDataFile();
+    public Categories(List<Category> categories) {
         if (categories.isEmpty()) {
             throw new NoSuchElementException("File data is empty");
         }
-        Collections.sort(categories);
-        this.categories = categories;
+        this.categories = new ArrayList<>(categories);
+        Collections.sort(this.categories);
     }
 
     public List<Category> findAll() {
-        return categories;
+        return new ArrayList<>(categories);
     }
 
     public Category getByName(String categoryName) {

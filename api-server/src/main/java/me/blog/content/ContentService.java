@@ -18,18 +18,18 @@ public class ContentService {
     public List<Article> search(String keyword, Pageable pageable) {
         var pageSize = pageable.getPageSize();
         var pageNumber = pageable.getPageNumber();
-        return articles.findAllByTitleContains(keyword, pageSize, pageNumber);
+        return articles.findAllTitleContainsOrderByIndexDesc(keyword, pageSize, pageNumber);
     }
 
     public List<Article> articlesInCategory(Optional<String> optCategory, Pageable pageable) {
         var pageSize = pageable.getPageSize();
         var pageNumber = pageable.getPageNumber();
         if(optCategory.isEmpty()) {
-            return articles.findAll(pageSize, pageNumber);
+            return articles.findAllOrderByIndexDesc(pageSize, pageNumber);
         }
         var categoryName = optCategory.orElseThrow();
         var category = categories.getByName(categoryName);
-        return articles.findAllByCategory(category.index(), pageSize, pageNumber);
+        return articles.findAllByCategoryOrderByIndexDesc(category.index(), pageSize, pageNumber);
     }
 
     public int countArticleIn(Optional<String> optCategory) {
