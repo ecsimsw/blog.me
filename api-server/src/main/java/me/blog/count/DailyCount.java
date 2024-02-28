@@ -26,14 +26,14 @@ public class DailyCount {
     private Long id;
 
     @NotNull
-    private Long articleId;
+    private int articleId;
 
     @NotNull
     private LocalDate date;
 
     private int count = 0;
 
-    public DailyCount(Long articleId, LocalDate date, int count) {
+    public DailyCount(int articleId, int count, LocalDate date) {
         this.articleId = articleId;
         this.date = date;
         this.count = count;

@@ -1,8 +1,9 @@
 package me.blog.count;
 
 import java.time.LocalDate;
-import javax.transaction.Transactional;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DailyCountService {
@@ -13,11 +14,20 @@ public class DailyCountService {
         this.dailyCountRepository = dailyCountRepository;
     }
 
+    @Transactional(readOnly = true)
+    public Optional<DailyCount> findByDate(int articleId, LocalDate date) {
+        return dailyCountRepository.findByArticleIdAndDate(articleId, date);
+    }
+
     @Transactional
-    public void persist(long articleId, int count) {
-        var date = LocalDate.now();
+    public void persist(int articleId, int count) {
+        persist(articleId, count, LocalDate.now());
+    }
+
+    @Transactional
+    public void persist(int articleId, int count, LocalDate date) {
         var current = dailyCountRepository.findByArticleIdAndDate(articleId, date)
-            .orElse(new DailyCount(articleId, date, 0));
+            .orElse(new DailyCount(articleId, 0, date));
         current.addCount(count);
         dailyCountRepository.save(current);
     }
