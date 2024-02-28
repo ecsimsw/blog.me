@@ -1,8 +1,8 @@
 package me.blog.fixture;
 
 import java.util.List;
-import me.blog.content.Article;
-import me.blog.content.Category;
+import me.blog.domain.Article;
+import me.blog.domain.Category;
 
 public class Dummies {
 

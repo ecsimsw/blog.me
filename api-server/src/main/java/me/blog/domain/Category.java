@@ -1,4 +1,4 @@
-package me.blog.content;
+package me.blog.domain;
 
 public record Category (
    int index,

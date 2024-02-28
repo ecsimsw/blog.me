@@ -1,4 +1,4 @@
-package me.blog.count;
+package me.blog.service;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

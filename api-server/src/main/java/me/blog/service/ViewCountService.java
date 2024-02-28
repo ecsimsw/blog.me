@@ -1,8 +1,12 @@
-package me.blog.count;
+package me.blog.service;
 
 import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import me.blog.domain.DailyCount;
+import me.blog.domain.DailyCountRepository;
+import me.blog.domain.TotalCount;
+import me.blog.domain.TotalCountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

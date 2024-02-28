@@ -1,9 +1,12 @@
-package me.blog.content;
+package me.blog.service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import me.blog.domain.Article;
+import me.blog.domain.Articles;
+import me.blog.domain.Categories;
 import me.blog.dto.CategoryResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package me.blog.dto;
 
-import me.blog.content.Category;
+import me.blog.domain.Category;
 
 public record CategoryResponse(
     int id,

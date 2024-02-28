@@ -1,8 +1,10 @@
-package me.blog.content;
+package me.blog.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import me.blog.domain.Article;
+import me.blog.domain.Articles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

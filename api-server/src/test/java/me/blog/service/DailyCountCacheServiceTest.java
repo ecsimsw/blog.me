@@ -1,4 +1,4 @@
-package me.blog.count;
+package me.blog.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -6,6 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.LocalDate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import me.blog.domain.DailyCount;
+import me.blog.domain.DailyCountRepository;
+import me.blog.domain.TotalCountRepository;
+import me.blog.service.DailyCountCacheService;
+import me.blog.service.ViewCountService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

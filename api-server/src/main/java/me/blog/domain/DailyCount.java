@@ -1,4 +1,4 @@
-package me.blog.count;
+package me.blog.domain;
 
 import java.time.LocalDate;
 import javax.persistence.Entity;

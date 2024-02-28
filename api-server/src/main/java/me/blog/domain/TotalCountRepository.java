@@ -1,4 +1,4 @@
-package me.blog.count;
+package me.blog.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

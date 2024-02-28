@@ -1,4 +1,4 @@
-package me.blog.content;
+package me.blog.controller;
 
 import static me.blog.fixture.Dummies.MOCK_ARTICLE_DATA;
 import static org.mockito.Mockito.when;
@@ -10,7 +10,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import me.blog.alert.AlertManagerChain;
+import me.blog.domain.Category;
 import me.blog.dto.CategoryResponse;
+import me.blog.service.ContentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

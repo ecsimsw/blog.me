@@ -1,6 +1,6 @@
 package me.blog.data;
 
-import me.blog.content.Article;
+import me.blog.domain.Article;
 
 public class ArticleRowMapper {
 

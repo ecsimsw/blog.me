@@ -1,4 +1,4 @@
-package me.blog.content;
+package me.blog.controller;
 
 import me.blog.alert.AlertManagerChain;
 import lombok.RequiredArgsConstructor;

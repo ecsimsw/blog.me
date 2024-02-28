@@ -1,4 +1,4 @@
-package me.blog.count;
+package me.blog.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

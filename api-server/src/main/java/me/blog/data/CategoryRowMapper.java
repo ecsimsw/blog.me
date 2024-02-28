@@ -1,6 +1,6 @@
 package me.blog.data;
 
-import me.blog.content.Category;
+import me.blog.domain.Category;
 
 public class CategoryRowMapper {
 

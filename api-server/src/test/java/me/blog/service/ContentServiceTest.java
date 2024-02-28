@@ -1,4 +1,4 @@
-package me.blog.content;
+package me.blog.service;
 
 import static me.blog.fixture.Dummies.MOCK_ARTICLE_DATA;
 import static me.blog.fixture.Dummies.MOCK_CATEGORY_DATA;
@@ -8,7 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import me.blog.domain.Articles;
+import me.blog.domain.Categories;
 import me.blog.dto.CategoryResponse;
+import me.blog.service.ContentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

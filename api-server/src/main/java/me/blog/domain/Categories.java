@@ -1,11 +1,9 @@
-package me.blog.content;
+package me.blog.domain;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
-import me.blog.data.CategoryDao;
-import org.springframework.stereotype.Component;
 
 public class Categories {
 

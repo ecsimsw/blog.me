@@ -1,4 +1,4 @@
-package me.blog.content;
+package me.blog.controller;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -7,7 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 import me.blog.alert.AlertManagerChain;
-import me.blog.count.DailyCountCacheService;
+import me.blog.service.ContentService;
+import me.blog.service.DailyCountCacheService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

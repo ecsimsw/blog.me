@@ -3,7 +3,7 @@ package me.blog.data;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
-import me.blog.content.Article;
+import me.blog.domain.Article;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

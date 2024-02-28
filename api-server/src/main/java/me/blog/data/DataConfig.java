@@ -1,9 +1,7 @@
-package me.blog.config;
+package me.blog.data;
 
-import java.util.List;
-import me.blog.content.Article;
-import me.blog.content.Articles;
-import me.blog.content.Categories;
+import me.blog.domain.Articles;
+import me.blog.domain.Categories;
 import me.blog.data.ArticleDao;
 import me.blog.data.CategoryDao;
 import org.springframework.context.annotation.Bean;
