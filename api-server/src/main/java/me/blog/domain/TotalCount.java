@@ -18,4 +18,8 @@ public class TotalCount {
     private Integer articleId;
 
     private int count = 0;
+
+    public void addCount(int count) {
+        this.count+=count;
+    }
 }

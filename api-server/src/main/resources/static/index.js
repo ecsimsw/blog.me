@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ecsimsw-github").addEventListener('click', function () {
         window.location.href = 'https://github.com/ecsimsw';
     })
-
+    updateDashboard()
     loadCategories()
     loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
     fetchData(SERVER_URL + "/api/article/count", function (count) {
@@ -27,6 +27,18 @@ document.addEventListener("DOMContentLoaded", function () {
             .classList.add('selected')
     })
 });
+
+function updateDashboard() {
+    const yesterdayDate = new Date(new Date().setDate(new Date().getDate()-1))
+    fetchData(SERVER_URL + "/api/view/daily?date=" + yesterdayDate.toISOString().substring(0,10), function (count) {
+        const yesterdayViewCnt = document.getElementById("yesterdayViewCnt");
+        yesterdayViewCnt.textContent = "yesterday : " + count
+    })
+    fetchData(SERVER_URL + "/api/view/total", function (count) {
+        const totalViewCnt = document.getElementById("totalViewCnt");
+        totalViewCnt.textContent = "total : " + count
+    })
+}
 
 // 카테고리 목록을 조회하여 그리는 함수
 function loadCategories() {
@@ -63,10 +75,11 @@ function addCategory(categoryList, categoryName, numberOfPosts) {
 
 // category 에 해당하는 글을 조회하여 그리는 함수
 function loadPosts(categoryName, pageNumber, pageSize) {
+    var pageIndex = pageNumber -1
     if (categoryName === DEFAULT_CATEGORY_POST_ALL) {
         fetchData(
             SERVER_URL + "/api/article" +
-            "?pageNumber=" + pageNumber +
+            "?pageNumber=" + pageIndex +
             "&pageSize=" + pageSize
             , renderPosts
         )
@@ -74,7 +87,7 @@ function loadPosts(categoryName, pageNumber, pageSize) {
         fetchData(
             SERVER_URL + "/api/article" +
             "?category=" + categoryName +
-            "&pageNumber=" + pageNumber +
+            "&pageNumber=" + pageIndex +
             "&pageSize=" + pageSize
             , renderPosts
         )

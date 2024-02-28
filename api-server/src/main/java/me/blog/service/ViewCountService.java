@@ -23,10 +23,15 @@ public class ViewCountService {
     private final TotalCountRepository totalCountRepository;
 
     @Transactional(readOnly = true)
-    public int sumAt(LocalDate date) {
+    public int viewCountAt(LocalDate date) {
         return dailyCountRepository.findAllByDate(date).stream()
             .mapToInt(DailyCount::getCount)
             .sum();
+    }
+
+    @Transactional(readOnly = true)
+    public int viewCount() {
+        return totalCountRepository.sum().orElse(0);
     }
 
     @Transactional(readOnly = true)
@@ -70,6 +75,7 @@ public class ViewCountService {
 
         var totalCount = totalCountRepository.findById(articleId)
             .orElse(new TotalCount(articleId, 0));
+        totalCount.addCount(count);
         totalCountRepository.save(totalCount);
     }
 }
