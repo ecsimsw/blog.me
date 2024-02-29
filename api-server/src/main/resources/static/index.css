@@ -23,14 +23,10 @@
     color: #666;
 }
 
-#view-count-item-title {
-    font-weight: 800;
+.dashboard-item-title {
+    font-weight: 700;
     font-size: 15px;
-}
-
-#most-viewed-item-title {
-    font-weight: 800;
-    font-size: 15px;
+    color: #444;
 }
 
 .most-viewed {
@@ -44,11 +40,6 @@
 .most-viewed-item {
     color: #666;
     text-decoration: none;
-}
-
-#recent-posts-item-title {
-    font-weight: 800;
-    font-size: 15px;
 }
 
 .recent-posts {
@@ -150,7 +141,7 @@ body {
 }
 
 .post-list li h3 {
-    font-size: 18px;
+    font-size: 17px;
     margin-top: 30px;
     margin-bottom: 30px;
 }
