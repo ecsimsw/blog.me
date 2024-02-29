@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import me.blog.domain.Articles;
 import me.blog.domain.Categories;
 import me.blog.dto.CategoryResponse;
-import me.blog.service.ContentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +49,7 @@ class ContentServiceTest {
         var result = contentService.articlesInCategory(categoryOpt, PageRequest.of(pageNumber, pageSize));
 
         var category = categories.getByName(categoryOpt.orElseThrow());
-        var expected = articles.findAllByCategoryOrderByIndexDesc(category.index(), pageSize, pageNumber);
+        var expected = articles.findAllByCategoryOrderByIndexDesc(category.id(), pageSize, pageNumber);
         assertEquals(expected, result);
     }
 
@@ -81,7 +80,7 @@ class ContentServiceTest {
         var result = contentService.countArticleIn(optCategory);
 
         var category = categories.getByName(optCategory.orElseThrow());
-        var expected = articles.countByCategory(category.index());
+        var expected = articles.countByCategory(category.id());
         assertEquals(expected, result);
     }
 
@@ -99,9 +98,9 @@ class ContentServiceTest {
         var result = contentService.categories();
         var expectedCategories = categories.findAll().stream()
             .map(it -> new CategoryResponse(
-                it.index(),
+                it.id(),
                 it.name(),
-                articles.countByCategory(it.index()))
+                articles.countByCategory(it.id()))
             ).collect(Collectors.toList());
         assertEquals(result, expectedCategories);
     }

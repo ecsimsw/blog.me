@@ -1,7 +1,7 @@
 package me.blog.domain;
 
 public record Article(
-    int index,
+    int id,
     String title,
     int categoryId,
     String path
@@ -9,6 +9,6 @@ public record Article(
 
     @Override
     public int compareTo(Article o) {
-        return this.index - o.index;
+        return this.id - o.id;
     }
 }

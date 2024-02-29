@@ -8,6 +8,6 @@ public record CategoryResponse(
     int numberOfPosts
 ) {
     public static CategoryResponse of(Category category, int numberOfPosts) {
-        return new CategoryResponse(category.index(), category.name(), numberOfPosts);
+        return new CategoryResponse(category.id(), category.name(), numberOfPosts);
     }
 }

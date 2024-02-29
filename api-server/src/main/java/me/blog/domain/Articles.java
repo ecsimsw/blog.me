@@ -21,7 +21,7 @@ public class Articles {
 
     public Article getById(int id) {
         return articles.stream()
-            .filter(it -> it.index() == id)
+            .filter(it -> it.id() == id)
             .findAny()
             .orElseThrow(() -> new NoSuchElementException("Not exists id"));
     }

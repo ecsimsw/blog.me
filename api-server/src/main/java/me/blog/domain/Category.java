@@ -1,12 +1,12 @@
 package me.blog.domain;
 
 public record Category (
-   int index,
+   int id,
    String name
 ) implements Comparable<Category> {
 
     @Override
     public int compareTo(Category o) {
-        return this.index - o.index;
+        return this.id - o.id;
     }
 }

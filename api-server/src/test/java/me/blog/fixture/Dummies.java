@@ -68,5 +68,4 @@ public class Dummies {
             .limit(n)
             .collect(Collectors.toList());
     }
-
 }

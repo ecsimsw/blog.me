@@ -36,7 +36,7 @@ public class ContentService {
         }
         var categoryName = optCategory.orElseThrow();
         var category = categories.getByName(categoryName);
-        return articles.findAllByCategoryOrderByIndexDesc(category.index(), pageSize, pageNumber);
+        return articles.findAllByCategoryOrderByIndexDesc(category.id(), pageSize, pageNumber);
     }
 
     public int countArticleIn(Optional<String> optCategory) {
@@ -44,12 +44,12 @@ public class ContentService {
             return articles.count();
         }
         var category = categories.getByName(optCategory.orElseThrow());
-        return articles.countByCategory(category.index());
+        return articles.countByCategory(category.id());
     }
 
     public List<CategoryResponse> categories() {
         return categories.findAll().stream()
-            .map(it -> CategoryResponse.of(it, articles.countByCategory(it.index())))
+            .map(it -> CategoryResponse.of(it, articles.countByCategory(it.id())))
             .collect(Collectors.toList());
     }
 
