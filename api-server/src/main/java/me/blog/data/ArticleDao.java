@@ -3,11 +3,18 @@ package me.blog.data;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import me.blog.domain.Article;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -16,8 +23,18 @@ public class ArticleDao {
 
     private final File file;
 
-    public ArticleDao(@Value("${data.article.file.path}") String dataFilePath) {
-        file = new File(dataFilePath);
+    public ArticleDao(
+        @Autowired ResourceLoader resourceLoader,
+        @Value("${data.article.file.path}") String dataFilePath
+    ) throws IOException {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:" + dataFilePath);
+            file = resource.getFile();
+
+        }catch (IOException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException();
+        }
     }
 
     public List<Article> readDataFile() {
