@@ -4,6 +4,7 @@ const DEFAULT_CATEGORY_POST_ALL = "Articles"
 const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
 const PAGE_SIZE = 10
 const MOST_VIEWED_SIZE = 5
+const RECENT_ARTICLE_SIZE = 5
 
 let currentPage = 1
 let currentCategory = DEFAULT_CATEGORY_POST_ALL
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateViewCount()
     loadMostViewArticle()
     loadCategories()
+    updateRecentPosts()
     loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
     fetchData(SERVER_URL + "/api/article/count", function (count) {
         renderPagination(count)
@@ -32,8 +34,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // 조회 수를 조회하여 그리는 함수
 function updateViewCount() {
-    const yesterdayDate = new Date(new Date().setDate(new Date().getDate()-1))
-    fetchData(SERVER_URL + "/api/view/daily?date=" + yesterdayDate.toISOString().substring(0,10), function (count) {
+    const yesterdayDate = new Date(new Date().setDate(new Date().getDate() - 1))
+    fetchData(SERVER_URL + "/api/view/daily?date=" + yesterdayDate.toISOString().substring(0, 10), function (count) {
         const yesterdayViewCnt = document.getElementById("yesterdayViewCnt");
         yesterdayViewCnt.textContent = "yesterday : " + count
     })
@@ -53,12 +55,31 @@ function loadMostViewArticle() {
             const li = document.createElement("li")
             const a = document.createElement("a")
             li.id = "most-viewed-" + i++
-            a.href = "/article/"+post.id
+            a.href = "/article/" + post.id
             a.textContent = post.title
             a.className = "most-viewed-item"
             a.textContent = post.title
             li.appendChild(a)
             topArticle.appendChild(li)
+        })
+    })
+}
+
+// 최근 글 목록을 업데이트 하는 함수
+function updateRecentPosts() {
+    fetchData(SERVER_URL + "/api/article/recent?n=" + RECENT_ARTICLE_SIZE, function (posts) {
+        const recentArticles = document.getElementById("recent-posts");
+        let i = 1
+        posts.forEach(function (post) {
+            const li = document.createElement("li")
+            const a = document.createElement("a")
+            li.id = "recent-posts-" + i++
+            a.href = post.url
+            a.textContent = post.title
+            a.className = "recent-posts-item"
+            a.textContent = post.title
+            li.appendChild(a)
+            recentArticles.appendChild(li)
         })
     })
 }
@@ -98,7 +119,7 @@ function addCategory(categoryList, categoryName, numberOfPosts) {
 
 // category 에 해당하는 글을 조회하여 그리는 함수
 function loadPosts(categoryName, pageNumber, pageSize) {
-    var pageIndex = pageNumber -1
+    var pageIndex = pageNumber - 1
     if (categoryName === DEFAULT_CATEGORY_POST_ALL) {
         fetchData(
             SERVER_URL + "/api/article" +
@@ -126,7 +147,7 @@ function renderPosts(posts) {
         const a = document.createElement("a")
         const h3 = document.createElement("h3")
         const p = document.createElement("p")
-        a.href = "/article/"+post.id
+        a.href = "/article/" + post.id
         a.className = "post-list-item"
         a.textContent = post.title
         h3.appendChild(a)
@@ -140,7 +161,7 @@ function renderPosts(posts) {
 function renderPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / PAGE_SIZE);
     const startPageIndex = Math.min(currentPage, currentPage - (currentPage % NUMBER_OF_PAGE_BTN_IN_A_PAGE) + 1)
-    const endPageIndex = Math.min(startPageIndex + NUMBER_OF_PAGE_BTN_IN_A_PAGE-1, totalPages)
+    const endPageIndex = Math.min(startPageIndex + NUMBER_OF_PAGE_BTN_IN_A_PAGE - 1, totalPages)
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
     loadPosts(currentCategory, currentPage, PAGE_SIZE)

@@ -2,8 +2,8 @@
     display: inline-block;
     margin-top: 20px;
     margin-right: 10px;
-    position:absolute;
-    bottom:70px;
+    position: absolute;
+    bottom: 70px;
 }
 
 .introduce-element:hover {
@@ -19,26 +19,18 @@
     line-height: 30px;
 }
 
+.view-count-item {
+    color: #666;
+}
+
 #view-count-item-title {
     font-weight: 800;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 #most-viewed-item-title {
     font-weight: 800;
-    font-size: 14px;
-}
-
-.dashboard-side-bar {
-    /*max-width: 200px;*/
-    width: 20%;
-    background-color: white;
-    padding-top: 20px;
-    height: 100vh;
-    overflow-y: auto;
-    list-style: none;
-    line-height: 30px;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .most-viewed {
@@ -50,8 +42,44 @@
 }
 
 .most-viewed-item {
-    color: black;
+    color: #666;
     text-decoration: none;
+}
+
+#recent-posts-item-title {
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.recent-posts {
+    list-style: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 0px;
+}
+
+.recent-posts-item {
+    color: #666;
+    text-decoration: none;
+}
+
+#dashboard h3 {
+    font-size: 17px;
+}
+
+.dashboard-side-bar {
+    /*max-width: 200px;*/
+    border-left: 1px solid #ccc;
+    padding-left: 20px;
+    width: 20%;
+    background-color: white;
+    padding-top: 20px;
+    height: 100vh;
+    overflow-y: auto;
+    list-style: none;
+    line-height: 30px;
+    font-size: 13px;
 }
 
 #ecsimsw-about {
@@ -71,6 +99,7 @@
 }
 
 .category-name {
+    font-size: 14px;
     text-decoration: unset;
     color: inherit;
 }
@@ -79,9 +108,11 @@ body {
     margin: 0;
     padding: 0;
 }
+
 .container {
     display: flex;
 }
+
 .sidebar {
     max-width: 200px;
     width: 30%;
@@ -91,21 +122,25 @@ body {
     height: 100vh; /* 화면의 높이에 맞추기 위해 100vh 사용 */
     overflow-y: auto; /* 사이드바가 화면을 넘어갈 경우 스크롤바 표시 */
 }
+
 .content {
     flex: 1;
     padding: 20px;
     margin-left: 50px;
     max-width: 800px;
 }
+
 .category-list {
     list-style: none;
     padding: 0;
-    line-height: 40px;
+    line-height: 30px;
 }
+
 .category-name:hover {
     color: darkgray;
     cursor: default;
 }
+
 .post-list {
     list-style: none;
     padding-left: 0px;
@@ -114,15 +149,18 @@ body {
 .post-list li:last-child {
     border-bottom: none; /* 마지막 아이템의 아래 선 제거 */
 }
+
 .post-list li h3 {
     font-size: 18px;
     margin-top: 30px;
     margin-bottom: 30px;
 }
+
 .post-list li p {
     color: #666;
     margin: 0;
 }
+
 .post-list li a {
     font-weight: 400;
     text-decoration: none;
@@ -133,32 +171,37 @@ body {
     color: darkgray;
     cursor: default;
 }
+
 .pagination {
     padding-left: 0px;
     margin-top: 40px;
     text-align: left; /* 페이지네이션을 가운데 정렬 */
 }
+
 .pagination button {
     margin-right: 5px;
     cursor: pointer;
 }
+
 .page-btn {
-    display:block;
-    margin:0 3px;
-    float:left;
-    border:1px solid #e6e6e6;
-    width:28px;
-    height:28px;
-    line-height:28px;
-    text-align:center;
-    background-color:#fff;
-    font-size:15px;
-    color:black;
-    text-decoration:none;
+    display: block;
+    margin: 0 3px;
+    float: left;
+    border: 1px solid #e6e6e6;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    background-color: #fff;
+    font-size: 15px;
+    color: black;
+    text-decoration: none;
 }
+
 .page-btn:hover {
-    background-color:darkgray;
+    background-color: darkgray;
 }
+
 .selected {
     color: black;
     font-weight: bolder;

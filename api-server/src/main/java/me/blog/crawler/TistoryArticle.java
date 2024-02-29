@@ -10,34 +10,34 @@ public record TistoryArticle(String url, String articleHtml) {
     private static final String ARTICLE_TITLE_ELEMENT_CLASS_NAME = "tit_post";
     private static final String ARTICLE_BODY_ELEMENT_CLASS_NAME = "tt_article_useless_p_margin";
     private static final String ARTICLE_FORMAT =
-    """
-        <meta charset="utf-8">
-        <html lang="ko">
-        <link rel="stylesheet" type="text/css" href="../style.css"/>
-        <body>
-        <div class="wrap-right">
-            <div class="main ">
-                <div class="area-main">
-                     <div class="article-header">
-                         %s            
-                     </div>
-                     <div class="article-view">
-                         %s             
-                     </div>
+        """
+                <meta charset="utf-8">
+                <html lang="ko">
+                <link rel="stylesheet" type="text/css" href="../style.css"/>
+                <body>
+                <div class="wrap-right">
+                    <div class="main ">
+                        <div class="area-main">
+                             <div class="article-header">
+                                 %s            
+                             </div>
+                             <div class="article-view">
+                                 %s             
+                             </div>
+                        </div>
+                    </main>
                 </div>
-            </main>
-        </div>
-        </body>
-        </html>>
-    """;
+                </body>
+                </html>>
+            """;
 
     public static TistoryArticle crawl(String url) {
         return crawl(url, ARTICLE_TITLE_ELEMENT_CLASS_NAME, ARTICLE_BODY_ELEMENT_CLASS_NAME);
     }
 
     public static TistoryArticle crawl(String url, String titleClassName, String articleBodyClassName) {
-        var conn = Jsoup.connect(url);
         try {
+            var conn = Jsoup.connect(url);
             var document = conn.get();
             var articleTitle = document.body().getElementsByClass(titleClassName);
             var articleBody = document.body().getElementsByClass(articleBodyClassName);
