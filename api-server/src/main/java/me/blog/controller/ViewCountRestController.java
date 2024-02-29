@@ -47,7 +47,7 @@ public class ViewCountRestController {
     }
 
     @GetMapping("/api/view/top/total")
-    public ResponseEntity<List<Article>> topNArticle(int top) {
+    public ResponseEntity<List<Article>> topNArticle(Integer top) {
         var topNTotalCount = viewCountService.findTopNTotalCount(top);
         var topNArticle = topNTotalCount.stream()
             .map(it -> contentService.findById(it.getArticleId()))

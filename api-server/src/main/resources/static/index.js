@@ -3,6 +3,7 @@ const DEFAULT_CATEGORY_POST_ALL = "Articles"
 
 const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
 const PAGE_SIZE = 10
+const MOST_VIEWED_SIZE = 5
 
 let currentPage = 1
 let currentCategory = DEFAULT_CATEGORY_POST_ALL
@@ -18,7 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ecsimsw-github").addEventListener('click', function () {
         window.location.href = 'https://github.com/ecsimsw';
     })
-    updateDashboard()
+    updateViewCount()
+    loadMostViewArticle()
     loadCategories()
     loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
     fetchData(SERVER_URL + "/api/article/count", function (count) {
@@ -28,7 +30,8 @@ document.addEventListener("DOMContentLoaded", function () {
     })
 });
 
-function updateDashboard() {
+// 조회 수를 조회하여 그리는 함수
+function updateViewCount() {
     const yesterdayDate = new Date(new Date().setDate(new Date().getDate()-1))
     fetchData(SERVER_URL + "/api/view/daily?date=" + yesterdayDate.toISOString().substring(0,10), function (count) {
         const yesterdayViewCnt = document.getElementById("yesterdayViewCnt");
@@ -37,6 +40,26 @@ function updateDashboard() {
     fetchData(SERVER_URL + "/api/view/total", function (count) {
         const totalViewCnt = document.getElementById("totalViewCnt");
         totalViewCnt.textContent = "total : " + count
+    })
+}
+
+// 최다 조회 수 게시물을 그리는 함수
+function loadMostViewArticle() {
+    fetchData(SERVER_URL + "/api/view/top/total?top=" + MOST_VIEWED_SIZE, function (posts) {
+        const topArticle = document.getElementById("most-viewed");
+        // topArticle.innerHTML = ""
+        let i = 1
+        posts.forEach(function (post) {
+            const li = document.createElement("li")
+            const a = document.createElement("a")
+            li.id = "most-viewed-" + i++
+            a.href = "/article/"+post.id
+            a.textContent = post.title
+            a.className = "most-viewed-item"
+            a.textContent = post.title
+            li.appendChild(a)
+            topArticle.appendChild(li)
+        })
     })
 }
 
@@ -103,7 +126,7 @@ function renderPosts(posts) {
         const a = document.createElement("a")
         const h3 = document.createElement("h3")
         const p = document.createElement("p")
-        a.href = "/article/"+post.index
+        a.href = "/article/"+post.id
         a.className = "post-list-item"
         a.textContent = post.title
         h3.appendChild(a)
