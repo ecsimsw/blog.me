@@ -1,4 +1,5 @@
-const SERVER_URL = "http://localhost:8080"
+// const SERVER_URL = "http://localhost:8080"
+const SERVER_URL = ""
 const DEFAULT_CATEGORY_POST_ALL = "Articles"
 
 const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
