@@ -69,6 +69,6 @@ jib {
     to.image = "ghcr.io/ecsimsw/blog"
     to.tags = ["latest"]
     container {
-        jvmFlags = ['-XX:NewRatio=2', '-XX:SurvivorRatio=8', '-XX:MaxRAMPercentage=25']
+        jvmFlags = ['-Dspring.profiles.active=prod', '-XX:NewRatio=2', '-XX:SurvivorRatio=8', '-XX:MaxRAMPercentage=25']
     }
 }
