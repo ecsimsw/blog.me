@@ -4,17 +4,23 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+import me.blog.config.Cached.VALUES;
 import me.blog.crawler.TistoryIndexPage;
 import me.blog.domain.RecentArticleRepository;
 import me.blog.dto.RecentArticleResponse;
 import me.blog.dto.TistoryArticleResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecentArticleService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecentArticleService.class);
 
     private final TistoryIndexPage indexPage;
     private final RecentArticleRepository recentArticleRepository;
@@ -29,6 +35,10 @@ public class RecentArticleService {
 
     @Transactional
     public void update() {
+        if (hasRecentData()) {
+            return;
+        }
+        LOGGER.info("crawl recent article");
         var articles = indexPage.articles().stream()
             .map(TistoryArticleResponse::toRecentArticle)
             .collect(Collectors.toList());
@@ -36,6 +46,7 @@ public class RecentArticleService {
         recentArticleRepository.saveAll(articles);
     }
 
+    @Transactional(readOnly = true)
     public boolean hasRecentData() {
         var firstPage = recentArticleRepository.findAll(PageRequest.of(0, 1));
         if (!firstPage.hasContent()) {
@@ -45,6 +56,8 @@ public class RecentArticleService {
         return ChronoUnit.HOURS.between(firstIndex.getUpdated(), LocalDateTime.now()) < 2;
     }
 
+    @Cacheable(value = VALUES.RECENT_ARTICLES, key = "#n")
+    @Transactional(readOnly = true)
     public List<RecentArticleResponse> getAll(int n) {
         var articles = recentArticleRepository.findAll(PageRequest.of(0, n)).getContent();
         return RecentArticleResponse.listOf(articles);
