@@ -1,5 +1,6 @@
 package me.blog.service;
 
+import java.time.LocalDate;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,7 @@ public class DailyCountCacheService {
     public void schedule() {
         LOGGER.info("view count cache flush");
         for (var articleId : countCachePerArticle.keySet()) {
-            viewCountService.count(articleId, countCachePerArticle.remove(articleId));
+            viewCountService.count(articleId, countCachePerArticle.remove(articleId), LocalDate.now());
         }
     }
 }

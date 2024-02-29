@@ -85,7 +85,7 @@ class ViewCountServiceTest {
         for (var i = 1; i <= numberOfArticle; i++) {
             dailyCountRepository.save(new DailyCount(i, addCount, date));
         }
-        var sum = viewCountService.sumAt(date);
+        var sum = viewCountService.viewCountAt(date);
         assertEquals(numberOfArticle * addCount, sum);
     }
 

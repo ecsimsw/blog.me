@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
 
     // Prometheus
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
@@ -29,11 +30,8 @@ dependencies {
     // Google Guava
     implementation 'com.google.guava:guava:33.0.0-jre'
 
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
+    // Caffeine
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 
     // Slack alert
     implementation 'com.slack.api:slack-api-client:1.6.2'
@@ -54,6 +52,12 @@ dependencies {
     // Model metadata
     implementation 'org.hibernate:hibernate-jpamodelgen'
     annotationProcessor 'org.hibernate:hibernate-jpamodelgen'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 test {

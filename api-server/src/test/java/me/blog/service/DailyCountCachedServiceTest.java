@@ -17,12 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 @DataJpaTest
-class DailyCountCacheServiceTest {
+class DailyCountCachedServiceTest {
 
     private final DailyCountRepository dailyCountRepository;
     private final DailyCountCacheService dailyCountCacheService;
 
-    public DailyCountCacheServiceTest(
+    public DailyCountCachedServiceTest(
         @Autowired DailyCountRepository dailyCountRepository,
         @Autowired TotalCountRepository totalCountRepository
     ) {
