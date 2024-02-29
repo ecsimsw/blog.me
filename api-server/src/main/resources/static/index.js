@@ -11,6 +11,17 @@ let currentCategory = DEFAULT_CATEGORY_POST_ALL
 
 // 초기화
 document.addEventListener("DOMContentLoaded", function () {
+    updateAboutBar();
+    updateViewCount()
+    loadMostViewArticle()
+    loadCategories()
+    updateRecentPosts()
+    loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
+    updatePaginationBar();
+});
+
+// 소개 바를 그리는 함수
+function updateAboutBar() {
     document.getElementById("ecsimsw-about").addEventListener('click', function () {
         window.location.href = '/pages/aboutMe.html';
     })
@@ -20,17 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ecsimsw-github").addEventListener('click', function () {
         window.location.href = 'https://github.com/ecsimsw';
     })
-    updateViewCount()
-    loadMostViewArticle()
-    loadCategories()
-    updateRecentPosts()
-    loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
-    fetchData(SERVER_URL + "/api/article/count", function (count) {
-        renderPagination(count)
-        document.getElementById('page-btn-' + currentPage)
-            .classList.add('selected')
-    })
-});
+}
 
 // 조회 수를 조회하여 그리는 함수
 function updateViewCount() {
@@ -157,7 +158,7 @@ function renderPosts(posts) {
     })
 }
 
-// 페이지네이션 생성
+// 페이지네이션 버튼을 그리는 함수
 function renderPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / PAGE_SIZE);
     const startPageIndex = Math.min(currentPage, currentPage - (currentPage % NUMBER_OF_PAGE_BTN_IN_A_PAGE) + 1)
@@ -213,6 +214,16 @@ function renderPagination(totalItems) {
             .classList.add('selected')
     }
 }
+
+// 선택된 카테고리의 글 개수만큼 페이지네이션 바를 그리는 함수
+function updatePaginationBar() {
+    fetchData(SERVER_URL + "/api/article/count", function (count) {
+        renderPagination(count)
+        document.getElementById('page-btn-' + currentPage)
+            .classList.add('selected')
+    })
+}
+
 
 // 서버에서 데이터를 받아오는 함수
 function fetchData(url, callback) {

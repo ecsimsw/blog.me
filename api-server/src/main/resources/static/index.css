@@ -69,8 +69,7 @@
 }
 
 .dashboard-side-bar {
-    /*max-width: 200px;*/
-    border-left: 1px solid #ccc;
+    border-left: 1px solid #ddd;
     padding-left: 20px;
     width: 20%;
     background-color: white;
@@ -119,8 +118,8 @@ body {
     background-color: #f2f2f2;
     padding-top: 20px;
     padding-left: 30px;
-    height: 100vh; /* 화면의 높이에 맞추기 위해 100vh 사용 */
-    overflow-y: auto; /* 사이드바가 화면을 넘어갈 경우 스크롤바 표시 */
+    height: 100vh;
+    overflow-y: auto;
 }
 
 .content {
@@ -147,7 +146,7 @@ body {
 }
 
 .post-list li:last-child {
-    border-bottom: none; /* 마지막 아이템의 아래 선 제거 */
+    border-bottom: none;
 }
 
 .post-list li h3 {
@@ -175,7 +174,7 @@ body {
 .pagination {
     padding-left: 0px;
     margin-top: 40px;
-    text-align: left; /* 페이지네이션을 가운데 정렬 */
+    text-align: left;
 }
 
 .pagination button {
@@ -207,4 +206,3 @@ body {
     font-weight: bolder;
     border: 1px solid darkgray;
 }
-
