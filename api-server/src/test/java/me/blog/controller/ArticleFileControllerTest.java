@@ -44,8 +44,8 @@ class ArticleFileControllerTest {
             when(contentService.getPathById(articleId))
                 .thenReturn(mockPath);
             mockMvc
-                .perform(get("/article/"+articleId))
-                .andExpect(forwardedUrl("/"+ mockPath));
+                .perform(get("/article/" + articleId))
+                .andExpect(forwardedUrl("/" + mockPath));
         }
 
         @DisplayName("요청된 게시물의 조회 횟수를 기록한다.")
@@ -56,8 +56,8 @@ class ArticleFileControllerTest {
             when(contentService.getPathById(articleId))
                 .thenReturn(mockPath);
             mockMvc
-                .perform(get("/article/"+articleId))
-                .andExpect(forwardedUrl("/"+ mockPath));
+                .perform(get("/article/" + articleId))
+                .andExpect(forwardedUrl("/" + mockPath));
 
             verify(cacheService, times(1))
                 .count(articleId, 1);

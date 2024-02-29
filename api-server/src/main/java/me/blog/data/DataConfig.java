@@ -2,8 +2,6 @@ package me.blog.data;
 
 import me.blog.domain.Articles;
 import me.blog.domain.Categories;
-import me.blog.data.ArticleDao;
-import me.blog.data.CategoryDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

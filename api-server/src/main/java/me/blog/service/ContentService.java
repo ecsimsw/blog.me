@@ -31,7 +31,7 @@ public class ContentService {
     public List<Article> articlesInCategory(Optional<String> optCategory, Pageable pageable) {
         var pageSize = pageable.getPageSize();
         var pageNumber = pageable.getPageNumber();
-        if(optCategory.isEmpty()) {
+        if (optCategory.isEmpty()) {
             return articles.findAllOrderByIndexDesc(pageSize, pageNumber);
         }
         var categoryName = optCategory.orElseThrow();
@@ -40,7 +40,7 @@ public class ContentService {
     }
 
     public int countArticleIn(Optional<String> optCategory) {
-        if(optCategory.isEmpty()) {
+        if (optCategory.isEmpty()) {
             return articles.count();
         }
         var category = categories.getByName(optCategory.orElseThrow());

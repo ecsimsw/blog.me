@@ -2,14 +2,13 @@ package me.blog.data;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import me.blog.domain.Category;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component

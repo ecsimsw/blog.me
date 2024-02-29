@@ -1,8 +1,8 @@
 package me.blog.domain;
 
-public record Category (
-   int id,
-   String name
+public record Category(
+    int id,
+    String name
 ) implements Comparable<Category> {
 
     @Override

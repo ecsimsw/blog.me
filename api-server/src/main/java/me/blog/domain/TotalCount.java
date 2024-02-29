@@ -25,6 +25,6 @@ public class TotalCount {
     private int count = 0;
 
     public void addCount(int count) {
-        this.count+=count;
+        this.count += count;
     }
 }
