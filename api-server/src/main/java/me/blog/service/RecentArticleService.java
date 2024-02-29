@@ -46,7 +46,7 @@ public class RecentArticleService {
         recentArticleRepository.saveAll(articles);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean hasRecentData() {
         var firstPage = recentArticleRepository.findAll(PageRequest.of(0, 1));
         if (!firstPage.hasContent()) {
@@ -57,7 +57,7 @@ public class RecentArticleService {
     }
 
     @Cacheable(value = VALUES.RECENT_ARTICLES, key = "#n")
-    @Transactional(readOnly = true)
+    @Transactional
     public List<RecentArticleResponse> getAll(int n) {
         var articles = recentArticleRepository.findAll(PageRequest.of(0, n)).getContent();
         return RecentArticleResponse.listOf(articles);

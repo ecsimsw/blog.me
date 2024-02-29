@@ -25,7 +25,7 @@ public class ViewCountService {
     private final TotalCountRepository totalCountRepository;
 
     @Cacheable(value = VALUES.DAILY_VIEW_COUNT, key = "#date")
-    @Transactional(readOnly = true)
+    @Transactional
     public int viewCountAt(LocalDate date) {
         return dailyCountRepository.findAllByDate(date).stream()
             .mapToInt(DailyCount::getCount)
@@ -33,13 +33,13 @@ public class ViewCountService {
     }
 
     @Cacheable(value = VALUES.TOTAL_VIEW_COUNT)
-    @Transactional(readOnly = true)
+    @Transactional
     public int viewCount() {
         return totalCountRepository.sum().orElse(0);
     }
 
     @Cacheable(value = VALUES.DAILY_TOP_VIEWED_ARTICLE, key = "{#n, #date}")
-    @Transactional(readOnly = true)
+    @Transactional
     public List<DailyCount> findTopNArticle(int n, LocalDate date) {
         return dailyCountRepository.findAllByDate(
             date,
@@ -48,7 +48,7 @@ public class ViewCountService {
     }
 
     @Cacheable(value = VALUES.DAILY_TOP_VIEWED_ARTICLE, key = "#n")
-    @Transactional(readOnly = true)
+    @Transactional
     public List<TotalCount> findTopNTotalCount(int n) {
         return totalCountRepository.findAll(
             PageRequest.of(0, n, Direction.DESC, TotalCount_.COUNT, TotalCount_.ARTICLE_ID)
@@ -68,12 +68,12 @@ public class ViewCountService {
         totalCountRepository.save(totalCount);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<DailyCount> findDailyCount(int articleId, LocalDate date) {
         return dailyCountRepository.findByArticleIdAndDate(articleId, date);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public int getTotalViewCountOf(int articleId) {
         return totalCountRepository.findById(articleId)
             .map(TotalCount::getCount)
