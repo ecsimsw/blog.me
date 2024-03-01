@@ -22,7 +22,6 @@
 |22|2|Spring boot의 CORS 설정|articles/spring-cors.html|
 |23|5|Vault hands-on, 가장 기본적인 기능들|articles/vault-handson.html|
 |24|5|AWS S3 의 비용이 부담된다면? Vultr Object storage 소개하기|articles/vultr-s3.html|
-|25|5|젠킨스 삽질 과정에서 배운 것들|articles/what-ive-earn-jenkins.html|
 |26|2|Webpack dev server의 포트가 자동으로 바뀐다? Vue-Cli와 portfinder|articles/web-pack.html|
 |27|5|Kubernetes apt repository updated : NO_PUBKEY B53DC80D13EDEF05|articles/k8s-apt.html|
 |28|1|Rate Limit 을 직접 구현해보자|articles/rate-limit.html|
