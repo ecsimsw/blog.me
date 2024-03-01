@@ -4,7 +4,8 @@ services:
     image: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./route-api.conf:/etc/nginx/conf.d/route-api.conf
+      - ./route-blog.conf:/etc/nginx/conf.d/route-blog.conf
+      - ./static/:/static
 #      - /etc/letsencrypt:/etc/letsencrypt
     ports:
       - "80:80"
