@@ -1,5 +1,6 @@
 ## Blog.me
 
-![image](https://github.com/ecsimsw/ecsimsw.blog/assets/46060746/3696c03a-0005-41a8-9eae-b44c18543dcc)
+![image](https://github.com/ecsimsw/ecsimsw.blog/assets/46060746/f1677bbc-a862-4f2c-be97-d167ca80a632)
+
 
 
