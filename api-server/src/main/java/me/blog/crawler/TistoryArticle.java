@@ -13,7 +13,7 @@ public record TistoryArticle(String url, String articleHtml) {
         """
                 <meta charset="utf-8">
                 <html lang="ko">
-                <link rel="stylesheet" type="text/css" href="../style.css"/>
+                <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
                 <body>
                 <div class="wrap-right">
                     <div class="main ">
