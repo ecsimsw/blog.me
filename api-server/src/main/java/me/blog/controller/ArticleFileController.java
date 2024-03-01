@@ -22,6 +22,6 @@ public class ArticleFileController {
         // TODO :: AUTH
         cacheService.count(id, 1);
         var filePath = contentService.getPathById(id);
-        return "forward:/" + filePath;
+        return "redirect:/static/" + filePath;
     }
 }
