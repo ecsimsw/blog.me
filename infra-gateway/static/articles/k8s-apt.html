@@ -1,0 +1,79 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Kubernetes apt repository updated : NO_PUBKEY B53DC80D13EDEF05             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20"><b><span style="color: #000000;">NO_PUBKEY&nbsp;B53DC80D13EDEF05</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Google&nbsp;cloud에서 반환하는 gpg key 포맷이 '<b>OpenPGP&nbsp;ASCII&nbsp;armor</b>'로 변경되면서 기존 kubernetes docs에서 소개하는&nbsp;Installing&nbsp;kubeadm 방식을 사용하는 경우 gpg key이 올바르지 않는 문제가 발생한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">혹시 Kubeadmin, Kubelet, Kubectl 을 설치하는 과정에서 apt repository를 등록하고 apt update로 package 업데이트 시 아래와 같은 key 에러(NO_PUBKEY&nbsp;B53DC80D13EDEF05)를 만났다면 이전 방식으로 설치를 진행하진 않았는지 점검한다.</span></p> 
+<blockquote data-ke-style="style2">
+ <span style="color: #000000;">Err:2&nbsp;https://packages.cloud.google.com/apt&nbsp;kubernetes-xenial InRelease</span>
+ <br><span style="color: #000000;">The following signatures couldn't be verified because the public key is not available: NO_PUBKEY B53DC80D13EDEF05</span>
+</blockquote> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">특히 이 글을 작성하는 시점에서 이제 막 2주전에 github <span style="color: #006dd7;"><a style="color: #006dd7;" href="https://github.com/kubernetes/website/issues/41246" target="_blank" rel="noopener">kubernetes/issuse</a>&nbsp;</span>에 보고가 되고 있으니, 업데이트가 되지 않은 v1.26 이하의 <span style="color: #006dd7;"><a style="color: #006dd7;" href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/" target="_blank" rel="noopener">kubernetes.io/docs</a></span> 나 예전 코드를 참고한 경우 꼭 확인하시길 바란다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Get&nbsp;google&nbsp;cloud&nbsp;GPG&nbsp;key with dearmor option</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">pacakge.cloud.google에서 가져온 apt-key 를 unpack 해야 한다. 아래 gpg의 dearmor 옵션을 이용한다.</span></p> 
+<pre id="code_1685983523020" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>gpg --dearmor
+Pack or unpack an arbitrary input into/from an OpenPGP ASCII armor. This is a GnuPG extension to OpenPGP and in general not very useful. The --dearmor command can also be used to dearmor PEM armors.</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #006dd7;"><a style="color: #006dd7;" href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/">최신 버전 docs</a>&nbsp;</span>(version &gt;= v1.27)</span></p> 
+<pre id="code_1685983402718" class="vim" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code># get google cloud GPG key
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+
+# add apt repository
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# update apt package with new reposiotory above
+sudo apt-get update</code></pre> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #006dd7;"><a style="color: #006dd7;" href="https://v1-26.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/" target="_blank" rel="noopener">이전 버전 docs</a> </span>(version &lt;= v1.26 )&nbsp;</span></p> 
+<pre id="code_1685982300739" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code># get google cloud GPG key
+sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+# add apt repository
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# update apt package with new reposiotory above
+sudo apt-get update</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">또는 dl.k8s.io에서 제공하는 gpg 키를 바로 사용한다.</span></p> 
+<pre id="code_1685983619861" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code># get package gpg key from dl.k8s.io
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://dl.k8s.io/apt/doc/apt-key.gpg
+
+# add apt repository
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# update apt package with new reposiotory above
+sudo apt-get update</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="background-color: #ffffff; color: #000000; text-align: start;">whole commands to get kubectl, kubeadm and kubelet</span></b></h4> 
+<pre id="code_1685983867288" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>sudo apt-get update -y &amp;&amp;
+sudo apt-get install -y apt-transport-https ca-certificates curl &amp;&amp;
+
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://dl.k8s.io/apt/doc/apt-key.gpg &amp;&amp;
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list &amp;&amp;
+
+sudo apt-get update &amp;&amp;
+sudo apt-get install -y kubelet kubeadm kubectl &amp;&amp;
+sudo apt-mark hold kubelet kubeadm kubectl</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">흐흐흐</span></b></h4> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1574" data-origin-height="1570">
+ <span data-url="https://blog.kakaocdn.net/dn/Gr5CM/btsiSQEsvzU/Jz486ThbKU9xmeJrwFLAWK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/Gr5CM/btsiSQEsvzU/Jz486ThbKU9xmeJrwFLAWK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FGr5CM%2FbtsiSQEsvzU%2FJz486ThbKU9xmeJrwFLAWK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1574" data-origin-height="1570"></span>
+</figure> 
+<p></p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

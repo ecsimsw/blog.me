@@ -1,0 +1,177 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Webpack dev server의 포트가 자동으로 바뀐다? / Vue-Cli와 portfinder             </div>
+             <div class="article-view">
+                 <h4 data-ke-size="size20">&nbsp;</h4> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>프론트 앱 서버의 포트가 자동으로 변경된다?</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">되게 신기한 경험을 했다. Vue (webpack dev server)와 Spring boot (톰캣)를 띄웠는데 이 둘을 실행하는 순서에 따라 webpack dev server가 다른 포트로 뜨고, 작동하지 않는 경우도 있었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">시나리오는 다음과 같다. 프론트 서버, 백 서버 모두 8080으로 설정한 상태이다.</span></p> 
+<pre id="code_1624738079744" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>1. 백 서버를 띄우고 프론트 서버를 띄우면 프론트-백 각각 localhost:8081 / localhost:8080으로 뜨고, 정상 작동한다.
+2. 프론트 서버를 띄우고 백 서버를 띄우면 프론트-백 각각 localhost:8080 / localhost:8080으로 뜨고, 프론트 앱 서버가 무시된다.</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">1번 프론트서버가 8081로 뜬 이유 / Vue cli와 portfinder</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">결론부터 말하면 <b>포트가 이미 사용 중인 경우,</b> <b>vue cli에서 port를 바꿔서 server를 띄운다.</b>&nbsp;포트가 이미 점유되어 있으면 해당 포트에 +1 해서 다시 사용 가능한지 확인을 반복하는 형식이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그래서 백 서버가 8080으로 뜬 상태에서는 8080을 점유 당했음을 확인하고 8081로 변경되어 서버가 뜬 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="3484" data-origin-height="1102">
+ <span data-url="https://blog.kakaocdn.net/dn/p1sD8/btq8c0sg4hX/3vr8FAVfwemKXfRKfHudKK/img.png" data-lightbox="lightbox" data-alt="서비스 구조"><img src="https://blog.kakaocdn.net/dn/p1sD8/btq8c0sg4hX/3vr8FAVfwemKXfRKfHudKK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fp1sD8%2Fbtq8c0sg4hX%2F3vr8FAVfwemKXfRKfHudKK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="913" height="289" data-origin-width="3484" data-origin-height="1102"></span>
+ <figcaption>
+  서비스 구조
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사용 가능한 포트는 <a style="color: #000000;" href="https://www.npmjs.com/package/portfinder" target="_blank" rel="noopener">portfinder 라이브러리</a>를 이용한다. 이는&nbsp;맨 아래에 <b>'Vue cli와 portfinder 코드 직접 확인하기'</b>로 해당 로직을 직접 따라가도 좋을 것 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">2번 프론트 서버가 무시당한 이유 / IPv4와&nbsp;</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">1번을 알고나니 왜 web dev server를 먼저 실행하면 프론트 서버, 백 서버 모두 8080으로 뜨는지 알았다. vue-cli이 8080으로 먼저 떠서 차마 피할 수 없었던 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 되면 web dev server가 무시당한다. 이 상황에서 localhost:8080으로 접속하면 더 이상 web dev server을 타지 않고 tomcat 서버만 타게 된다. 이건 왜 이럴까? 왜 톰캣은 8080이 이미 점유된 상태에서 port already in used 에러를 출력하지 않았을까?</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">현재 8080 포트를 사용하는 프로세스를 출력해보고 답을 찾을 수 있었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="957" data-origin-height="85">
+ <span data-url="https://blog.kakaocdn.net/dn/csiAZL/btq8amo9s65/TPibzOrgKMrlmPaksczs50/img.png" data-lightbox="lightbox" data-alt="0xe10105225 -&amp;gt; 225.1.82.37"><img src="https://blog.kakaocdn.net/dn/csiAZL/btq8amo9s65/TPibzOrgKMrlmPaksczs50/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcsiAZL%2Fbtq8amo9s65%2FTPibzOrgKMrlmPaksczs50%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="957" data-origin-height="85"></span>
+ <figcaption>
+  0xe10105225 -&gt; 225.1.82.37
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">web dev server는 IPv4으로 localhost:8080을 사용하고, tomcat은 IPv6로 localhost:8080을 사용하고 있었다.&nbsp;이때, <b>IPv6가 IPv4보다 우선 순위를 갖기 때문에</b> localhost:8080에서 web dev server가 무시되고, tomcat 만 응답했던 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="720" data-origin-height="95">
+ <span data-url="https://blog.kakaocdn.net/dn/lSZgp/btq8cQJlp8j/kYQxAh3BbSmkJDAjlFXmZK/img.png" data-lightbox="lightbox" data-alt="출처 : http://dstein.egloos.com/2324104"><img src="https://blog.kakaocdn.net/dn/lSZgp/btq8cQJlp8j/kYQxAh3BbSmkJDAjlFXmZK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FlSZgp%2Fbtq8cQJlp8j%2FkYQxAh3BbSmkJDAjlFXmZK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="894" height="118" data-origin-width="720" data-origin-height="95"></span>
+ <figcaption>
+  출처 : http://dstein.egloos.com/2324104
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">확인을 위해 이번에는 tomcat을 IPv4로 띄워보았고, 포트 물림으로 tomcat server가 못 뜨는 것을 확인할 수 있었다. (물론 반대로 web pack server를 IPv6로 띄우는 방법도 있을 것이다.)</span></p> 
+<pre id="code_1624737944463" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>-Djava.net.preferIPv4Stack=true</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Jar를 실행할 때 JVM_OPTS 옵션을 추가하거나, Gradle에서 빌드 설정으로 tomcat IP 프로토콜 종류를 설정할 수 있었다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">정리하자면</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">시나리오를 정리하면 다음과 같다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">시나리오1</span><br><span style="color: #000000;">1.&nbsp;tomcat을&nbsp;IPv6/localhost:8080으로&nbsp;띄운다.</span><br><span style="color: #000000;">2.&nbsp;webpack&nbsp;dev&nbsp;server를&nbsp;IPv4/localhost:8080으로&nbsp;띄운다.&nbsp;-&gt;&nbsp;port&nbsp;change</span><br><span style="color: #000000;">3.&nbsp;webpack&nbsp;dev&nbsp;server가&nbsp;IPv4/localhost:8081로&nbsp;뜬다.</span><br><br><span style="color: #000000;">시나리오2</span><br><span style="color: #000000;">1.&nbsp;webpack&nbsp;dev&nbsp;server를&nbsp;IPv4/localhost:8080으로&nbsp;띄운다.</span><br><span style="color: #000000;">2.&nbsp;tomcat을&nbsp;IPv6/localhost:8080으로&nbsp;띄운다.</span><br><span style="color: #000000;">3.&nbsp;tomcat이&nbsp;요청&nbsp;처리&nbsp;우선&nbsp;순위를&nbsp;갖는다.&nbsp;(webpack&nbsp;dev&nbsp;server가&nbsp;무시&nbsp;당한다.)</span><br><br><span style="color: #000000;">시나리오3</span><br><span style="color: #000000;">1.&nbsp;webpack&nbsp;dev&nbsp;server를&nbsp;IPv4/localhost:8080으로&nbsp;띄운다.</span><br><span style="color: #000000;">2.&nbsp;tomcat을&nbsp;IPv4/localhost:8080으로&nbsp;띄운다&nbsp;-&gt;&nbsp;port&nbsp;already&nbsp;in&nbsp;use</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">생각보다 쉬운 문제로 프론트엔드를 전혀 몰라 돌아 돌아 갔던 것 같다. Vue-cli, Webpack dev server라는 키워드를 찾는 것 조차 시간이 걸렸다. 포트가 변경되다니....</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Vue cli와 portfinder 코드 직접 확인하기</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">해당 부분의 코드를 vuejs/vue-cli, node-portfinder에서 직접 확인할 수 있다. 흐름이 보일 수 있도록 필요한 부분만 남기고 그 외 부분을 생략했다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">vue-cli.serve.js -&gt; portfinder.getPortPromise() -&gt; getPort() -&gt; testPort() -&gt; onError(), nextPort() -&gt; port = port+1 순서로 따라가면 될 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">/vuejs/vue-cli/packages/@vue/cli-service/lib/commands/serve.js</span></p> 
+<pre id="code_1624735460468" class="javascript" style="display: block; overflow: auto; padding: 20px; color: #383a42; background-color: #f8f8f8; font-size: 14px; font-family: 'SF Mono', Menlo, Consolas, Monaco, monospace; border: 1px solid #ebebeb; line-height: 1.71; margin: 20px auto 0px; cursor: default; z-index: 1; font-style: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; text-decoration: none; background-position: initial initial; background-repeat: initial initial;" data-ke-language="javascript" data-ke-type="codeblock"><code>//vuejs/vue-cli/packages/@vue/cli-service/lib/commands/serve.js
+
+const defaults = {
+  host: '0.0.0.0',
+  port: 8080,
+  https: false
+}
+
+const portfinder = require('portfinder')
+
+portfinder.basePort = args.port || process.env.PORT || projectDevServerOptions.port || defaults.port
+const port = await portfinder.getPortPromise()
+
+const urls = prepareURLs(
+    protocol,
+    host,
+    port,
+    isAbsoluteUrl(options.publicPath) ? '/' : options.publicPath
+)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">/http-party/node-portfinder/lib/portfinder.js</span></p> 
+<pre id="code_1624735477414" class="javascript" style="margin: 20px auto 0px; display: block; overflow: auto; padding: 20px; color: #383a42; background-color: #f8f8f8; font-size: 14px; font-family: 'SF Mono', Menlo, Consolas, Monaco, monospace; border: 1px solid #ebebeb; line-height: 1.71; cursor: default; z-index: 1; font-style: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; text-decoration: none; background-position: initial initial; background-repeat: initial initial;" data-ke-language="javascript" data-ke-type="codeblock"><code>exports.getPortPromise = function (options) {
+  ...
+  return new Promise(function(resolve, reject) {
+    exports.getPort(options, function(err, port) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(port);
+    });
+  });
+}
+
+exports.getPort = function (options, callback) {
+  ...
+  return _async.eachSeries(exports._defaultHosts, function(host, next) {
+    debugGetPort("in eachSeries() iteration callback: host is", host);
+    
+    return internals.testPort({ host: host, port: options.port }, function(err, port) {
+      ...
+  }, function(err) {
+	  ...
+  });
+};
+
+internals.testPort = function(options, callback) {
+  ...
+
+  function onError (err) {
+    ...
+    var nextPort = exports.nextPort(options.port);
+
+    internals.testPort({
+      port: nextPort,
+      host: options.host,
+      server: options.server
+    }, callback);
+  }
+ ...
+};
+
+exports.nextPort = function (port) {
+  return port + 1;
+};</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">** Webpack dev server</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">webpack dev server는 applicaiton 개발을 도와주는 웹팩이 제공하는 도구이다. 웹 팩의 빌드 대상 파일이 변경되었을 때 코드만 변경하고 저장하는 것으로 웹팩으로 빌드하고 브라우저를 새로고침 해준다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래처럼 proxy 설정을 흔하게 사용한다. 추가로 changeOrigin 설정으로 cors 문제를 해결한다.</span></p> 
+<pre id="code_1624733094467" class="javascript" data-ke-language="javascript" data-ke-type="codeblock"><code>// webpack.config.js
+
+module.exports = {
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'example.com', // proxy to
+        changeOrigin: true  // cors :: same origin 처리
+      }
+    }
+  }
+};</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>

@@ -1,0 +1,114 @@
+<meta charset="utf-8">
+<html lang="ko">
+<link rel="stylesheet" type="text/css" href="../style.css"/>
+<body>
+<div class="wrap-right">
+    <main class="main ">
+        <div class="area-main">
+             <div class="article-header">
+                 <a href="/" class="link_post">ecsimsw</a>
+Jenkins trigger filtering by tag name             </div>
+             <div class="article-view">
+                 <p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><b>요구 사항 : trigger filtering by tag name</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="color: #000000;"><span style="caret-color: #000000;">회사에서&nbsp;</span></span>젠킨스 Trigger를 사용해서 레포지토리에서 발생하는 web hook을 받아 빌드를 자동으로 할 수 있도록 하는 작업을 맡게 되었다. 문제는&nbsp;<span style="letter-spacing: 0px;">한 레포지토리 안에서, branch나 comment가 아닌, tag 이름으로 구분되는 Job이었다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">- 한 코드 저장소 안에서 tag로 구분된 여러 JOB이 있었다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">- 태그가 생성되는 이벤트를 받아 이 여러 JOB 빌드를 실행시켜야 하는데, JOB에 해당하는 tag가 아닐 경우 빌드를 실행시키지 않는 필터링이 추가되어야 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Webhook request 안의 정보를 이용해서 깔끔하게 필터링 할 수 있는 방법을 고민했고, 괜찮은 플러그인을 찾아 소개하게 되었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-1-generic-webhook-trigger-plugin" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#1-generic-webhook-trigger-plugin" aria-hidden="true"></a><b>1. Generic Webhook Trigger Plugin</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a style="color: #000000;" href="https://plugins.jenkins.io/generic-webhook-trigger">generic-webhook-trigger</a>&nbsp;을 설치한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-2-원하는-정보에-해당하는-키-값-찾기" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#2-%EC%9B%90%ED%95%98%EB%8A%94-%EC%A0%95%EB%B3%B4%EC%97%90-%ED%95%B4%EB%8B%B9%ED%95%98%EB%8A%94-%ED%82%A4-%EA%B0%92-%EC%B0%BE%EA%B8%B0" aria-hidden="true"></a><b>2. 원하는 정보에 해당하는 키 값 찾기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">webhook의 요청이 어떻게 나가는지 확인해본다. 예를 들면, 웹 훅의 키 ref에 해당하는 값을 가져와 branch 정보나 Tag 정보를 가져 올 수 있겠다는 것을 확인할 수 있다. (eg,&nbsp;<a style="color: #000000;" href="https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html">Gitlab-webhook</a>)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="938" data-origin-height="574">
+ <span data-url="https://blog.kakaocdn.net/dn/qsHPD/btrNyGtQyJc/v4NPbxZJwBVpLlnWbMrKa0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/qsHPD/btrNyGtQyJc/v4NPbxZJwBVpLlnWbMrKa0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FqsHPD%2FbtrNyGtQyJc%2Fv4NPbxZJwBVpLlnWbMrKa0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="938" data-origin-height="574"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">위는 GitLab webhook의 예시이다. 훨씬 더 많은 데이터가 있는데 이 정도만 가져왔다. 이 안에서도 이벤트가 발생한 브랜치, 사용자 정보 등을 확인할 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">우리는 훅의 이 정보를 이용하여 빌드 여부를 필터링 할 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-3-jenkins-job-configuration--build-triggers" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#3-jenkins-job-configuration--build-triggers" aria-hidden="true"></a><b>3. Jenkins job configuration → Build triggers</b></span></h4> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="color: #000000;">원하는 Job의 Build triggers에서 Generic webhook trigger 사용을 체크한다.</span><span style="color: #000000;"></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1096" data-origin-height="456">
+ <span data-url="https://blog.kakaocdn.net/dn/mdl0n/btrNyCSpZA5/BlxB2G6O54te5oGVQwQ360/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/mdl0n/btrNyCSpZA5/BlxB2G6O54te5oGVQwQ360/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fmdl0n%2FbtrNyCSpZA5%2FBlxB2G6O54te5oGVQwQ360%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="675" height="281" data-origin-width="1096" data-origin-height="456"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-4-jenkins-contetnt-parameters-setting" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#4-jenkins-contetnt-parameters-setting" aria-hidden="true"></a><b>4. &nbsp;Jenkins contetnt parameters setting</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Variable name → 원하는 변수명 (ex, ref)</span><br><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Expression → 원하는 값의 key (ex, $.ref)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1206" data-origin-height="777">
+ <span data-url="https://blog.kakaocdn.net/dn/or5HA/btrNxdZI5a9/UCNRH9DH4kV1Phxw6uSmRK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/or5HA/btrNxdZI5a9/UCNRH9DH4kV1Phxw6uSmRK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2For5HA%2FbtrNxdZI5a9%2FUCNRH9DH4kV1Phxw6uSmRK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1206" data-origin-height="777"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-5-set-token--check-invoke-url" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#5-set-token--check-invoke-url" aria-hidden="true"></a><b>5. Set token / Check invoke url</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">원하는 토큰 이름을 입력한다. Webhook의 URL이 이 토큰을 파라미터로 갖는다.</span></p> 
+<ul style="list-style-type: disc;" data-ke-list-type="disc"> 
+ <li><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Query parameter /invoke?token=TOKEN_HERE</span></li> 
+ <li><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">A token header token: TOKEN_HERE</span></li> 
+ <li><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="color: #000000;">A Authorization: Bearer header Authorization: Bearer TOKEN_HERE</span><span style="color: #000000;"></span><span style="color: #000000;"></span></span></li> 
+</ul> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1742" data-origin-height="236">
+ <span data-url="https://blog.kakaocdn.net/dn/bvzSWD/btrNwGukRqr/WTOjG87QlGfkmQH084kEjK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bvzSWD/btrNwGukRqr/WTOjG87QlGfkmQH084kEjK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbvzSWD%2FbtrNwGukRqr%2FWTOjG87QlGfkmQH084kEjK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="757" height="103" data-origin-width="1742" data-origin-height="236"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">기본 invoke url은 http://${JENKINS_URL}/generic-webhook-trigger/invoke이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">ex)&nbsp;아래는 쿼리파라미터로 토큰을 표시한다고 하면 invoke url의 예시이다. </span></p> 
+<pre id="code_1664784951050" class="java" data-ke-language="java" data-ke-type="codeblock"><code>JENKINS URL : http://ecsimsw.jenkins
+TOKEN : my-token
+
+Invoke url : http://ecsimsw.jenkins/generic-webhook-trigger/invoke?token=my-token</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-6-configure-webhook" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#6-configure-webhook" aria-hidden="true"></a><b>6. &nbsp;Configure Webhook</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Webhook을 설정한다. Webhook을 발생시킬 이벤트 종류를 선택하고, 타겟 Url을 앞서 확인한 invoke url로 하면 된다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">이때 hook의 content type을<b> application/json</b>으로 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><span style="color: #000000;">설정 후 해당 이벤트를 발생시켰을 때 HTTP response status가 200이면서 아래와 같이 Jenkins에 설정한 트리거에 대한 정보가 반환된다면 알맞게 Webhook을 발생시켰고, Jenkins Trigger가 알맞게 응답한 것이다. </span><span style="color: #000000;">만약 응답코드가 200이 아니거나 응답 본문이 없다면 잘못된 것이다. 설정을 다시 확인한다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1658" data-origin-height="242">
+ <span data-url="https://blog.kakaocdn.net/dn/MX8V0/btrNHTrGwXy/pikkWF94RKFY2uGKogcTu1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/MX8V0/btrNHTrGwXy/pikkWF94RKFY2uGKogcTu1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FMX8V0%2FbtrNHTrGwXy%2FpikkWF94RKFY2uGKogcTu1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1658" data-origin-height="242"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">응답코드가 200이면서 Job에 대한 정보가 올바른데 빌드 실행이 안되었다면 Trigger는 Webhook을 받을 수 있으나 실행 조건이 맞지 않아서이다. 특히 Optional filter에 다른 값이 들어가진 않았는지, 정규표현식을 잘못쓰진 않았는지 다시 확인한다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">(위 예시는 필터 조건으로 triggered false를 의도한 상황에서의 캡쳐이다. true여야 빌드가 진행된다.)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="541" data-origin-height="165">
+ <span data-url="https://blog.kakaocdn.net/dn/c6nZi3/btrNyG8uH7O/X2Qg4uYJVe3EhF5JzCrYyk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/c6nZi3/btrNyG8uH7O/X2Qg4uYJVe3EhF5JzCrYyk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fc6nZi3%2FbtrNyG8uH7O%2FX2Qg4uYJVe3EhF5JzCrYyk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="541" data-origin-height="165"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;"><a id="user-content-7-optional-filter" style="color: #000000;" href="https://github.com/ecsimsw/daily-computer-science/tree/ecsimsw/network#7-optional-filter" aria-hidden="true"></a><b>7. &nbsp;Optional filter</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">Webhook의 요청 본문의 정보로 빌드 여부를 쉽게 필터링할 수 있다. 처음 요구 사항처럼 tag 이름이나 branch 정보를 받아 필터링할 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000; font-family: AppleSDGothicNeo-Regular, 'Malgun Gothic', '맑은 고딕', dotum, 돋움, sans-serif;">아래의 예시는 Webhook의 ref라는 변수로 정의한 값이&nbsp;refs/tags/core-v*에 만족하는지 여부를 확인하는 필터링이다. $ref는 앞서 Post content parameter에서 요청 본문의 ref 값을 ref라는 이름으로 변수로 만들어둔 것을 사용한 것이다. 즉 태그 발생 이벤트에 Webhook을 걸고, 해당 hook의 본문 값을 읽어 발생된 태그가 core-v*임을 확인한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1017" data-origin-height="293">
+ <span data-url="https://blog.kakaocdn.net/dn/babHTZ/btrNGwpR6eh/nf8S5TfQqupAtVKcf4H2nK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/babHTZ/btrNGwpR6eh/nf8S5TfQqupAtVKcf4H2nK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbabHTZ%2FbtrNGwpR6eh%2Fnf8S5TfQqupAtVKcf4H2nK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1017" data-origin-height="293"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p>             </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>>
