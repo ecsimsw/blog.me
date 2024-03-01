@@ -11,4 +11,4 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     volumes:
-      - D:/mysql/data:/var/lib/mysql
+      - ~/mysql-data:/var/lib/mysql
