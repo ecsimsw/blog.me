@@ -17,7 +17,7 @@ public class ArticleFileController {
         this.cacheService = cacheService;
     }
 
-    @GetMapping("/article/{id}")
+    @GetMapping("/api/article/{id}")
     public String serveArticleFile(@PathVariable int id) {
         // TODO :: AUTH
         cacheService.count(id, 1);
