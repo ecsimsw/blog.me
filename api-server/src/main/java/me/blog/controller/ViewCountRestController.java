@@ -9,10 +9,18 @@ import me.blog.service.ContentService;
 import me.blog.service.ViewCountService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import shutdown.core.ShutDown;
 
+@ShutDown(
+    conditionOnActiveProfile = "failover",
+    message = "service unavailable",
+    status = HttpStatus.SERVICE_UNAVAILABLE,
+    contentType = "application/json"
+)
 @RequiredArgsConstructor
 @RestController
 public class ViewCountRestController {
