@@ -27,7 +27,7 @@ public class Articles {
 
     public List<Article> findAllOrderByIndexDesc(int pageSize, int pageNumber) {
         var collect = articles.stream()
-            .limit(pageNumber * pageSize + pageSize)
+            .limit((long) pageNumber * pageSize + pageSize)
             .collect(Collectors.toList());
         return collect.subList(
             Math.min(collect.size(), pageNumber * pageSize),
@@ -38,7 +38,7 @@ public class Articles {
     public List<Article> findAllByCategoryOrderByIndexDesc(int categoryId, int pageSize, int pageNumber) {
         var collect = articles.stream()
             .filter(it -> it.categoryId() == categoryId)
-            .limit(pageNumber * pageSize + pageSize)
+            .limit((long) pageNumber * pageSize + pageSize)
             .collect(Collectors.toList());
         return collect.subList(
             Math.min(collect.size(), pageNumber * pageSize),
@@ -49,7 +49,7 @@ public class Articles {
     public List<Article> findAllTitleContainsOrderByIndexDesc(String keyword, int pageSize, int pageNumber) {
         var collect = articles.stream()
             .filter(it -> it.title().contains(keyword))
-            .limit(pageNumber * pageSize + pageSize)
+            .limit((long) pageNumber * pageSize + pageSize)
             .collect(Collectors.toList());
         return collect.subList(
             Math.min(collect.size(), pageNumber * pageSize),

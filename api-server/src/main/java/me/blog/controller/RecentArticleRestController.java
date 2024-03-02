@@ -1,6 +1,5 @@
 package me.blog.controller;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import me.blog.dto.RecentArticleResponse;
 import me.blog.service.RecentArticleService;
@@ -9,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import shutdown.core.ShutDown;
+
+import java.util.List;
 
 @ShutDown(
     conditionOnActiveProfile = "failover",

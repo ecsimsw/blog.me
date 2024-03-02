@@ -1,11 +1,12 @@
 package me.blog.crawler;
 
+import me.blog.dto.TistoryArticleResponse;
+import org.jsoup.Jsoup;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import me.blog.dto.TistoryArticleResponse;
-import org.jsoup.Jsoup;
 
 public class TistoryIndexPage {
 

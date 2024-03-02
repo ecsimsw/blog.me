@@ -1,7 +1,8 @@
 package me.blog.config;
 
-import java.util.concurrent.TimeUnit;
 import lombok.Getter;
+
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public enum MemoryCacheType {

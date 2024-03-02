@@ -1,8 +1,5 @@
 package me.blog.controller;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import me.blog.domain.Article;
 import me.blog.service.ContentService;
@@ -14,6 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import shutdown.core.ShutDown;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ShutDown(
     conditionOnActiveProfile = "failover",

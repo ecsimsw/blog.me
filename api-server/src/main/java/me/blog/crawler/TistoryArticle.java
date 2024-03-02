@@ -1,9 +1,10 @@
 package me.blog.crawler;
 
 import com.google.common.io.Files;
+import org.jsoup.Jsoup;
+
 import java.io.File;
 import java.io.IOException;
-import org.jsoup.Jsoup;
 
 public record TistoryArticle(String url, String articleHtml) {
 

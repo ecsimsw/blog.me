@@ -1,9 +1,10 @@
 package me.blog.dto;
 
+import me.blog.domain.RecentArticle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import me.blog.domain.RecentArticle;
 
 public record RecentArticleResponse(
     int no,

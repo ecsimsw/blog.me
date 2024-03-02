@@ -2,20 +2,18 @@ package me.blog.data;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import me.blog.domain.Article;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -31,7 +29,7 @@ public class ArticleDao {
             Resource resource = resourceLoader.getResource("classpath:" + dataFilePath);
             file = resource.getFile();
 
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalArgumentException();
         }
