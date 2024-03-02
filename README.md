@@ -11,10 +11,6 @@
 3. 게시물 별 조회수를 확인할 수 있다.
 4. 전체 혹은 날짜 별 최다 조회수 게시물을 집계 할 수 있다.
 
-## 구조 
-
-![image](https://github.com/ecsimsw/ecsimsw.blog/assets/46060746/dd2a3161-b905-412d-bb93-f2edcac2230f)
-
 ## 기록 
 
 ### 1. 글 수집
@@ -61,13 +57,58 @@ public interface DailyCountRepository extends JpaRepository<DailyCount, Long> {
 
 조회수 갱신이 아니라 2시간에 한번 최다 조회 계시물 집계, 일에 한번 어제 전체 조회수 집계 등 데이터 업데이트가 아니라, 캐시의 수명이 명확했으면 했다.     
 TTL에 의해 자동으로 캐시가 만기되고, Cache miss 가 났을 때 계산으로 재집계가 처리되었으면 했다.    
-ConccurentHashMap은 TTL은 지원하지 않기에, Caffeine cache를 CacheManager로 사용하였다.     
+ConccurentHashMap은 TTL은 지원하지 않기에, Caffeine cache를 CacheManager로 사용한다.    
+
+``` java
+@Cacheable(value = Cached.DAILY_VIEW_COUNT, key = "#date")
+@Transactional
+public int viewCountAt(LocalDate date) {
+    return dailyCountRepository.findAllByDate(date).stream()
+        .mapToInt(DailyCount::getCount)
+        .sum();
+}
+```
+
+분산 환경을 고려하지 않았다. WAS가 여러개라면 캐시에 싱크가 어긋나 응답이 WAS마다 다른 상황이 발생할 것이다.           
+당장은 WAS 한개로 충분하다고 생각했고, 분산 환경을 고려하여 WAS 간 공유를 위한 자원, 인프라를 추가하고 싶지 않았다.     
 
 
-### 4. 
+
+### 4. 게시물 파일 포워딩
+
+사용자가 게시물을 조회하는 경우 게시물 html 파일에 직접 접근을 피하고, 파일 경로를 숨기고 싶었다.       
+게시물 조회를 원할 경우 WAS에 조회하는 게시물 Id 를 전달하면, WAS는 그 Id로 DB에서 해당 게시물의 물리 경로를 찾고 그 파일 응답으로 Forwarding 한다.     
+사용자로부터 파일 경로를 숨기고, 파일 조회시 로직을 추가할 수 있었다. (ex, 비공개 게시물, 게시물 별 조회수 계산)     
+
+``` java
+@GetMapping("/api/article/{id}")
+public String serveArticleFile(@PathVariable int id) {
+    cacheService.count(id, 1);
+    var filePath = contentService.getPathById(id);
+    return "forward:/" + fileRootDirectory + filePath;
+}
+```
+
+### 5. Failover 서버 
 
 
 
+``` java
+@ShutDown(
+    conditionOnActiveProfile = "failover",
+    message = "service unavailable",
+    status = HttpStatus.SERVICE_UNAVAILABLE,
+    contentType = "application/json"
+)
+@RequiredArgsConstructor
+@RestController
+public class ViewCountRestController {
+```
+
+
+## 구조 
+
+![image](https://github.com/ecsimsw/ecsimsw.blog/assets/46060746/dd2a3161-b905-412d-bb93-f2edcac2230f)
 
 
 
