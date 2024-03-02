@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import me.blog.config.Cached.VALUES;
+import me.blog.config.MemoryCacheType.Cached;
 import me.blog.crawler.TistoryIndexPage;
 import me.blog.domain.RecentArticleRepository;
 import me.blog.dto.RecentArticleResponse;
@@ -56,7 +56,7 @@ public class RecentArticleService {
         return ChronoUnit.HOURS.between(firstIndex.getUpdated(), LocalDateTime.now()) < 2;
     }
 
-    @Cacheable(value = VALUES.RECENT_ARTICLES, key = "#n")
+    @Cacheable(value = Cached.RECENT_ARTICLES, key = "#n")
     @Transactional
     public List<RecentArticleResponse> getAll(int n) {
         var articles = recentArticleRepository.findAll(PageRequest.of(0, n)).getContent();

@@ -17,7 +17,7 @@ public class CaffeineCacheConfig implements CachingConfigurer {
 
     @Bean
     public CacheManager caffeineConfig() {
-        var caches = Arrays.stream(Cached.values())
+        var caches = Arrays.stream(MemoryCacheType.values())
             .map(this::build)
             .collect(Collectors.toList());
         var cacheManager = new SimpleCacheManager();
@@ -25,10 +25,10 @@ public class CaffeineCacheConfig implements CachingConfigurer {
         return cacheManager;
     }
 
-    private CaffeineCache build(Cached cached) {
-        return new CaffeineCache(cached.getName(), Caffeine.newBuilder()
-            .expireAfterWrite(cached.getDuration(), cached.getTimeUnit())
-            .maximumSize(cached.getMaximumSize())
+    private CaffeineCache build(MemoryCacheType memoryCacheTypes) {
+        return new CaffeineCache(memoryCacheTypes.getName(), Caffeine.newBuilder()
+            .expireAfterWrite(memoryCacheTypes.getDuration(), memoryCacheTypes.getTimeUnit())
+            .maximumSize(memoryCacheTypes.getMaximumSize())
             .build()
         );
     }

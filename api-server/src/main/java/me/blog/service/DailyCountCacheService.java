@@ -4,23 +4,20 @@ import java.time.LocalDate;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service
 public class DailyCountCacheService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DailyCountCacheService.class);
 
     private final ViewCountService viewCountService;
-    private final ConcurrentMap<Integer, Integer> countCachePerArticle;
-
-    public DailyCountCacheService(ViewCountService viewCountService) {
-        this.viewCountService = viewCountService;
-        this.countCachePerArticle = new ConcurrentHashMap<>();
-    }
+    private final ConcurrentMap<Integer, Integer> countCachePerArticle = new ConcurrentHashMap<>();
 
     public void count(int articleId, int count) {
         countCachePerArticle.compute(articleId, (k, v) -> {

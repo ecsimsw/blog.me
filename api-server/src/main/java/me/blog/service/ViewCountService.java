@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import me.blog.config.Cached.VALUES;
+import me.blog.config.MemoryCacheType.Cached;
 import me.blog.domain.DailyCount;
 import me.blog.domain.DailyCountRepository;
 import me.blog.domain.DailyCount_;
@@ -24,7 +24,7 @@ public class ViewCountService {
     private final DailyCountRepository dailyCountRepository;
     private final TotalCountRepository totalCountRepository;
 
-    @Cacheable(value = VALUES.DAILY_VIEW_COUNT, key = "#date")
+    @Cacheable(value = Cached.DAILY_VIEW_COUNT, key = "#date")
     @Transactional
     public int viewCountAt(LocalDate date) {
         return dailyCountRepository.findAllByDate(date).stream()
@@ -32,13 +32,13 @@ public class ViewCountService {
             .sum();
     }
 
-    @Cacheable(value = VALUES.TOTAL_VIEW_COUNT)
+    @Cacheable(value = Cached.TOTAL_VIEW_COUNT)
     @Transactional
     public int viewCount() {
         return totalCountRepository.sum().orElse(0);
     }
 
-    @Cacheable(value = VALUES.DAILY_TOP_VIEWED_ARTICLE, key = "{#n, #date}")
+    @Cacheable(value = Cached.DAILY_TOP_VIEWED_ARTICLE, key = "{#n, #date}")
     @Transactional
     public List<DailyCount> findTopNArticle(int n, LocalDate date) {
         return dailyCountRepository.findAllByDate(
@@ -47,7 +47,7 @@ public class ViewCountService {
         );
     }
 
-    @Cacheable(value = VALUES.DAILY_TOP_VIEWED_ARTICLE, key = "#n")
+    @Cacheable(value = Cached.DAILY_TOP_VIEWED_ARTICLE, key = "#n")
     @Transactional
     public List<TotalCount> findTopNTotalCount(int n) {
         return totalCountRepository.findAll(
