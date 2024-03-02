@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // 소개 바를 그리는 함수
 function updateAboutBar() {
     document.getElementById("ecsimsw-about").addEventListener('click', function () {
-        window.location.href = '/pages/aboutMe.html';
+        window.location.href = 'https://github.com/ecsimsw/blog.me';
     })
     document.getElementById("ecsimsw-tistory").addEventListener('click', function () {
         window.location.href = 'https://ecsimsw.tistory.com/';
