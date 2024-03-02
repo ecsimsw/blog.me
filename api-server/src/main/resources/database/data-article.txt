@@ -3,25 +3,27 @@
 |2|1|Scheduler 적용 배경, 스레드 풀과 비동기 처리|async-scheduler.html|
 |3|4|Cache 개념과 구현|cache.html|
 |4|1|깃린이를 위한 브랜치 전략|communicate-git.html|
-|5|6|2021.10.17 / 내가 꿈꾸는 프로그래머로서의 삶|daily-210530.html|
-|6|6|2021.6.27 / 대화를 위한 프론트엔드 공부|daily-210627.html|
-|7|6|2021.08.01 / 다른 사람에게 나는 어떤 팀원일까 / 이끌든지, 따르든지, 비키든지|daily-210801.html|
-|9|6|2022.03.05 / 나는 왜 오픈소스에 기여하고 싶은가|daily-220325.html|
-|10|6|2023.04.23 / HashiCorp Strategy day 2023|daily-230423.html|
-|11|6|2023.04.27 / 책임의 설렘|daily-230427.html|
-|12|2|도메인 이벤트를 이용한 의존성 분리 연습|domain-event.html|
-|13|5|Jenkins trigger filtering by tag name|jenkins-filtering.html|
-|14|5|젠킨스 jdk 버전 11로 올리는 방법|jenkins-jdk11.html|
-|15|2|JitPack 으로 쉽게 라이브러리 배포하기|jitpack.html|
-|16|5|Nginx로 무중단 배포|nginx-deployment.html|
-|17|1|프로세서의 명령어 파이프라이닝 개념과 구현|pipelining.html|
-|18|1|좌표가 부채꼴 안에 포함되어 있는지 알고 싶어요|prolog.html|
-|19|5|리버스 프록시 부하분산 개념과 시연|reverse-proxy.html|
-|20|5|Route53의 private hosted zone으로 내부 서비스 도메인 관리하기|route53-private-hosted-zone.html|
-|21|1|기존 PR 방식에 지친다면? Ship, Show, Ask 브랜치 전략 소개|ship-show-ask.html|
-|22|2|Spring boot의 CORS 설정|spring-cors.html|
-|23|5|Vault hands-on, 가장 기본적인 기능들|vault-handson.html|
-|24|5|AWS S3 의 비용이 부담된다면? Vultr Object storage 소개하기|vultr-s3.html|
+|5|6|2020.07.03 / 괴짜들 모으기|geeks.html|
+|6|6|2020.09.01 / Geek을 위한 Giggle|giggle.html|
+|7|6|2021.10.17 / 내가 꿈꾸는 프로그래머로서의 삶|daily-210530.html|
+|8|6|2021.6.27 / 대화를 위한 프론트엔드 공부|daily-210627.html|
+|9|6|2021.08.01 / 다른 사람에게 나는 어떤 팀원일까 / 이끌든지, 따르든지, 비키든지|daily-210801.html|
+|10|6|2022.03.05 / 나는 왜 오픈소스에 기여하고 싶은가|daily-220325.html|
+|11|6|2023.04.23 / HashiCorp Strategy day 2023|daily-230423.html|
+|12|6|2023.04.27 / 책임의 설렘|daily-230427.html|
+|13|2|도메인 이벤트를 이용한 의존성 분리 연습|domain-event.html|
+|14|5|Jenkins trigger filtering by tag name|jenkins-filtering.html|
+|15|5|젠킨스 jdk 버전 11로 올리는 방법|jenkins-jdk11.html|
+|16|2|JitPack 으로 쉽게 라이브러리 배포하기|jitpack.html|
+|17|5|Nginx로 무중단 배포|nginx-deployment.html|
+|18|1|프로세서의 명령어 파이프라이닝 개념과 구현|pipelining.html|
+|19|1|좌표가 부채꼴 안에 포함되어 있는지 알고 싶어요|prolog.html|
+|20|5|리버스 프록시 부하분산 개념과 시연|reverse-proxy.html|
+|21|5|Route53의 private hosted zone으로 내부 서비스 도메인 관리하기|route53-private-hosted-zone.html|
+|22|1|기존 PR 방식에 지친다면? Ship, Show, Ask 브랜치 전략 소개|ship-show-ask.html|
+|23|2|Spring boot의 CORS 설정|spring-cors.html|
+|24|5|Vault hands-on, 가장 기본적인 기능들|vault-handson.html|
+|25|5|AWS S3 의 비용이 부담된다면? Vultr Object storage 소개하기|vultr-s3.html|
 |26|2|Webpack dev server의 포트가 자동으로 바뀐다? Vue-Cli와 portfinder|web-pack.html|
 |27|5|Kubernetes apt repository updated : NO_PUBKEY B53DC80D13EDEF05|k8s-apt.html|
 |28|1|Rate Limit 을 직접 구현해보자|rate-limit.html|
@@ -49,3 +51,4 @@
 |50|1|Transactional outbox 패턴으로 메시징과 DB 트랜잭션 원자성 보장|transactional-outbox.html|
 |51|1|동시성 문제 해결을 위한 락 선택에 고려해볼 것들|concurrent-issue.html|
 |52|1|비관적 락의 DB 커넥션 점유 문제를 해결하는 과정들|db-lock.html|
+|53|6|티스토리 블로그 백업과 블로그 서버 운영|myblog.html|
