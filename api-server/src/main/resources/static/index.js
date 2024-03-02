@@ -3,7 +3,7 @@ const SERVER_URL = ""
 const DEFAULT_CATEGORY_POST_ALL = "Articles"
 
 const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
-const PAGE_SIZE = 10
+const PAGE_SIZE = 15
 const MOST_VIEWED_SIZE = 5
 const RECENT_ARTICLE_SIZE = 5
 
@@ -57,7 +57,7 @@ function loadMostViewArticle() {
             const li = document.createElement("li")
             const a = document.createElement("a")
             li.id = "most-viewed-" + i++
-            a.href = "/article/" + post.id
+            a.href = "/api/article/" + post.id
             a.textContent = post.title
             a.className = "most-viewed-item"
             a.textContent = post.title
@@ -149,7 +149,7 @@ function renderPosts(posts) {
         const a = document.createElement("a")
         const h3 = document.createElement("h3")
         const p = document.createElement("p")
-        a.href = "/article/" + post.id
+        a.href = "/api/article/" + post.id
         a.className = "post-list-item"
         a.textContent = post.title
         h3.appendChild(a)
