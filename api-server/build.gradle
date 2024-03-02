@@ -67,8 +67,8 @@ test {
 jib {
     from.image = "openjdk:17-jdk-alpine"
     to.image = "ghcr.io/ecsimsw/blog"
-    to.tags = ["failover"]
+    to.tags = ["prod"]
     container {
-        jvmFlags = ['-Dspring.profiles.active=failover', '-XX:NewRatio=2', '-XX:SurvivorRatio=8', '-XX:MaxRAMPercentage=25']
+        jvmFlags = ['-Dspring.profiles.active=prod', '-XX:NewRatio=2', '-XX:SurvivorRatio=8', '-XX:MaxRAMPercentage=25']
     }
 }
