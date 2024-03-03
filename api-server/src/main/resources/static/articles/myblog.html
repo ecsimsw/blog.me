@@ -10,26 +10,26 @@
 티스토리 블로그 백업과 블로그 서버 운영
                  </div>
                  <div class="article-view">
-                     <h4 data-ke-size="size20"><b>소개</b></h4> 
-<p data-ke-size="size16">내&nbsp;첫&nbsp;번째&nbsp;보물은&nbsp;가족사진,&nbsp;두&nbsp;번째는&nbsp;일기장,&nbsp;그리고&nbsp;세&nbsp;번째&nbsp;보물은&nbsp;티스토리&nbsp;블로그이다.</p> 
-<p data-ke-size="size16">글을 어딘가 백업해 둬야겠다는 것부터, 자유로운 글 관리까지, 언젠가 직접 블로그 서버를 운영하길 꿈꿨었다.</p> 
-<p data-ke-size="size16">이&nbsp;프로젝트에선&nbsp;티스토리&nbsp;글을&nbsp;백업하고,&nbsp;그&nbsp;데이터로&nbsp;직접&nbsp;블로그&nbsp;서버를&nbsp;운영한다.</p> 
+                     <h4 data-ke-size="size20"><span style="color: #333333;"><b>소개</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">내&nbsp;첫&nbsp;번째&nbsp;보물은&nbsp;가족사진,&nbsp;두&nbsp;번째는&nbsp;일기장,&nbsp;그리고&nbsp;세&nbsp;번째&nbsp;보물은&nbsp;티스토리&nbsp;블로그이다.</span></p> 
+<p data-ke-size="size16"><span style="background-color: #ffffff; color: #333333; text-align: start;">자유로운 글 관리부터 백업까지, 언젠가 직접 블로그 서버를 운영하길 꿈꿨었다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">이&nbsp;프로젝트에선&nbsp;티스토리&nbsp;글을&nbsp;백업하고,&nbsp;그&nbsp;데이터로&nbsp;직접&nbsp;블로그&nbsp;서버를&nbsp;운영한다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">저장소 : <a href="https://github.com/ecsimsw/blog.me" target="_blank" rel="noopener&nbsp;noreferrer">https://github.com/ecsimsw/blog.me</a></p> 
-<p data-ke-size="size16">배포 링크 :&nbsp;<a href="https://www.ecsimsw.com](https://www.ecsimsw.com)##" target="_blank" rel="noopener&nbsp;noreferrer">https://www.ecsimsw.com</a></p> 
+<p data-ke-size="size16"><span style="color: #333333;">저장소 : <a style="color: #333333;" href="https://github.com/ecsimsw/blog.me" target="_blank" rel="noopener&nbsp;noreferrer">https://github.com/ecsimsw/blog.me</a></span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">배포 링크 :&nbsp;<a style="color: #333333;" href="https://www.ecsimsw.com](https://www.ecsimsw.com)##" target="_blank" rel="noopener&nbsp;noreferrer">https://www.ecsimsw.com</a></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<h4 data-ke-size="size20"><b>기능</b></h4> 
-<p data-ke-size="size16">1.&nbsp;블로그&nbsp;글을&nbsp;수집할&nbsp;수&nbsp;있다.</p> 
-<p data-ke-size="size16">2.&nbsp;카테고리&nbsp;별&nbsp;글을&nbsp;확인할&nbsp;수&nbsp;있다.</p> 
-<p data-ke-size="size16">3.&nbsp;게시물&nbsp;별&nbsp;조회수를&nbsp;확인할&nbsp;수&nbsp;있다.</p> 
-<p data-ke-size="size16">4.&nbsp;전체&nbsp;혹은&nbsp;날짜&nbsp;별&nbsp;최다&nbsp;조회수&nbsp;게시물을&nbsp;집계&nbsp;할&nbsp;수&nbsp;있다.</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>기능</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">1.&nbsp;블로그&nbsp;글을&nbsp;수집할&nbsp;수&nbsp;있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">2.&nbsp;카테고리&nbsp;별&nbsp;글을&nbsp;확인할&nbsp;수&nbsp;있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">3.&nbsp;게시물&nbsp;별&nbsp;조회수를&nbsp;확인할&nbsp;수&nbsp;있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">4.&nbsp;전체&nbsp;혹은&nbsp;날짜&nbsp;별&nbsp;최다&nbsp;조회수&nbsp;게시물을&nbsp;집계&nbsp;할&nbsp;수&nbsp;있다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<h4 data-ke-size="size20"><b>&nbsp;기록</b></h4> 
-<p data-ke-size="size16"><b>1. 조회수 캐시</b></p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>&nbsp;기록</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>1. 조회수 캐시</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">조회수를 메모리에 기록해 두었다가, 10초에 한번 그 기간 발생한 수를 DB에 기록한다.</p> 
-<p data-ke-size="size16">게시물 별 조회수를 기록해야 했기에 Map 을 사용했다.</p> 
-<p data-ke-size="size16">동시성 문제를 고려하여 ConcurrentMap, 원자성이 보장된 연산을 사용하여 조회수를 담는다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">조회수를 메모리에 기록해 두었다가, 10초에 한번 그 기간 발생한 수를 DB에 기록한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">게시물 별 조회수를 기록해야 했기에 Map 을 사용했다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">동시성 문제를 고려하여 ConcurrentMap, 원자성이 보장된 연산을 사용하여 조회수를 담는다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <pre id="code_1709415203948" class="java" data-ke-language="java" data-ke-type="codeblock"><code>private final ConcurrentMap&lt;Integer, Integer&gt; countCachePerArticle = new ConcurrentHashMap&lt;&gt;();
 
@@ -42,9 +42,9 @@ public void count(int articleId, int count) {
     });
 }</code></pre> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">DB 저장 시에 조회에 락을 걸어 동시성 문제를 처리한다. {articleId, date}로 인덱스를 설정하고 row lock 처리하여, 트랜잭션의 {게시물:날짜}에 해당하는 데이터 외에 다른 row 처리에서 영향이 없도록 하였다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">DB 저장 시에 조회에 락을 걸어 동시성 문제를 처리한다. {articleId, date}로 인덱스를 설정하고 row lock 처리하여, 트랜잭션의 {게시물:날짜}에 해당하는 데이터 외에 다른 row 처리에서 영향이 없도록 하였다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">DB 데이터 업데이트가 잦지 않아 동시에 발생할 일이 극히 드물고, 그 트랜잭션의 처리 시간이 적기에 재시도 로직이 불필요하여 로직이 명확하고, 처리가 확실한 비관적 락을 선택했다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">DB 데이터 업데이트가 잦지 않아 동시에 발생할 일이 극히 드물고, 그 트랜잭션의 처리 시간이 적기에 재시도 로직이 불필요하여 로직이 명확하고, 처리가 확실한 비관적 락을 선택했다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <pre id="code_1709415218013" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public interface DailyCountRepository extends JpaRepository&lt;DailyCount, Long&gt; {
     @Lock(value = LockModeType.PESSIMISTIC_WRITE)
@@ -52,11 +52,11 @@ public void count(int articleId, int count) {
 }</code></pre> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16"><b>2. 집계 정보 캐시</b></p> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>2. 집계 정보 캐시</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">최다 조회 게시글 순위, 어제 전체 조회수, 가장 최신 등록 글 등, 집계에 비용이 들지만 매번 계산할 필요가 없는 데이터가 많았다. 이를 메모리에 캐시로 저장해두고 사용하고 싶었다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">최다 조회 게시글 순위, 어제 전체 조회수, 가장 최신 등록 글 등, 집계에 비용이 들지만 매번 계산할 필요가 없는 데이터가 많았다. 이를 메모리에 캐시로 저장해두고 사용하고 싶었다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">조회수 갱신이 아니라 2시간에 한번 최다 조회 게시물 집계, 일에 한번 어제 전체 조회수 집계 등 데이터 업데이트가 아니라, Miss가 될 때 집계하는 방식을 택했다. TTL에 의해 자동으로 캐시가 만기 되고, Cache miss 가 났을 때 계산으로 재집계가 처리되었으면 했다.&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #333333;">2시간에 한번 최다 조회 게시물 집계, 하루에 한번 어제 조회수 집계 등 데이터 업데이트가 아니라, Miss가 될 때 집계하는 방식을 택했다. TTL에 의해 자동으로 캐시가 만기 되고, Cache miss 가 났을 때 계산으로 재집계가 처리되었으면 했다.&nbsp;</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <pre id="code_1709415256484" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@Cacheable(value = Cached.DAILY_VIEW_COUNT, key = "#date")
 @Transactional
@@ -66,16 +66,16 @@ public int viewCountAt(LocalDate date) {
         .sum();
 }</code></pre> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">ConccurentHashMap은 TTL은 지원하지 않기에, Caffeine cache를 CacheManager로 사용한다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">ConccurentHashMap은 TTL은 지원하지 않기에, Caffeine cache를 CacheManager로 사용한다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">분산 환경을 고려하지 않았다. WAS가 여러 개라면 캐시에 싱크가 어긋나 응답이 WAS마다 다른 상황이 발생할 것이다. 당장의 부하는 WAS 한 개로 충분하다고 생각했고, 분산 환경을 고려하여 WAS 간 공유를 위한 자원, 인프라를 추가하고 싶지 않았다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">분산 환경을 고려하지 않았다. WAS가 여러 개라면 캐시에 싱크가 어긋나 응답이 WAS마다 다른 상황이 발생할 것이다. 당장의 부하는 WAS 한 개로 충분하다고 생각했고, 분산 환경을 고려하여 WAS 간 공유를 위한 자원, 인프라를 추가하고 싶지 않았다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16"><b>3. 게시물 파일 포워딩</b></p> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>3. 게시물 파일 포워딩</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">사용자가 게시물을 조회하는 경우 게시물 html 파일에 직접 접근을 피하고, 파일 경로를 숨기고 싶었다.</p> 
-<p data-ke-size="size16">게시물 조회를 원할 경우 WAS에 조회하는 게시물 Id를 전달하면, WAS는 그 Id로 DB에서 해당 게시물의 물리 경로를 찾고 그 파일 응답으로 Forwarding 한다.</p> 
-<p data-ke-size="size16">사용자로부터 파일 경로를 숨기고, 파일 조회 시 로직을 추가할 수 있었다. (ex, 비공개 게시물, 게시물별 조회수 계산)</p> 
+<p data-ke-size="size16"><span style="color: #333333;">사용자가 게시물을 조회하는 경우 게시물 html 파일에 직접 접근을 피하고, 파일 경로를 숨기고 싶었다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">게시물 조회를 원할 경우 WAS에 조회하는 게시물 Id를 전달하면, WAS는 그 Id로 DB에서 해당 게시물의 물리 경로를 찾고 그 파일 응답으로 Forwarding 한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">사용자로부터 파일 경로를 숨기고, 파일 조회 시 로직을 추가할 수 있었다. (ex, 비공개 게시물, 게시물별 조회수 계산)</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <pre id="code_1709415301882" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@GetMapping("/api/article/{id}")
 public String serveArticleFile(@PathVariable int id) {
@@ -85,11 +85,11 @@ public String serveArticleFile(@PathVariable int id) {
 }</code></pre> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16"><b>4. GSLB와 DNS 상태 검사</b></p> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>4. GSLB와 DNS 상태 검사</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">비용을 아끼고자 메인 서버는 홈 서버로 하고, 가장 저렴한 클라우드 pc에 임시 서버를 운영한다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">비용을 아끼고자 메인 서버는 홈 서버로 하고, 가장 저렴한 클라우드 pc에 임시 서버를 운영한다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">Nginx 헬스 체크를 이용하려 했으나, Nginx 노드가 다운되면 결국 전체 서비스 장애가 나는 것은 똑같았다. GSLB 를 키워드로 공부하고 Route53, 상태 검사를 적용했다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">Nginx 헬스 체크를 이용하려 했으나, Nginx 노드가 다운되면 결국 전체 서비스 장애가 나는 것은 똑같았다. GSLB 를 키워드로 공부하고 Route53, 상태 검사를 적용했다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <pre id="code_1709415326399" class="java" data-ke-language="java" data-ke-type="codeblock"><code>server {
   listen 80;
@@ -105,14 +105,14 @@ public String serveArticleFile(@PathVariable int id) {
   }
 }</code></pre> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">Route53은 30초마다 메인 서버의 상태를 확인하고, 이상이 있다면 DNS 쿼리에 임시 서버의 ip를 반환한다. 기본 상태 검사 프로토콜(Http)을 사용하기 위해 80번 포트에 헬스 체크용 API를 열고, 나머지 요청은 https로 리다이렉트 시킨다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">Route53은 30초마다 메인 서버의 상태를 확인하고, 이상이 있다면 DNS 쿼리에 임시 서버의 ip를 반환한다. 기본 상태 검사 프로토콜(Http)을 사용하기 위해 80번 포트에 헬스 체크용 API를 열고, 나머지 요청은 https로 리다이렉트 시킨다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16"><b>5. ShutDown 라이브러리</b></p> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>5. ShutDown 라이브러리</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">임시 서버에선 DB를 사용하지 않는다. 메인 서버와 DB가 같은 노드에 있어, 메인 서버와 DB가 함께 다운되기에 의미가 없었다.</p> 
-<p data-ke-size="size16">최소한의 주요 서비스 (게시물 조회, 카테고리 조회)를 남기고 나머지 API는 "사용 불가"를 요청한다.</p> 
-<p data-ke-size="size16">임시 서버 API를 위한 코드 변경과 하드 코딩을 최소화하기 위해 ShutDown 필터를 개발했다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">임시 서버에선 DB를 사용하지 않는다. 메인 서버와 DB가 같은 노드에 있어, 메인 서버와 DB가 함께 다운되기에 의미가 없었다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">최소한의 주요 서비스 (게시물 조회, 카테고리 조회)를 남기고 나머지 API는 "사용 불가"를 요청한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">임시 서버 API를 위한 코드 변경과 하드 코딩을 최소화하기 위해 ShutDown 필터를 개발했다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <pre id="code_1709415377608" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@ShutDown(
     conditionOnActiveProfile = "failover",
@@ -124,41 +124,41 @@ public String serveArticleFile(@PathVariable int id) {
 @RestController
 public class ViewCountRestController {</code></pre> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">@ShutDown 어노테이션에 조건과 응답 내용을 정의하면, 그 조건에 따라 해당 Controller 의 API 핸들러를 읽고 임시 응답을 반환하는 필터가 등록된다.</p> 
-<p data-ke-size="size16">프로젝트에선 failover profile 일 경우, ViewCountRestController의 핸들러에 요청이 들어올 경우, 503 과 응답 메시지로 사용 불가를 알린다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">@ShutDown 어노테이션에 조건과 응답 내용을 정의하면, 그 조건에 따라 해당 Controller 의 API 핸들러를 읽고 임시 응답을 반환하는 필터가 등록된다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">프로젝트에선 failover profile 일 경우, ViewCountRestController의 핸들러에 요청이 들어올 경우, 503 과 응답 메시지로 사용 불가를 알린다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16"><b>6. 리버스 프록시와 Nginx</b></p> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>6. 리버스 프록시와 Nginx</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">WAS 전면에 Nginx 를 리버스 프록시로 두었다. 이 프로젝트에서 리버스 프록시의 역할은 다음과 같다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">WAS 전면에 Nginx 를 리버스 프록시로 두었다. 이 프로젝트에서 리버스 프록시의 역할은 다음과 같다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">1. TLS 설정을 WAS 전면에 한다. Http 요청을 Https 요청으로 넘긴다.</p> 
-<p data-ke-size="size16">2. 정적 자원을 응답한다. WAS까지 가지 않아도 되는 기본적인 html, css, js 파일을 Nginx 에서 직접 응답한다.</p> 
-<p data-ke-size="size16">3. Rate limit을 설정한다. 5req/1sec, burst=5, nodelay 로 처리한다.</p> 
-<p data-ke-size="size16">4. WAS에서 정확한 사용자 ip 로깅을 위해 라우팅하는 요청 Header에 사용자 Ip를 포함시켜 전달한다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">1. TLS 설정을 WAS 전면에 한다. Http 요청을 Https 요청으로 넘긴다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">2. 정적 자원을 응답한다. WAS까지 가지 않아도 되는 기본적인 html, css, js 파일을 Nginx 에서 직접 응답한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">3. Rate limit을 설정한다. 5req/1sec, burst=5, nodelay 로 처리한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">4. WAS에서 정확한 사용자 ip 로깅을 위해 라우팅하는 요청 Header에 사용자 Ip를 포함시켜 전달한다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16"><b>7. 글 수집</b></p> 
+<p data-ke-size="size16"><span style="color: #333333;"><b>7. 글 수집</b></span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">Jsoup 으로 티스토리 작성 글의 html 을 수집한다.</p> 
-<p data-ke-size="size16">게시물의 html 을 파싱하여 글 제목과 본문을 수집하고, 미리 만들어둔 html 템플릿과 css 파일에 이를 삽입하고 파일로 저장한다.</p> 
+<p data-ke-size="size16"><span style="color: #333333;">Jsoup 으로 티스토리 작성 글의 html 을 수집한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">게시물의 html 을 파싱하여 글 제목과 본문을 수집하고, 미리 만들어둔 html 템플릿과 css 파일에 이를 삽입하고 파일로 저장한다.</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<h4 data-ke-size="size20"><b>구조</b></h4> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>구조</b></span></h4> 
 <p></p>
 <figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-filename="309490440-dd2a3161-b905-412d-bb93-f2edcac2230f.png" data-origin-width="1032" data-origin-height="554">
  <span data-url="https://blog.kakaocdn.net/dn/NXx6B/btsFvZMUu5H/brFC7tmLSUaGadDXyZ2Dp1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/NXx6B/btsFvZMUu5H/brFC7tmLSUaGadDXyZ2Dp1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FNXx6B%2FbtsFvZMUu5H%2FbrFC7tmLSUaGadDXyZ2Dp1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-filename="309490440-dd2a3161-b905-412d-bb93-f2edcac2230f.png" data-origin-width="1032" data-origin-height="554"></span>
 </figure> 
 <p></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<h4 data-ke-size="size20"><b>기술</b></h4> 
-<p data-ke-size="size16">Java17,&nbsp;Spring&nbsp;boot2.7.9,&nbsp;Hibernate,&nbsp;Jsoup</p> 
-<p data-ke-size="size16">Mysql,&nbsp;H2,&nbsp;Caffeine</p> 
-<p data-ke-size="size16">JUnit5,&nbsp;Mockito</p> 
-<p data-ke-size="size16">Nginx,&nbsp;Docker,&nbsp;Route53</p> 
-<p data-ke-size="size16">JIB,&nbsp;Github&nbsp;actions,&nbsp;GHCR</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>기술</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">Java17,&nbsp;Spring&nbsp;boot2.7.9,&nbsp;Hibernate,&nbsp;Jsoup</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">Mysql,&nbsp;H2,&nbsp;Caffeine</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">JUnit5,&nbsp;Mockito</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">Nginx,&nbsp;Docker,&nbsp;Route53</span></p> 
+<p data-ke-size="size16"><span style="color: #333333;">JIB,&nbsp;Github&nbsp;actions,&nbsp;GHCR</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<h4 data-ke-size="size20"><b>스크린 샷</b></h4> 
-<p data-ke-size="size16">1. 메인 페이지</p> 
+<h4 data-ke-size="size20"><span style="color: #333333;"><b>스크린 샷</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #333333;">1. 메인 페이지</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p></p>
 <figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-filename="309488028-3e1a8731-d8ca-4411-8696-3fbcb946a9e5.png" data-origin-width="1515" data-origin-height="939">
@@ -167,7 +167,7 @@ public class ViewCountRestController {</code></pre>
 <p></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p data-ke-size="size16">&nbsp;</p> 
-<p data-ke-size="size16">2. 게시물 페이지</p> 
+<p data-ke-size="size16"><span style="color: #333333;">2. 게시물 페이지</span></p> 
 <p data-ke-size="size16">&nbsp;</p> 
 <p></p>
 <figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-filename="309500617-f6e8b432-f645-4e2b-9b4a-361669bbea8e.png" data-origin-width="2762" data-origin-height="1558">
