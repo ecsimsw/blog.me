@@ -1,0 +1,162 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+파일 삭제 중 예외시 롤백 불가 문제를 풀이하는 과정들
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>파일 삭제 롤백 불가 문제&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">앨범을 삭제하면 그 안에 있는 모든 사진 정보, 파일이 삭제된다. 사진 파일 다중 제거하는 시간은 오래 걸리기에 이를 비동기 처리하여 DB 정보 삭제, 사진 파일 다중 삭제 이벤트 발행만 완료하고 그 즉시 앨범 삭제 처리 완료를 응답한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1710090716808" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@Transactional
+public void deleteAlbum(Long userId, Long albumId) {
+    var pictures = pictureRepository.findAllByAlbumId(albumId);
+    fileService.deleteAllAsync(pictures);
+    albumRepository.delete(album);
+    pictureRepository.deleteAll(pictures);
+    // 후처리
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">코드의 주석으로 표시한 후처리에서 예외가 발생하면 어떻게 될까? DB 데이터 삭제 처리는 Transaction 이 롤백되면서 삭제 처리에 실패할 것이다. fileService 의 deleteAllAsync 는? 비동기로 이미 사진 파일은 제거되고 있을 거고 그는 롤백되지 못해 DB에는 존재하는 사진 데이터가 파일은 존재하지 않는 상황이 생기게 된다. 앨범을 삭제하는 한 로직 안에서 '성공'과 '실패'가 공존하는 원자성이 깨지는 문제가 발생한 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>이벤트 DB 저장</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">사진 파일을 삭제하는 이벤트 내역을 DB 에 저장하는 것으로 문제를 해결해 보았다. 사진 파일 삭제 처리 이벤트를 DB에 저장하고 DB 트랜잭션이 마무리됨과 동시에 사용자에게 바로 응답하는 것이다. 그리고 이후에 스케줄러로 polling 하여 새로 저장된 사진 파일 삭제 처리 이벤트가 있다면 그제서 파일들을 삭제한다. 만약 후처리에서 실패하면 어떻게 될까? 파일 이벤트가 다른 DB 처리와 함께 Transaction 이 롤백되기 때문에 걱정하지 않아도 된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="905" data-origin-height="520">
+ <span data-url="https://blog.kakaocdn.net/dn/bpm6P0/btsFFLoDZxm/1EWJhy2SNzAyCSVrIaoUx0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bpm6P0/btsFFLoDZxm/1EWJhy2SNzAyCSVrIaoUx0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fbpm6P0%2FbtsFFLoDZxm%2F1EWJhy2SNzAyCSVrIaoUx0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="850" height="488" data-origin-width="905" data-origin-height="520"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">deleteAlbum의 파일 처리 이벤트를 DB에 저장하는 것으로 DB 트랜잭션을 이용한 원자성 (commit or rollback) 이 만들어졌고, 이벤트 내역을 기록하기에, 더 안전한 이벤트 처리가 가능해졌다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>구간을 나눠 제거하기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">후처리에서 발생할 문제는 벗어났지만 { 파일 삭제 처리 -&gt; DB에서 파일 삭제 처리 이벤트 제거 } 안에서 원자성은 지켜지지 못한다. 결국 제거한 파일을 롤백하지는 않는다. 한 로직 (메서드)에서 파일 다중 삭제 처리와 관련 DB 데이터 삭제 외 다른 처리들을 제거하는 단순화로 예외 처리를 용이하게 만들 뿐이다. 결국엔 아래와 같은 로직이 필요하다. 파일을 삭제하는 과정에서 예외가 발생하면 Transactional에 의해 앞선 DB 데이터 제거는 롤백된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1710096801058" class="java" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-type="codeblock" data-ke-language="java"><code>@Transactional
+public void schedulePublishOut() {
+    var toBeDeleted = fileDeletionEventRepository.findAll();
+    fileDeletionEventRepository.deleteAll(toBeDeleted);
+    fileHandler.deleteAll(toBeDeleted);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">만약 삭제 처리할 내용이 많은 경우엔 어떻게 할까. 예를 들어 삭제 이벤트가 3만개가 쌓여있고, 하필 2만 9천 번째 사진 파일 제거가 실패했다면? DB의 이벤트 내용은 모두 롤백되고 파일은 이미 삭제되어 정합성 문제가 발생할 것이다. 그래서 구간을 나눴다. 작업 단위 당 처리할 이벤트 개수를 지정하여 예외 시 실패 범위를 최소화한다. 처리 실패한 구간은 다음 스케줄링에서 재시도되고 이벤트는 남아있으나 파일이 이미 삭제된 이벤트 내역은 파일이 존재하지 않음을 성공으로 읽어 그제서 제거된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1710094890979" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public void schedulePublishOut() {
+    var toBeDeleted = fileDeletionEventRepository.findAll(
+        Sort.by(FileDeletionEvent_.CREATION_TIME)
+    );
+    for (var eventSegment : Iterables.partition(toBeDeleted, FILE_DELETION_SEGMENT_UNIT)) {
+        // Transcation begin
+        var resourceKeys = eventSegment.stream()
+            .map(FileDeletionEvent::getResourceKey)
+            .collect(Collectors.toList());
+        fileHandler.deleteAll(resourceKeys);
+        fileDeletionEventRepository.deleteAll(events);
+        // Transcation commit
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>재시도 횟수 기록하기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">평소처럼 개발하는데 동작하지 않아야 할 파일 삭제 처리 스케줄러가 계속 동작하고 있고, 사진 파일 삭제 처리 실패 처리가 무한히 나고 있는 것을 발견했다. (꼼꼼한 로깅의 중요성을 한번 더 느끼면서..) 이유를 확인해보니 사진 파일 삭제 처리 이벤트 중 정상적이지 않은 이벤트 내용이 DB 에 존재했고 스케줄러가 이를 처리하려고 노력하고, 처리에 실패하니 DB에서 이벤트를 제거하지 못하고를 무한 반복하고 있는 상황이었다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="947" data-origin-height="485">
+ <span data-url="https://blog.kakaocdn.net/dn/c3jCu9/btsFHqjvUkX/kGL3tjKGw2oiIvTCNtyY81/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/c3jCu9/btsFHqjvUkX/kGL3tjKGw2oiIvTCNtyY81/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fc3jCu9%2FbtsFHqjvUkX%2FkGL3tjKGw2oiIvTCNtyY81%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="947" data-origin-height="485"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이벤트에 재시도 횟수를 함께 기록하는 것으로 무한 재시도 문제를 해결했다. <span style="background-color: #ffffff; text-align: start;">시도 횟수를 기록하고 재시도 최댓값을 지정하여 그 값을 넘어가는 경우 Outbox 에서 제거하고 에러로 로깅하는 등 개발자가 직접 처리할 수 있도록 한다.&nbsp;</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<table style="border-collapse: collapse; width: 99.9994%; height: 342px;" border="1" data-ke-align="alignLeft"> 
+ <tbody> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">id</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="color: #000000;">fileKey</span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="color: #000000;">retry</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="color: #000000;">createdAt</span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">1</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">1-ac55212e-a95d-4b6c-aaa5-696e9ac78162</span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">0</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">2024-03-11</span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">2</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">1-<span style="background-color: #ffffff; text-align: left;">dbf9ae26-7c33-453f-98be-c8d9568a2ed9</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">3</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">3</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">4-<span style="background-color: #ffffff; text-align: left;">46d04184-4604-4d81-a04a-b6d9c77e17ce</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">0</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">4</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">2-<span style="background-color: #ffffff; text-align: left;">220977e7-7ace-46e3-9749-10c5414aa087</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">0</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">5</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">5-<span style="background-color: #ffffff; text-align: left;">315fc359-aaec-49e0-a4fc-6409f6d10eba</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">4</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">6</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">1-<span style="background-color: #ffffff; text-align: left;">81cb69ac-8b6c-440d-8c67-def32cfe72ce</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">0</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">7</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">3-<span style="background-color: #ffffff; text-align: left;">d410129b-2d06-4b46-aa7c-41397f2a602c</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">0</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+  <tr style="height: 18px;"> 
+   <td style="width: 3.8223%; height: 18px; text-align: center;"><span style="color: #000000;">8</span></td> 
+   <td style="width: 18.3268%; height: 18px; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">5-<span style="background-color: #ffffff; text-align: left;">bd265f92-8ffa-4333-ac35-23886ff2a7e0</span></span></td> 
+   <td style="width: 6.07641%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;">0</span></td> 
+   <td style="width: 6.49506%; text-align: center;"><span style="background-color: #ffffff; color: #000000; text-align: left;"><span style="background-color: #ffffff; text-align: left;">2024-03-11</span></span></td> 
+  </tr> 
+ </tbody> 
+</table> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<h4 style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size20"><span style="color: #000000;"><b>마무리 : Pic-up 의 이미지 처리 흐름</b></span></h4> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16"><span style="color: #000000;">이렇게 비동기 사진 파일 다중 삭제를 위한 고민을 쭉 적어보았다.</span></p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16"><span style="color: #000000;">이번 프로젝트 Pic up 은 정말 재밌다. 고민할 부분도 많고, 추억을 저장하는 서비스이기에 꼼꼼해야 하는 부분도 많다. 그래서 더 늦어지고 진도가 안 나가는 것도 있지만.</span></p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16"><span style="color: #000000;">마무리가 애매하기도 하고, 구조 그리는게 재밌어서 Pic up 에서 이미지를 다루는 흐름을 쭉 그려보았다.</span></p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16"><span style="color: #000000;">열심히 고민했는데 막상 그리고 나니까 별로 없어서 아쉽다. 😅</span></p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16">&nbsp;</p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16"><span style="color: #000000;">Pic up 화이팅!!!</span></p> 
+<p style="background-color: #ffffff; color: #000000; text-align: left;" data-ke-size="size16"><span style="color: #000000;">저장소 : <a href="https://github.com/ecsimsw/pic-up" target="_blank" rel="noopener&nbsp;noreferrer">https://github.com/ecsimsw/pic-up</a></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="812" data-origin-height="460">
+ <span data-url="https://blog.kakaocdn.net/dn/bmxXT5/btsFF0lQgKi/3fb9pMl01WKk4Hdm3NRb41/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bmxXT5/btsFF0lQgKi/3fb9pMl01WKk4Hdm3NRb41/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbmxXT5%2FbtsFF0lQgKi%2F3fb9pMl01WKk4Hdm3NRb41%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="812" data-origin-height="460"></span>
+</figure> 
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="843" data-origin-height="503">
+ <span data-url="https://blog.kakaocdn.net/dn/CZIad/btsFHqRpcXD/XRTXRKN8XGkalNP2vMMzZk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/CZIad/btsFHqRpcXD/XRTXRKN8XGkalNP2vMMzZk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FCZIad%2FbtsFHqRpcXD%2FXRTXRKN8XGkalNP2vMMzZk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="843" data-origin-height="503"></span>
+</figure> 
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="831" data-origin-height="551">
+ <span data-url="https://blog.kakaocdn.net/dn/6DDp7/btsFE5t8w5l/WOG6k5ihPsdJ2Tj23lyX6k/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/6DDp7/btsFE5t8w5l/WOG6k5ihPsdJ2Tj23lyX6k/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F6DDp7%2FbtsFE5t8w5l%2FWOG6k5ihPsdJ2Tj23lyX6k%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="831" data-origin-height="551"></span>
+</figure> 
+<p></p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

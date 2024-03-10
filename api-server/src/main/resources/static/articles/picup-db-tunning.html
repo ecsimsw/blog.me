@@ -1,0 +1,282 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+천만 개 데이터로 조회 성능 확인, 쿼리 튜닝하기
+                 </div>
+                 <div class="article-view">
+                     <h4 style="color: #000000;" data-ke-size="size20"><span style="color: #000000;"><b>소개&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">이 글은 PIC-UP 프로젝트에 데이터가 쌓였을 때 조회 성능이 어떻게 되고, 어떤 개선 포인트가 있을지 확인했던 과정을 적어보았다. DB 쿼리 빈도를 줄여 조회 성능을 개선하는 캐싱이나 DB 부하 분산은 다루지 않는다. 대신 데이터를 만드는 방법부터 DB 엔진에 넣는 데 걸리는 시간, 인덱스나 쿼리 수정 고민 과정을 적어볼 생각이다. 다루는 내용은 아래와 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943051738" class="bash" data-ke-language="bash" data-ke-type="codeblock"><code>1. 데이터를 삽입하는 방법 / 배치 삽입과 파일 삽입
+2. 쿼리 조회 성능 확인
+3. 인덱스 추가 / 인덱스와 커버링 인덱스
+4. 실행 계획 확인 
+5. OFFSET 기반 페이지네이션 문제 확인과 개선</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 style="color: #000000;" data-ke-size="size20"><span style="color: #000000;"><b>더미 데이터 추가</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">유저 정보를 담는 테이블로 더미 데이터를 먼저 넣어봤다. 컬럼은 ID:BIGINT, USERNAME:VARCHAR(20), PASSWORD:VARCHAR(50)이고 인덱스는 하나도 걸지 않은 채로 작업하였다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>1. INSERT 반복하기</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">프로시저를 이용하여 반복문으로 10만개를 먼저 넣어봤다. USERNAME 이 중복되지 않도록&nbsp; "user-${id}" 로 INSERT 를 10만 번 반복한다. 총 3 분 39.99 초가 걸렸다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016936" class="cal" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="sql"><code>DELIMITER $$
+DROP PROCEDURE IF EXISTS BASIC_INSERT;
+CREATE PROCEDURE BASIC_INSERT()
+BEGIN
+ DECLARE i INT DEFAULT 1;
+ DECLARE maxIndex INT DEFAULT 100000;
+ WHILE( i &lt; maxIndex) DO
+  INSERT INTO MEMBER(USERNAME, PASSWORD)
+  VALUES(
+   CONCAT("user-", i),
+   UUID()
+  );
+  SET i = i+1;
+END WHILE;
+END $$
+DELIMITER ;</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>2. BULK INSERT 로 삽입하기</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">BULK INSERT 로 삽입해 봤다. 10개씩 BULK INSERT 하여 마찬가지로 10만 개를 삽입했고 24.84초가 걸렸다. 단일 INSERT 보다 훨씬 성능 개선이 보여 이번엔 10개씩 하던 BULK INSERT 를 100개씩으로 늘려 수행했고 3.36초가 걸렸다. 300개씩으로 늘려 삽입하니 1.65초가 걸렸다. 한 번에 삽입하는 쿼리 수를 늘릴 때마다 확실한 속도 차이를 보였다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">300개씩 BULK INSERT 하는 것으로 백만개, 천만 개 데이터를 삽입해 보았고 각각 15.17초, 3분 26.18초가 걸렸다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016939" class="pgsql" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="sql"><code>DELIMITER $$
+DROP PROCEDURE IF EXISTS BULK_INSERT_10;
+CREATE PROCEDURE BULK_INSERT_10()
+BEGIN
+ DECLARE i INT DEFAULT 1;
+ DECLARE maxIndex INT DEFAULT 100000;
+ WHILE( i &lt; maxIndex) DO
+  INSERT INTO MEMBER(USERNAME, PASSWORD)
+  VALUES
+      (CONCAT("user-", i),UUID()),
+      (CONCAT("user-", i+1),UUID()),
+      (CONCAT("user-", i+2),UUID()),
+      (CONCAT("user-", i+3),UUID()),
+      (CONCAT("user-", i+4),UUID()),
+      (CONCAT("user-", i+5),UUID()),
+      (CONCAT("user-", i+6),UUID()),
+      (CONCAT("user-", i+7),UUID()),
+      (CONCAT("user-", i+8),UUID()),
+      (CONCAT("user-", i+9),UUID());
+  SET i = i+10;
+END WHILE;
+END $$
+DELIMITER ;</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>3. LOAD DATA FILE</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">마지막으로 파일로 삽입해보았다. 자바 프로그램을 만들어 지정된 수만큼의 더미 데이터를 갖는 csv 파일을 쉽게 만들 수 있었다.&nbsp;<a style="color: #000000;" href="https://github.com/ecsimsw/pic-up/tree/main/utils-dummy-data">저장소</a>&nbsp;에서 구경할 수 있다. 아래는 (id, user-${id}, UUID) 형식으로 천만 개, 억 개의 데이터를 갖는 csv 파일을 생성하는데 걸렸던 시간과 파일 크기이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016942" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>// 천만개
+File name : user-data.txt
+Total generated rows : 10000000
+Total File size : 551 MB
+Execution Time : 3 SEC
+
+// 억개
+File name : user-data.txt
+Total generated rows : 100000000
+Total File size : 5700 MB
+Execution Time : 33 SEC</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">csv 파일이 준비되었다면 mysql 의 load data file 로 해당 csv 파일을 불러온다. Mysql에 설정된 안전한 파일 경로를 확인한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016942" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>SELECT @@GLOBAL.secure_file_priv;</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">내 경우에는 "/var/lib/mysql-files" 였고, 해당 경로에 준비한 csv 파일을 옮기고 아래처럼 LOAD DATA INFILE 명령어를 실행한다. ,로 컬럼을 구분하고 \n 으로 라인으로 구분한다는 의미이다. IGNORE 1 ROWS 로 csv 파일 맨 위의 컬럼명을 표시하는 라인을 스킵하였다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016943" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>LOAD DATA INFILE "/var/lib/mysql-files/user-data.txt" INTO TABLE MEMBER FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">천만 개 데이터를 삽입하는데 3분 13.22 초가 걸렸고, 300개 BULK INSERT 보다 유사하지만 조금 더 좋은 성능을 보였다. csv 로 올리기로 결정했다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="806" data-origin-height="198">
+ <span data-url="https://blog.kakaocdn.net/dn/elyETe/btsFF5mvoCT/NFzwLkuq457SqkBXJ9ke41/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/elyETe/btsFF5mvoCT/NFzwLkuq457SqkBXJ9ke41/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FelyETe%2FbtsFF5mvoCT%2FNFzwLkuq457SqkBXJ9ke41%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="790" height="194" data-origin-width="806" data-origin-height="198"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 style="color: #000000;" data-ke-size="size20"><span style="color: #000000;"><b>테스트 시나리오</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>데이터 사이즈</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">1000명 유저, 각 유저는 20개의 앨범을 소유, 각 앨범에는 500개의 사진이 존재한다. 총 천개의 Member 데이터, 2만 개의 Album 데이터, 천만 개의 Picture 데이터를 삽입했다.</span></p> 
+<p data-ke-size="size16"><br><span style="color: #000000;"><b>데이터 형태</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">데이터 형태는 다음과 같다. id는 bigint, title 과 description 은 각각 varchar(50), varchar(100) 을 사용한다. 앨범은 유저 정보를 갖고 있고, 사진은 앨범 정보를 갖고 있는 형태이다.</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="751" data-origin-height="309">
+ <span data-url="https://blog.kakaocdn.net/dn/cdOCKW/btsFEim06MH/U9pExQPuyQcXezyyNYx2Nk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/cdOCKW/btsFEim06MH/U9pExQPuyQcXezyyNYx2Nk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcdOCKW%2FbtsFEim06MH%2FU9pExQPuyQcXezyyNYx2Nk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="751" data-origin-height="309"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>조회 쿼리</b>&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이번 실습에서 확인한 애플리케이션에서 사용되는 주요 조회 내용은 다음과 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016943" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>1. 유저의 앨범 목록 조회
+2. 유저의 사진 조회
+3. 전체 유저의 사진 조회, 페이지가 큰 경우</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 style="color: #000000;" data-ke-size="size20"><span style="color: #000000;"><b>쿼리 개선 과정</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">쿼리 성능을 확인하고 개선한다. 튜닝 키워드는 다음과 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016943" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>1. 쿼리 조회 성능을 확인한다.
+2. 인덱스/커버링 인덱스를 적용한다.
+3. 실행 계획을 확인하여 인덱스 튜닝 결과를 확인한다.
+4. OFFSET 기반 페이지네이션의 문제를 확인하고 개선한다.</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>1. 유저의 앨범 목록 조회 / 인덱스, 커버링 인덱스&nbsp;</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">먼저 유저 ID 697의 앨범 리스트를 조회하는 쿼리는 다음과 같다. 24 ms 의 execution time 이 발생한다. (fetch time 은 값을 불러오는데 필요한 시간이라 쿼리 튜닝에서 확인할 대상이 아닌 듯하다.)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016944" class="angelscript" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="java"><code>SELECT * FROM ALBUM WHERE USERID = 697
+
+9 rows retrieved starting from 1 in 40 ms (execution: 24 ms, fetching: 16 ms)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">실행 계획을 확인해보면 rows = 20172, filtered = 10.0, extra = using where 인 것을 확인할 수 있다. 이는 스토리지 엔진에서 20172 개 로우의 데이터를 읽은 후에 Mysql 엔진에 의해 where 조건에 필터링되어 10% 만 남았다고 읽을 수 있다. 물론 실행 계획은 계획을 보일 뿐 실제로 데이터를 읽진 않기에 정확한 필터링 수치는 모른다. 앞서 9개의 로우만 검색된 것을 보니 10%보다 훨씬 더 적은 수만 살아남는 것을 우리는 안다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016944" class="jboss-cli" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="java"><code>+----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows  | filtered | Extra       |
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+-------------+
+|  1 | SIMPLE      | ALBUM | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 20172 |    10.00 | Using where |
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+-------------+</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">조건절에 사용되는 컬럼 (USERID) 에 인덱스를 추가한다. 검색하는 로우 수가 9로 확 줄어들고, extra 가 null 로 바뀌고 생성한 인덱스가 사용되는 것을 확인할 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016944" class="jboss-cli" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="java"><code>SELECT * FROM ALBUM WHERE USERID = 697
+9 rows retrieved starting from 1 in 65 ms (execution: 12 ms, fetching: 53 ms)
+
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key          | key_len | ref   | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | ALBUM | NULL       | ref  | ALBUM_USERID  | ALBUM_USERID | 9       | const |    9 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이번엔 조회하는 컬럼을 구체화해서 데이터 조회 없이 인덱스 조회만으로 처리하려고 한다. 이를 커버링 인덱스라고 한다. 조회하려는 검색 컬럼을 명확하게 하고 (TITLE), 이를 검색에 사용되는 컬럼과 함께 인덱스에 추가한다. 이때 { TITLE, USERID } 로 인덱스를 추가하는 것과 {USERID, TITLE} 로 인덱스를 추가하는 것은 다르다. 인덱스 순서에 따라 USERID -&gt; TITLE 순서로 인덱스 트리가 정렬되고 검색에 USERID 를 먼저 이용하도록 할 것이기 때문이다.&nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016945" class="jboss-cli" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="java"><code>SELECT TITLE FROM ALBUM WHERE USERID = 697
+9 rows retrieved starting from 1 in 26 ms (execution: 5 ms, fetching: 21 ms)
+
++----+-------------+-------+------------+------+---------------------------------+--------------------+---------+-------+------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys                   | key                | key_len | ref   | rows | filtered | Extra       |
++----+-------------+-------+------------+------+---------------------------------+--------------------+---------+-------+------+----------+-------------+
+|  1 | SIMPLE      | ALBUM | NULL       | ref  | ALBUM_USERID,ALBUM_USERID_TITLE | ALBUM_USERID_TITLE | 9       | const |    9 |   100.00 | Using index |
++----+-------------+-------+------------+------+---------------------------------+--------------------+---------+-------+------+----------+-------------+</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>2. 유저 사진 조회 / 커버링 인덱스</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">페이지네이션이 적용되는 유저 사진 조회에서 페이지 숫자가 작은 경우를 확인한다. 페이지 사이즈 10, 페이지 인덱스 2, 앨범 제목 -&gt; 사진 ID 정렬한 페이지 조회를 가정한다. 먼저 튜닝 전 쿼리와 시간은 다음과 같다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016946" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>SELECT P.ID FROM PICTURE AS P JOIN ALBUM AS A ON P.ALBUMID = A.ID
+         WHERE A.USERID=697
+         ORDER BY A.TITLE, P.ID
+         LIMIT 10 OFFSET 20
+         
+10 rows retrieved starting from 1 in 19 s 860 ms (execution: 19 s 780 ms, fetching: 80 ms)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">실행 계획을 살펴보면 Picture 테이블에서 검색, 정렬이 일어나고 있고 모든 로우를 다 읽고 있다. 조인, 검색과 정렬에 사용되는 컬럼에 인덱스를 추가하여 읽어 들이는 로우 수를 줄여본다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016946" class="bash" style="background-color: #f8f8f8; color: #383a42; text-align: start;" data-ke-language="bash" data-ke-type="codeblock"><code>+----+-------------+-------+------------+--------+-----------------------------+----------+---------+------------------+---------+----------+----------------------------------------------+
+| id | select_type | table | partitions | type   | possible_keys               | key      | key_len | ref              | rows    | filtered | Extra                                        |
++----+-------------+-------+------------+--------+-----------------------------+----------+---------+------------------+---------+----------+----------------------------------------------+
+|  1 | SIMPLE      | P     | NULL       | ALL    | NULL                        | NULL     | NULL    | NULL             | 9714204 |   100.00 | Using where; Using temporary; Using filesort |
+|  1 | SIMPLE      | A     | NULL       | eq_ref | ALBUM_PK,ALBUM_USERID_TITLE | ALBUM_PK | 9       | dbtest.P.ALBUMID |       1 |     5.00 | Using where                                  |
++----+-------------+-------+------------+--------+-----------------------------+----------+---------+------------------+---------+----------+----------------------------------------------+</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Picture의 {ALBUMID, ID} 으로 인덱스, Album 에는 {USERID, TITLE, ID} 으로 인덱스를 걸었다. Picture 에서 읽는 row 수가 527 로 확 줄은 것을 볼 수 있다. 이제는 Album -&gt; Picture 순서로 테이블을 조회한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016946" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>+----+-------------+-------+------------+------+---------------------------------------------------+-----------------------+---------+-------------+------+----------+--------------------------+
+| id | select_type | table | partitions | type | possible_keys                                     | key                   | key_len | ref         | rows | filtered | Extra                    |
++----+-------------+-------+------------+------+---------------------------------------------------+-----------------------+---------+-------------+------+----------+--------------------------+
+|  1 | SIMPLE      | A     | NULL       | ref  | ALBUM_PK,ALBUM_USERID_TITLE,ALBUM_USERID_TITLE_ID | ALBUM_USERID_TITLE_ID | 9       | const       |    9 |   100.00 | Using where; Using index |
+|  1 | SIMPLE      | P     | NULL       | ref  | PICTURE_ALBUM_ID                                  | PICTURE_ALBUM_ID      | 9       | dbtest.A.ID |  527 |   100.00 | Using index              |
++----+-------------+-------+------------+------+---------------------------------------------------+-----------------------+---------+-------------+------+----------+--------------------------+</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 인덱스 튜닝을 완료한 이후 쿼리 실행 시간은 12ms 가 나온다. 처음 19.780sec 에서 개선된 수치이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016947" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>SELECT P.ID FROM PICTURE AS P JOIN ALBUM AS A ON P.ALBUMID = A.ID
+            WHERE A.USERID=697
+            ORDER BY A.TITLE
+            LIMIT 10 OFFSET 20
+10 rows retrieved starting from 1 in 44 ms (execution: 12 ms, fetching: 32 ms)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>3. 전체 유저 사진 조회 (페이지가 큰 경우) / 커서 기반 페이지네이션</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">같은 조회 조건에서 페이지가 큰 경우에도 준수한 쿼리 성능을 보일까? 이번에는 같은 OFFSET 방식의 페이지네이션에서 위는 페이지 번호가 낮은 경우의 쿼리, 아래는 페이지 번호가 큰 경우의 쿼리를 확인한다. 페이지가 작은 경우에는 31 ms 로 괜찮지만 페이지가 큰 경우에는 5분도 넘게 걸려 튜닝이 필요하다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016947" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>SELECT P.ID FROM PICTURE AS P JOIN ALBUM AS A ON P.ALBUMID = A.ID
+                 ORDER BY A.TITLE, P.ID
+                 LIMIT 10 OFFSET 20
+10 rows retrieved starting from 1 in 57 ms (execution: 31 ms, fetching: 26 ms)
+
+SELECT A.TITLE, P.ID, P.DESCRIPTION FROM PICTURE AS P JOIN ALBUM AS A ON P.ALBUMID = A.ID
+                 ORDER BY A.TITLE, P.ID
+                 LIMIT 10 OFFSET 9000000
+10 rows retrieved starting from 1 in 5 m 36 s 581 ms (execution: 5 m 36 s 493 ms, fetching: 88 ms)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게까지 큰 차이를 보이는 이유는 OFFSET 동작 방식 때문이다. Mysql 의 OFFSET 은&nbsp;<span style="background-color: #ffffff; text-align: start;">그저 페이지까지의 전부를 읽고 필요한 부분의 이전 데이터는 버리는 식으로 동작한다. 그래서 OFFSET<span style="background-color: #ffffff; text-align: start;">&nbsp;이 커지면 커질 수록 조회해야 하는 데이터는 점점 많아지고 결국 사용자는 페이지 수가 늘어날수록 느린 응답을 받게 되는 것이다.</span></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1280" data-origin-height="865">
+ <span data-url="https://blog.kakaocdn.net/dn/bglRIf/btsFDCTsDrh/JqOnVoasU2ELvGYFjCQEKK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bglRIf/btsFDCTsDrh/JqOnVoasU2ELvGYFjCQEKK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbglRIf%2FbtsFDCTsDrh%2FJqOnVoasU2ELvGYFjCQEKK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="700" height="473" data-origin-width="1280" data-origin-height="865"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이를 커서 기반의 페이지네이션으로 방식을 바꿔 페이지가 커지더라도 매번 동일한 조회 속도를 가질 수 있도록 개선할 것이다. 커서 기반 페이지네이션의 아이디어는 "명확한 정렬 방법이 있는 경우, 조회할 페이지는 이전 페이지 마지막 아이템의 다음 N개"이다. 앞선 페이지가 큰 경우의 조회 결과는 다음과 같다. 이때 명확한 정렬 방법이 중요하다. 같은 정렬 우선순위의 여러 아이템이 중복되어선 안된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="794" data-origin-height="510">
+ <span data-url="https://blog.kakaocdn.net/dn/deVwDH/btsFEMnUCLB/wjBJmErICOINceCLhxhuY0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/deVwDH/btsFEMnUCLB/wjBJmErICOINceCLhxhuY0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdeVwDH%2FbtsFEMnUCLB%2FwjBJmErICOINceCLhxhuY0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="585" height="376" data-origin-width="794" data-origin-height="510"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래와 같이 커서가 될 아이템을 첫번째 row (album title = WvdVj7GbU, picture id = 4120335) 의 다음 N개의 아이템을 조회하는 쿼리를 짜보았다. 조회 결과는 역시 동일하다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1709943016947" class="bash" style="background-color: #f8f8f8; color: #383a42;" data-ke-type="codeblock" data-ke-language="bash"><code>SELECT A.TITLE, P.ID, P.DESCRIPTION FROM PICTURE AS P JOIN ALBUM AS A ON P.ALBUMID = A.ID
+                 WHERE A.TITLE &gt;= 'WvdVj7GbU' AND P.ID &gt;= 4120335
+                 LIMIT 10
+10 rows retrieved starting from 1 in 44 ms (execution: 11 ms, fetching: 33 ms)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">앞선 OFFSET 기반과 달리 단순 조건 처리이기에, 5분 36초가 걸리던 쿼리가 11ms 로 개선된 것을 확인할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 style="color: #000000;" data-ke-size="size20"><span style="color: #000000;"><b>그 밖의 DB 조회 성능 개선 포인트&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">이번 실습으로 DB에 1000만개의 데이터를 넣는 방법도 고민해 보고, 그 데이터를 바탕으로 프로젝트 주요 쿼리의 조회 성능을 확인해 보았다. 그리곤 인덱스, 커버링 인덱스를 적용하고 실행 계획 확인으로 인덱스가 의도대로 적용되었는지 확인했고, OFFSET의 동작 방식의 문제를 쿼리로 튜닝할 수 있었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Picup 에서 DB 성능을 위해 고민했던 키워드를 정리하고 글을 마무리하려고 한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">실습 재밌었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">1. 비효율적인 쿼리 자체를 개선</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">: 쿼리 자체가 비효율적인 경우는 없는지 확인한다. 예를 들어 페이지네이션 방식을 변경했고, 인덱스 기반 페이지네이션에선 필요했던 전체 row 수 조회 쿼리가 불필요해졌다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">2. 인덱스 사용</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">: DB 인덱스를 추가하여 조회 성능을 개선했다. 실행 계획으로 인덱스가 의도한대로 사용되는지 확인했고, 커버링 인덱스를 적극적으로 활용했다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">3. 캐시로 DB 액세스 횟수 개선</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">: 자주 사용되는 데이터를 캐싱하여 DB 접근 횟수를 줄였다. 분산 환경에서 WAS 간 캐시 데이터 공유를 위해 Redis 를 사용했다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">4. 레플리케이션, 샤딩으로 DB 부하 분산</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">: DB 를 복제하여 Transaction 종류에 따라 라우팅할 DB 를 나눠 부하를 분산했다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">5. 역정규화로 Join 쿼리 개선</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">: 정규화로 반드시 사용되는 쿼리에 불필요한 Join 문이 매번 발생했다. 역 정규화를 통해 조인없이 한 테이블 안에서 직접 처리할 수 있도록 하였다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">6. DB 락 범위 축소&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">: DB 락의 락 범위를 확인하고 Table based lock -&gt; Row based lock 으로 범위를 줄여 대기 빈도와 충돌 횟수를 개선했다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

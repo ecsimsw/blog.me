@@ -52,3 +52,5 @@
 |51|1|동시성 문제 해결을 위한 락 선택에 고려해볼 것들|concurrent-issue.html|
 |52|1|비관적 락의 DB 커넥션 점유 문제를 해결하는 과정들|db-lock.html|
 |53|1|티스토리 블로그 백업과 블로그 서버 운영|myblog.html|
+|54|1|천만 개 데이터로 조회 성능 확인, 쿼리 튜닝하기|picup-db-tunning.html|
+|55|1|파일 삭제 중 예외시 롤백 불가 문제를 풀이하는 과정들|picup-image-rollback.html|
