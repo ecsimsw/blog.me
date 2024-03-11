@@ -15,7 +15,6 @@ public class Articles {
             throw new NoSuchElementException("File data is empty");
         }
         this.articles = new ArrayList<>(articles);
-        this.articles.sort(Comparator.reverseOrder());
     }
 
     public Article getById(int id) {

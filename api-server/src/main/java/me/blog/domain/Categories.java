@@ -14,7 +14,6 @@ public class Categories {
             throw new NoSuchElementException("File data is empty");
         }
         this.categories = new ArrayList<>(categories);
-        Collections.sort(this.categories);
     }
 
     public List<Category> findAll() {
