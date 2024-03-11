@@ -43,7 +43,7 @@ public class ViewCountService {
         );
     }
 
-    @Cacheable(value = Cached.DAILY_TOP_VIEWED_ARTICLE, key = "#n")
+    @Cacheable(value = Cached.TOTAL_TOP_VIEWED_ARTICLE, key = "#n")
     @Transactional
     public List<TotalCount> findTopNTotalCount(int n) {
         return totalCountRepository.findAll(

@@ -1,9 +1,9 @@
 package me.blog.domain;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Articles {
@@ -17,11 +17,10 @@ public class Articles {
         this.articles = new ArrayList<>(articles);
     }
 
-    public Article getById(int id) {
+    public Optional<Article> findById(int id) {
         return articles.stream()
             .filter(it -> it.id() == id)
-            .findAny()
-            .orElseThrow(() -> new NoSuchElementException("Not exists id"));
+            .findAny();
     }
 
     public List<Article> findAllOrderByIndexDesc(int pageSize, int pageNumber) {

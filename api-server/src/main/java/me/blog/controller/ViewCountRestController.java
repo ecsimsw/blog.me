@@ -1,5 +1,6 @@
 package me.blog.controller;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import me.blog.domain.Article;
 import me.blog.service.ContentService;
@@ -51,6 +52,8 @@ public class ViewCountRestController {
         var topNDailyCount = viewCountService.findTopNArticle(top, date);
         var topNArticle = topNDailyCount.stream()
             .map(it -> contentService.findById(it.getArticleId()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toList());
         return ResponseEntity.ok(topNArticle);
     }
@@ -60,6 +63,8 @@ public class ViewCountRestController {
         var topNTotalCount = viewCountService.findTopNTotalCount(top);
         var topNArticle = topNTotalCount.stream()
             .map(it -> contentService.findById(it.getArticleId()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toList());
         return ResponseEntity.ok(topNArticle);
     }

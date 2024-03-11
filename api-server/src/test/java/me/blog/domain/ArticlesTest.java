@@ -29,7 +29,7 @@ class ArticlesTest {
     @Test
     void getById() {
         var index = 1;
-        var searched = articles.getById(index);
+        var searched = articles.findById(index);
         var expected = MOCK_ARTICLE_DATA.get(0);
         assertEquals(expected, searched);
     }

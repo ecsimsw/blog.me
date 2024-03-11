@@ -3,7 +3,7 @@ const SERVER_URL = ""
 const DEFAULT_CATEGORY_POST_ALL = "Articles"
 
 const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
-const PAGE_SIZE = 13
+const PAGE_SIZE = 15
 const MOST_VIEWED_SIZE = 5
 const RECENT_ARTICLE_SIZE = 5
 

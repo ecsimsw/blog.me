@@ -1,5 +1,6 @@
 package me.blog.service;
 
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import me.blog.domain.Article;
 import me.blog.domain.Articles;
@@ -19,8 +20,8 @@ public class ContentService {
     private final Articles articles;
     private final Categories categories;
 
-    public Article findById(int id) {
-        return articles.getById(id);
+    public Optional<Article> findById(int id) {
+        return articles.findById(id);
     }
 
     public List<Article> search(String keyword, Pageable pageable) {
@@ -54,7 +55,9 @@ public class ContentService {
             .collect(Collectors.toList());
     }
 
-    public Object getPathById(int id) {
-        return articles.getById(id).path();
+    public String getPathById(int id) {
+        return articles.findById(id)
+            .orElseThrow(()-> new NoSuchElementException("No such article id with " + id))
+            .path();
     }
 }

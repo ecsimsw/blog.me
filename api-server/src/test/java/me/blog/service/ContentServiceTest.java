@@ -110,7 +110,7 @@ class ContentServiceTest {
     void getPathById() {
         var articleId = 1;
         var result = contentService.getPathById(articleId);
-        var expected = articles.getById(articleId).path();
+        var expected = articles.findById(articleId).orElseThrow().path();
         assertEquals(expected, result);
     }
 }
