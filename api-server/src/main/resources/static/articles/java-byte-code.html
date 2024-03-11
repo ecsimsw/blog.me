@@ -1,0 +1,259 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / 바이트 코드 분석하기
+                 </div>
+                 <div class="article-view">
+                     <p data-ke-size="size18"><span style="color: #000000;"><b>자바&nbsp;깊이&nbsp;알기&nbsp;/&nbsp;바이트&nbsp;코드&nbsp;</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이전 JVM 구조 공부하면서, </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">1. Runtime Constant Pool에 "클래스 / 인스턴스의 상수, 메소드와 필드에 대한 레퍼런스"이 저장된다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">2. Stackframe에서 constant pool을 참조한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">3. Local Variable Array는 로컬 변수를 담고 있는 배열이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 정리했으나, 사실 잘 와닿지 않았다. 그래서 간단하게라도 바이트 코드를 분석해보고 싶었다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>바이트 코드 출력하기</b></span></p> 
+<p data-ke-size="size18">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">java 파일을 준비하고 javac로 컴파일한다. 해당 자바 파일의 class 파일이 생성된다.&nbsp;</span></p> 
+<pre id="code_1594017559018" class="java" data-ke-language="java" data-ke-type="codeblock"><code>javac javaTest.java</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">역어셈블러(javap)로 해당 클래스를 실행하면 바이트코드가 출력된다.</span></p> 
+<pre id="code_1594017706248" class="java" data-ke-language="java" data-ke-type="codeblock"><code>javap -v -p -s javaTest.class</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">리다이렉션(&gt;) 으로 text파일을 지정해 출력을 해당 파일로 보낼 수 있다.</span></p> 
+<pre id="code_1594017760173" class="java" data-ke-language="java" data-ke-type="codeblock"><code>javap -v -p -s javaTest.class &gt; newFile.txt</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>예제</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b><i>Source code</i></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594008632624" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public class javaTest { 
+  public static void main(String[] args) 
+  { 
+     int a = 0;
+     int b = 1;
+     int c = a+b; 
+  } 
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b><i>Byte code</i></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594008617241" class="java" data-ke-language="java" data-ke-type="codeblock"><code>C:\Users\user&gt;javap -v -p -s javaTest.class
+Classfile /C:/Users/user/javaTest.class
+  Last modified 2020. 7. 6.; size 281 bytes
+  MD5 checksum 8fd75ba7e7ef8d945f69528a9e3c2193
+  Compiled from "javaTest.java"
+public class javaTest
+  minor version: 0
+  major version: 55
+  flags: (0x0021) ACC_PUBLIC, ACC_SUPER
+  this_class: #2                          // javaTest
+  super_class: #3                         // java/lang/Object
+  interfaces: 0, fields: 0, methods: 2, attributes: 1
+Constant pool:
+   #1 = Methodref          #3.#12         // java/lang/Object."&lt;init&gt;":()V
+   #2 = Class              #13            // javaTest
+   #3 = Class              #14            // java/lang/Object
+   #4 = Utf8               &lt;init&gt;
+   #5 = Utf8               ()V
+   #6 = Utf8               Code
+   #7 = Utf8               LineNumberTable
+   #8 = Utf8               main
+   #9 = Utf8               ([Ljava/lang/String;)V
+  #10 = Utf8               SourceFile
+  #11 = Utf8               javaTest.java
+  #12 = NameAndType        #4:#5          // "&lt;init&gt;":()V
+  #13 = Utf8               javaTest
+  #14 = Utf8               java/lang/Object
+{
+  public javaTest();
+    descriptor: ()V
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."&lt;init&gt;":()V
+         4: return
+      LineNumberTable:
+        line 1: 0
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=4, args_size=1
+         0: iconst_0
+         1: istore_1
+         2: iconst_1
+         3: istore_2
+         4: iload_1
+         5: iload_2
+         6: iadd
+         7: istore_3
+         8: return
+      LineNumberTable:
+        line 4: 0
+        line 5: 2
+        line 6: 4
+        line 7: 8
+}
+SourceFile: "javaTest.java"</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;"><i><b>Constant pool</b></i><i><b></b></i></span></p> 
+<pre id="code_1594022966752" class="java" data-ke-language="java" data-ke-type="codeblock"><code>Constant pool:
+   #1 = Methodref          #3.#12         // java/lang/Object."&lt;init&gt;":()V
+   #2 = Class              #13            // javaTest
+   #3 = Class              #14            // java/lang/Object
+   #4 = Utf8  </code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">해시(#)은 참조하고 있는 constant pool의 인덱스를 표시한다.&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">Methodref은 method 참조를 나타낸다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Methodref #3. #12, 즉 Methodref java/lang/Object."&lt;init&gt;":()V의 위치를 나타내는데, 이는 메소드 영역에 로드된 Object 클래스의 바이트 코드 중, 생성자의 위치를 의미한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Class는 클래스를 나태내고 Utf8는 클래스나 메소드 등의 식별자를 UTF-8로 인코딩한 값을 나타낸다. </span><span style="color: #000000;">결국 Constant pool은 소스 코드에서 클래스와 그 맴버를 참조(track) 할 수 있도록 하는 역할을 한다.</span><span style="color: #000000;"></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594023004457" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>Constant pool : to keep track of the class and it's members.
+
+  -&gt; numberic literal, string literal, class references, feild references, method references</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><i><b>Default Constructor</b></i></span></p> 
+<pre id="code_1594019363584" class="java" data-ke-language="java" data-ke-type="codeblock"><code>  public javaTest();
+    descriptor: ()V
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."&lt;init&gt;":()V
+         4: return
+      LineNumberTable:
+        line 1: 0</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">컴파일러가 기본 생성자를 자동으로 생성해준다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Code: 의 stack에 해당하는 것이 Operand Stack이다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">aload_0은 Local Varialbes Array에서, 0번 인덱스를 로드한다는 말이다. 즉 this를 Operand stack에 push한다.&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">invokespecial은 생성자나 수퍼 클래스의 호출을 의미한다. 위 코드의 경우에는 constant pool의 1번 인덱스. 즉 Object의 생성자를 호출했다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">베이스 생성자가 호출되고, 본인 생성자를 호출한 후 리턴된 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><i>(javaTest의 생성자가 없어서 그 순서가 제대로 안보이므로, 이후 다음 예제에서 생성자가 포함된 순서를 확인한다.)</i></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><i><b>Main</b></i></span></p> 
+<pre id="code_1594020466776" class="java" data-ke-language="java" data-ke-type="codeblock"><code> public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=4, args_size=1
+         0: iconst_0
+         1: istore_1
+         2: iconst_1
+         3: istore_2
+         4: iload_1
+         5: iload_2
+         6: iadd
+         7: istore_3
+         8: return
+      LineNumberTable:
+        line 4: 0
+        line 5: 2
+        line 6: 4
+        line 7: 8
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Operand Stack이 2, 로컬 변수가 4이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Operand Stack이 어떤 역할을 하는지는 아래 스택 오버플로우에서 잘 설명되어 있다. </span><span style="color: #000000;"><i><a style="color: #000000;" href="https://stackoverflow.com/questions/24427056/what-is-an-operand-stack">https://stackoverflow.com/questions/24427056/what-is-an-operand-stack</a></i></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Operand Stack이 두 개라기 보다, 스택에 쌓이는 층의 개수를 나타내는 것 같다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">로컬 변수는 소스 코드의 int형 a,b,c와 String[]형 args이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">다음의 순서로 진행된다.</span></p> 
+<table style="border-collapse: collapse; width: 100%;" border="1" data-ke-align="alignLeft"> 
+ <tbody> 
+  <tr> 
+   <td style="width: 100%;"><span style="color: #000000;"><br>0-1 : iconst로 0을 스택에 push하고, 다시 pop해서 local variable array 인덱스 1에 저장한다.&nbsp;<br><br>2-3 : iconst로 1을 스택에 push하고, 다시 pop해서 local variable array 인덱스 2에 저장한다.&nbsp;<br><br>4-5 : local variable array 인덱스 1,2를 빼서 스택에 push한다.<br><br>6&nbsp; &nbsp; : 스택 맨 위 두개를 pop하여 add 연산하고 결과를 스택에 push한다.<br><br>7&nbsp; &nbsp; : pop하여 local variable array 인덱스 3에 저장한다.<br><br></span></td> 
+  </tr> 
+ </tbody> 
+</table> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;<i> </i></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;"><i>명령어는 <a style="color: #000000;" href="https://en.wikipedia.org/wiki/Java_bytecode_instruction_listings">https://en.wikipedia.org/wiki/Java_bytecode_instruction_listings</a> 를 참고했다.</i></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>정리</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사실 JVM 구조를 정리하면서도 메모리 별 역할들이 모호했는데, 실제 사용되는 걸 보니 이제 조금 이해가 간다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">바이트 코드 보는 것도 재밌고, 예제 바꿔가면서 이렇게하면 stack이 어떻게 늘어나고, 어떻게하면 methodref가 생기는지 보면서 분석하고 준비했는데 제대로 정리를 못한거 같아 아쉽다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>참고 자료</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; JVM Interals</span></p> 
+<figure id="og_1594023239955" contenteditable="false" data-ke-type="opengraph" data-og-type="website" data-og-title="JVM Internals" data-og-description="Explains the internal architecture of the Java Virtual Machine (JVM) in simple terms using showing key components and how memory is updated during execution." data-og-host="blog.jamesdbloom.com" data-og-source-url="https://blog.jamesdbloom.com/JVMInternals.html" data-og-url="http://blog.jamesdbloom.com/JVMInternals.html" data-og-image="https://scrap.kakaocdn.net/dn/hCS9K/hyGFZrEaq2/fLn766l3OHiiLMhyfwXGJ0/img.png?width=114&amp;height=114&amp;face=0_0_114_114,https://scrap.kakaocdn.net/dn/0CtH3/hyGFSlK1Ls/uaTRyhTscTRI8Rn0PqZf5K/img.png?width=1659&amp;height=2629&amp;face=0_0_1659_2629,https://scrap.kakaocdn.net/dn/cQoTRG/hyGFMy5v0b/cQCUy7gK37gi26NMwlRcQ0/img.png?width=2476&amp;height=1469&amp;face=0_0_2476_1469">
+ <a href="https://blog.jamesdbloom.com/JVMInternals.html" target="_blank" rel="noopener" data-source-url="https://blog.jamesdbloom.com/JVMInternals.html"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/hCS9K/hyGFZrEaq2/fLn766l3OHiiLMhyfwXGJ0/img.png?width=114&amp;height=114&amp;face=0_0_114_114,https://scrap.kakaocdn.net/dn/0CtH3/hyGFSlK1Ls/uaTRyhTscTRI8Rn0PqZf5K/img.png?width=1659&amp;height=2629&amp;face=0_0_1659_2629,https://scrap.kakaocdn.net/dn/cQoTRG/hyGFMy5v0b/cQCUy7gK37gi26NMwlRcQ0/img.png?width=2476&amp;height=1469&amp;face=0_0_2476_1469');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">JVM Internals</p> 
+   <p class="og-desc" data-ke-size="size16">Explains the internal architecture of the Java Virtual Machine (JVM) in simple terms using showing key components and how memory is updated during execution.</p> 
+   <p class="og-host" data-ke-size="size16">blog.jamesdbloom.com</p> 
+  </div> </a>
+</figure> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; 바이트 코드 시작하기&nbsp;</span></p> 
+<figure id="og_1594023197602" contenteditable="false" data-ke-type="opengraph" data-og-type="article" data-og-title="자바 바이트코드 소개" data-og-description="Understanding bytecode and what bytecode is likely to be generated by a Java compiler helps the Java programmer in the same way that knowledge of assembly helps the C or C++ programmer. - IBM developerWorks journal 개발을 하다 보면 때로는 로우 " data-og-host="iamsang.com" data-og-source-url="https://iamsang.com/blog/2012/08/19/introduction-to-java-bytecode/" data-og-url="https://iamsang.com/blog/2012/08/19/introduction-to-java-bytecode/" data-og-image="https://scrap.kakaocdn.net/dn/2NhXy/hyGFTkE0Dg/Ekt5EOrlzLD0f21JZcDSaK/img.png?width=1200&amp;height=630&amp;face=0_0_1200_630">
+ <a href="https://iamsang.com/blog/2012/08/19/introduction-to-java-bytecode/" target="_blank" rel="noopener" data-source-url="https://iamsang.com/blog/2012/08/19/introduction-to-java-bytecode/"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/2NhXy/hyGFTkE0Dg/Ekt5EOrlzLD0f21JZcDSaK/img.png?width=1200&amp;height=630&amp;face=0_0_1200_630');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">자바 바이트코드 소개</p> 
+   <p class="og-desc" data-ke-size="size16">Understanding bytecode and what bytecode is likely to be generated by a Java compiler helps the Java programmer in the same way that knowledge of assembly helps the C or C++ programmer. - IBM developerWorks journal 개발을 하다 보면 때로는 로우</p> 
+   <p class="og-host" data-ke-size="size16">iamsang.com</p> 
+  </div> </a>
+</figure> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; 컴파일에서 실행까지&nbsp;</span></p> 
+<figure id="og_1594023187873" contenteditable="false" data-ke-type="opengraph" data-og-type="blog" data-og-title="Back to the Essence - Java 컴파일에서 실행까지 - (2)" data-og-description="Back to the Essence - Java 컴파일에서 실행까지 - (2)Java 11 JVM 스펙을 기준으로 Java 소스 코드가 어떻게 컴파일되고 실행되는지 살짝 깊게 알아보자. 이번엔 2탄 실행 편이다. 1탄 컴파일 편은 여기에.. �" data-og-host="homoefficio.github.io" data-og-source-url="https://homoefficio.github.io/2019/01/31/Back-to-the-Essence-Java-%EC%BB%B4%ED%8C%8C%EC%9D%BC%EC%97%90%EC%84%9C-%EC%8B%A4%ED%96%89%EA%B9%8C%EC%A7%80-2/" data-og-url="http://homoefficio.github.io/2019/01/31/Back-to-the-Essence-Java-컴파일에서-실행까지-2/index.html" data-og-image="https://scrap.kakaocdn.net/dn/cxikCO/hyGFYM2Nlm/Xkzf5fg8eIDZvIrD1eOTTk/img.png?width=751&amp;height=572&amp;face=0_0_751_572,https://scrap.kakaocdn.net/dn/bd0mB1/hyGFVis9mb/Yb0lMatX2nVzt8NP7lT5QK/img.png?width=880&amp;height=566&amp;face=0_0_880_566,https://scrap.kakaocdn.net/dn/bWg2fe/hyGFNrdxuO/zeRM5N9ph3PZABEiWTM5g1/img.png?width=877&amp;height=244&amp;face=0_0_877_244,https://scrap.kakaocdn.net/dn/bF2Y1T/hyGFQIf8CL/xDg8lRuAk7J6Ca74r8Yk9K/img.png?width=751&amp;height=572&amp;face=0_0_751_572">
+ <a href="https://homoefficio.github.io/2019/01/31/Back-to-the-Essence-Java-%EC%BB%B4%ED%8C%8C%EC%9D%BC%EC%97%90%EC%84%9C-%EC%8B%A4%ED%96%89%EA%B9%8C%EC%A7%80-2/" target="_blank" rel="noopener" data-source-url="https://homoefficio.github.io/2019/01/31/Back-to-the-Essence-Java-%EC%BB%B4%ED%8C%8C%EC%9D%BC%EC%97%90%EC%84%9C-%EC%8B%A4%ED%96%89%EA%B9%8C%EC%A7%80-2/"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/cxikCO/hyGFYM2Nlm/Xkzf5fg8eIDZvIrD1eOTTk/img.png?width=751&amp;height=572&amp;face=0_0_751_572,https://scrap.kakaocdn.net/dn/bd0mB1/hyGFVis9mb/Yb0lMatX2nVzt8NP7lT5QK/img.png?width=880&amp;height=566&amp;face=0_0_880_566,https://scrap.kakaocdn.net/dn/bWg2fe/hyGFNrdxuO/zeRM5N9ph3PZABEiWTM5g1/img.png?width=877&amp;height=244&amp;face=0_0_877_244,https://scrap.kakaocdn.net/dn/bF2Y1T/hyGFQIf8CL/xDg8lRuAk7J6Ca74r8Yk9K/img.png?width=751&amp;height=572&amp;face=0_0_751_572');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">Back to the Essence - Java 컴파일에서 실행까지 - (2)</p> 
+   <p class="og-desc" data-ke-size="size16">Back to the Essence - Java 컴파일에서 실행까지 - (2)Java 11 JVM 스펙을 기준으로 Java 소스 코드가 어떻게 컴파일되고 실행되는지 살짝 깊게 알아보자. 이번엔 2탄 실행 편이다. 1탄 컴파일 편은 여기에.. �</p> 
+   <p class="og-host" data-ke-size="size16">homoefficio.github.io</p> 
+  </div> </a>
+</figure> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; What is an operand stack&nbsp;</span></p> 
+<figure id="og_1594023275067" contenteditable="false" data-ke-type="opengraph" data-og-type="website" data-og-title="What is an operand stack?" data-og-description="I am reading about JVM architecture. Today I read about the concept of the Operand Stack. According to an article: The operand stack is used during the execution of byte code instructions in a" data-og-host="stackoverflow.com" data-og-source-url="https://stackoverflow.com/questions/24427056/what-is-an-operand-stack" data-og-url="https://stackoverflow.com/questions/24427056/what-is-an-operand-stack" data-og-image="https://scrap.kakaocdn.net/dn/hKbhf/hyGFPicMJV/iidhE28gMTHaOc3BkVxzUK/img.png?width=316&amp;height=316&amp;face=0_0_316_316">
+ <a href="https://stackoverflow.com/questions/24427056/what-is-an-operand-stack" target="_blank" rel="noopener" data-source-url="https://stackoverflow.com/questions/24427056/what-is-an-operand-stack"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/hKbhf/hyGFPicMJV/iidhE28gMTHaOc3BkVxzUK/img.png?width=316&amp;height=316&amp;face=0_0_316_316');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">What is an operand stack?</p> 
+   <p class="og-desc" data-ke-size="size16">I am reading about JVM architecture. Today I read about the concept of the Operand Stack. According to an article: The operand stack is used during the execution of byte code instructions in a</p> 
+   <p class="og-host" data-ke-size="size16">stackoverflow.com</p> 
+  </div> </a>
+</figure> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

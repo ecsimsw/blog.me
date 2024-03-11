@@ -1,0 +1,162 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+Optional 로 Null 을 알리는 습관
+                 </div>
+                 <div class="article-view">
+                     <h4 style="color: #000000; text-align: start;" data-ke-size="size20"><b><span style="color: #000000;">Optional로 Null 을 알리는 습관</span></b></h4> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">어떤 로직의 계산 결과가 없음을 알리는 방법으로 가장 쉬운 것은 역시 null을 반환해버리는 것이라고 생각한다.<span>&nbsp;</span></span><span style="caret-color: #000000;">그 계산 결과를 받아서 처리하는 다음 로직에서 null을 어떻게 처리할지를 전혀 신경쓰지 않는다면 말이다.</span></span></p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">그렇다면 반환된 결과가 null인지 매번 if문으로 체크를 해야할 것이다. null이 가능함을 생각하지 못하고 오류를 만들 여지가 있고, 처리한다고 하더라도 가독성이 좋지 못한 코드를 만들어야할 것이다.</span></span></p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">자바에서도 직접적인 null 비교 (ex, car == null)를 피할 수 있도록 Objects 클래스에 isNull(), nonNull(), requireNonNull() 과 같은 메소드를 제공하고 있다.</span></span></p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16">&nbsp;</p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">Optional을 사용하면 계산의 결과가 null임을 쉽게 알리거나 그런 상황을 대비한 로직을 마련할 수 있다.</span></span></p> 
+<p style="color: #333333; text-align: start;" data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">계산의 결과가 '없음'을 null로 리턴하는 것이 아닌</span><span style="caret-color: #000000;">&nbsp;Optional로 감싸는 것은 어떤지 고민하고 선택의 근거를 잡을 생각이다</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional 객체 생성 :: of(), ofNullable(), empty()</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Optional.of를 사용해서 value를 담은 Optional 객체를 생성할 수 있다. value가 null인 경우 NullPointerexception을 발생시킨다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615821232663" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public static void of(String[] args) {
+    Optional&lt;String&gt; opStr1 = Optional.of("111");
+    Optional&lt;String&gt; opStr2 = Optional.of(null); // NullPointerException
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Optional.ofNullable를 사용하여 value를 담은 Optional 객체를 생성할 수 있다. 이름처럼 value가 null인 경우에도 NPE를 발생시키지 않으며 empty 객체로 초기화 된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615821524067" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public static void ofNullable(String[] args) {
+    Optional&lt;String&gt; opStr3 = Optional.ofNullable("111");
+    Optional&lt;String&gt; opStr4 = Optional.ofNullable(null);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">empty 객체는 Optional의 value 값이 null인 Optaional이다. Optional을 초기화할 때는 직접 null로 초기화하는 것보다, empty() 객체를 참조하도록 하는 것이 바람직하다. (empty는 제네릭 메소드로 Optional.value의 타입을 지정할 수 있다.)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="caret-color: #000000;">null을 대입해버리면 의미를 갖지 못한채 NPE를 야기할 수 있지만, empty()를 사용하면 이것으로 '없음'을 나타낼 수 있기 때문이다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615821698487" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public static void empty(String[] args) {
+    Optional&lt;String&gt; opStr5 = Optional.&lt;String&gt;empty();
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Optional 생성과 관련된 자바 코드를 살펴보면 다음과 같다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615821894606" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public final class Optional&lt;T&gt; {
+    private static final Optional&lt;?&gt; EMPTY = new Optional&lt;&gt;();
+
+    private final T value;
+
+    private Optional() {
+        this.value = null;
+    }
+
+    public static&lt;T&gt; Optional&lt;T&gt; empty() {
+        @SuppressWarnings("unchecked")
+        Optional&lt;T&gt; t = (Optional&lt;T&gt;) EMPTY;
+        return t;
+    }
+
+    private Optional(T value) {
+        this.value = Objects.requireNonNull(value);
+    }
+    
+    public static &lt;T&gt; Optional&lt;T&gt; of(T value) {
+        return new Optional&lt;&gt;(value);
+    }
+
+    public static &lt;T&gt; Optional&lt;T&gt; ofNullable(T value) {
+        return value == null ? empty() : of(value);
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional value 가져오기 :: get(), orElse(), orElseGet(), orElseThrow()</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Optional에 담긴 value를 가져올 땐 get(), orElse(), orElseGet()을 사용한다.&nbsp; </span><span style="color: #000000;">get()은 value 값 자체를 반환하고, null 일 경우에는 NoSuchElementException을 발생시킨다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이를 대비할 수 있는 방법이 orElse()와 orElseGet()인데, orElse는 예외 시 대신하여 리턴할 대체 값을 지정하고, orElseGet은 인자로 받은 &nbsp;supplier를 실행한다.&nbsp;또는 orElseThrow()로 NoSuchElementException 외에도 지정한 예외를 발생시킬 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615827437874" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public static void main(String[] args) {
+    Optional&lt;String&gt; opStr1 = Optional.ofNullable("something");
+    System.out.println(opStr1.get()); // something
+    System.out.println(opStr1.orElse("empty")); // something
+    System.out.println(opStr1.orElseGet(String::new)); // something
+
+    Optional&lt;String&gt; opStr2 = Optional.ofNullable(null);
+    System.out.println(opStr2.get()); // NoSuchElementException
+    System.out.println(opStr2.orElse("empty")); // empty
+    System.out.println(opStr2.orElseGet(String::new)); 
+    opStr2.orElseThrow(IllegalArgumentException::new); // IllegalArgumentException
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional value 처리, 가공하기 :: filter(), map(), flatMap()</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Optional 객체에서도 Stream에서처럼 filter(), map(), flatMap()이 구현되어있다. Stream과의 사용이 똑같고, 아래 예제로도 이해가 쉬워 코드로 정리하고 넘어간다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615828077347" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Optional처리하기 {
+    public static void main(String[] args) {
+        Optional&lt;String&gt; opStr1 = Optional.ofNullable("something");
+        Name validName = opStr1.filter(s -&gt; s.length() &gt; 3)
+                .map(Name::new)
+                .orElseThrow(IllegalArgumentException::new);
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615828088290" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Name{
+    private final String name;
+    public Name(final String name){
+        if(name.length() &lt;= 3){
+            new IllegalArgumentException();
+        }
+
+        this.name = name;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Optional value가 null인 경우 :: isPresent(), ifPresent(), ifPresentOrElse()</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">null인 경우를 확인하거나 null인 경우를 처리할 로직을 정할 수 있다. </span><span style="color: #000000;">isPresent()는 값이 존재하는지 boolean 값을 반환하고, ifPresent(Consumer&lt;T&gt; action)은 null이 아닐 경우에만 action을 실행한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"> ifPresentOrElse(Consumer&nbsp;action, Runnable emptyAction)는 value가 null인 경우 처리할 로직과 null이 아닌 경우 처리할 로직을 모두 넘길 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1615828678928" class="java" data-ke-language="java" data-ke-type="codeblock"><code>/**
+ * If a value is present, performs the given action with the value,
+ * otherwise does nothing.
+ *
+ * @param action the action to be performed, if a value is present
+ * @throws NullPointerException if value is present and the given action is
+ *         {@code null}
+ */
+public void ifPresent(Consumer&lt;? super T&gt; action) {
+    if (value != null) {
+        action.accept(value);
+    }
+}
+
+/**
+ * If a value is present, performs the given action with the value,
+ * otherwise performs the given empty-based action.
+ *
+ * @param action the action to be performed, if a value is present
+ * @param emptyAction the empty-based action to be performed, if no value is
+ *        present
+ * @throws NullPointerException if a value is present and the given action
+ *         is {@code null}, or no value is present and the given empty-based
+ *         action is {@code null}.
+ * @since 9
+ */
+public void ifPresentOrElse(Consumer&lt;? super T&gt; action, Runnable emptyAction) {
+    if (value != null) {
+        action.accept(value);
+    } else {
+        emptyAction.run();
+    }
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="caret-color: #000000; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Apple SD Gothic Neo', Arial, sans-serif; font-size: 16px; letter-spacing: 0px;">.</span></h4>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

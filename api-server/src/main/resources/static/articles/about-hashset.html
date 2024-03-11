@@ -1,0 +1,145 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / HashSet의 원리
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><b><span style="color: #000000;">HashSet의 출력이 고정된 것 같아</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #000000;">(</span><span style="color: #000000;">@조엘)</span><span style="color: #000000;"><span>&nbsp;</span></span>우아한테크코스에서 함께 공부하는 친구가 좋은 대화 주제를 찾아주었다.&nbsp;어느날 찾아와서는 HashSet의 순서에도 뭔가 규칙이 있을 것 같다는 얘기를 하는 것이다.</span></p> 
+<pre id="code_1615655360606" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public class HashSetExample {
+    public static void main(String[] args) {
+        HashSet&lt;Object&gt; hashSet = new HashSet&lt;&gt;();
+        hashSet.add("1");
+        hashSet.add("2");
+        hashSet.add("3");
+        hashSet.add("4");
+        hashSet.add("5");
+        hashSet.add("6");
+        hashSet.add("7");
+        hashSet.add("8");
+        hashSet.add("9");
+        hashSet.add("10");
+
+        for (Object o : hashSet) {
+            System.out.println(o);
+        }
+    }
+}</code></pre> 
+<pre id="code_1615655374811" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>1
+2
+3
+4
+5
+6
+7
+8
+9
+10</code></pre> 
+<p style="text-align: center;" data-ke-size="size14"><span style="color: #000000;"><i>뭔가 순서가 있어보인다.</i></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">솔직히 처음에는 뭐 hashCode로 저장하니까 1부터 10이 순서대로 저장되나보지~하고 넘길 뻔하다가, 위 코드에 11을 추가하는 순간 아래 같은 출력을 내는 것을 보고 궁금해지기 시작했다.</span></p> 
+<pre id="code_1615655519093" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code>11
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">그래서 파보게 된 HashSet의 원리</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">HashSet은 결국 HashMap으로 동작한다. 아래 코드를 보면 금방 이해가 될 것이다.</span></p> 
+<pre id="code_1615655753340" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public HashSet() {
+   map = new HashMap&lt;&gt;();
+}
+
+public boolean add(E e) {
+   return map.put(e, PRESENT)==null;
+}
+
+public boolean remove(Object o) {
+  return map.remove(o)==PRESENT;
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">map에 E e를 저장할 때, e의 hashCode를 사용해서 버킷에 담는다. 이때 map의 인덱스는 해당 객체의 <b>hashCode % 버킷의 수</b>를 이용하게 된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">위 예시에서 o의 hashCode를 출력해보자. 처음 디폴트 버킷의 개수는 16이다. "1"부터 "10"의 hashCode를 16으로 나눈 나머지는 각각 1부터 15이었으나, "11"의 hashCode 1568를 16으로 나눈 나머지는 0이기 때문에 혼자 맨 앞에 있는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">HashSet의 기준으로 본다면 "1"부터 "10"은 HashSet의 map의 인덱스 1~15에 저장되고, "11"은 인덱스 0에 저장되는 것이다.</span></p> 
+<pre id="code_1615656665682" class="java" style="display: block; overflow: auto; padding: 15px; color: #383a42; background-color: #f6f7f8; font-size: 14px; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px; font-family: Menlo, Consolas, Monaco, monospace; border: 1px solid #dddddd; margin: 20px auto 0px; cursor: default; z-index: 1; font-style: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; text-decoration: none; background-position: initial initial; background-repeat: initial initial;" data-ke-language="java" data-ke-type="codeblock"><code>11
+1568
+
+1
+49
+
+2
+50
+
+...
+
+9
+57
+
+10
+1567</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">버킷의 확장에 따른 인덱스 변화</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">자바의 HashMap은 디폴트로 적은 수의 버킷을 갖도록 하고 포함한 객체 개수가 늘어남에 따라 동적으로 버킷을 확장하도록 한다.&nbsp;기본 버킷의 수는 16개에서 Entry의 개수가 기본 75%인 임계값(load factor)을 넘으면 버킷의 수를 2배로 늘려 Entry를 다시 정리하게 된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이를 HashSet에 적용하면 set에 추가되는 Entry가 많아져 임계값을 넘어가게 되면, 버킷의 수가 늘어나게 되고, 그럼 map에 추가될 인덱스가 바뀌게 된다. (인덱스 = hashCode % 버킷의 수 이므로)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">따라서 버킷의 개수가 늘어남에 따라, 즉 Entry가 임계값을 넘김에 따라 map의 인덱스가 변하면서 출력 순서가 달라지는 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">그래서 HashSet의 출력은 랜덤이라고 표현하는 것이다.</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">아예 무작위로 출력되고 저장되어서가 아니라, HashCode와 엔트리 개수, 로드팩터에 따라 map에 저장되는 순서가 계속 바뀌기 때문에 랜덤이라고 하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Hash Table과 Map의 원리, 체이닝과 버킷의 동적 확장, 자바에서의 HashMap이 더 궁금하다면</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>1. Seperate Chaining&nbsp;</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자바7까지 HashMap에 Separate Chaining을 사용한 것은 같지만, 자바8부터는 버킷 당 8개 이상의 데이터가 쌓이면 링크드 리스트에서 트리로 변경한다. (이때 트리 탐색 대소 판단 기준은 해시 함수 값이다.)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 데이터가 삭제되어 6개에 이르면 트리에서 다시 링크드 리스트로 변경한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이는 노드가 많을 경우 탐색 성능을 위해서는 트리가 우수하지만, 노드가 적을 경우에 트리는 리스트보다 메모리 사용량이 많고, 탐색 성능에서도 크게 차이가 없기 때문이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">또, 리스트-&gt;트리, 트리-&gt;리스트를 8/6으로 차이를 둔 것은 만약 차이가 1이라면 한 쌍이 추가, 삭제가 반복될 경우 자료 구조를 매번 변경해야하는 오버헤드를 낳을 수 있어 2개의 차이를 뒀다고 한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>2. 해시 버킷 동적 확장</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">해시 버킷의 개수가 적으면 메모리를 아낄 수 있고, 버킷이 많으면 해시 충돌을 줄여 성능을 높일 수 있을 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자바의 HashMap에서는 데이터의 개수가 일정 개수 이상이 되면 버킷의 개수를 2배로 늘려 성능 손실 문제를 해결한다고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이때 어느정도 예측 가능한 상황의 경우 버킷의 최초 개수와 임계점을 직접 지정할 수 있다. (디폴트는 16개, 75%이다)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">최초 버킷의 수는 말그대로 최초 Entry 개수를 말하고, 임계점(load Factor)는 현재 Entry 개수의 몇 배수가 되면 버킷 확장을 실행할까를 결정한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">예를 들어, 버킷이 100개이고, load factor가 0.87이면, 데이터의 개수가 87개 이상일 때, 버킷의 개수를 200으로 확장하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<figure id="og_1615659475436" contenteditable="false" data-ke-type="opengraph" data-og-type="article" data-og-title="자바 깊이 알기 / Hash Table 원리와 구현" data-og-description="Hashing / HashTable key 값을 조작해서, 배열의 인덱스와 매핑한다면, key에 해당하는 value 값을 배열의 인덱스에 접근하는 것처럼, O(1)의 비용으로 가져올 수 있을 것이다. 예를들어, 과일 과게에서 과" data-og-host="ecsimsw.tistory.com" data-og-source-url="https://ecsimsw.tistory.com/entry/Hash-Table-원리와-구현" data-og-url="https://ecsimsw.tistory.com/entry/Hash-Table-%EC%9B%90%EB%A6%AC%EC%99%80-%EA%B5%AC%ED%98%84" data-og-image="https://scrap.kakaocdn.net/dn/b12dEQ/hyJyp8T2cO/zjQcbUu6XbTaoZRPRrb43k/img.png?width=324&amp;height=436&amp;face=0_0_324_436,https://scrap.kakaocdn.net/dn/E2Aa9/hyJyooEw1r/RduDvGcOkrXdTlYxkuYVdk/img.png?width=324&amp;height=436&amp;face=0_0_324_436,https://scrap.kakaocdn.net/dn/WlqyS/hyJyvOQnHG/4jZtnxTyokHhv7NJA4KnKK/img.jpg?width=907&amp;height=907&amp;face=0_0_907_907">
+ <a href="https://ecsimsw.tistory.com/entry/Hash-Table-원리와-구현" data-source-url="https://ecsimsw.tistory.com/entry/Hash-Table-원리와-구현"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/b12dEQ/hyJyp8T2cO/zjQcbUu6XbTaoZRPRrb43k/img.png?width=324&amp;height=436&amp;face=0_0_324_436,https://scrap.kakaocdn.net/dn/E2Aa9/hyJyooEw1r/RduDvGcOkrXdTlYxkuYVdk/img.png?width=324&amp;height=436&amp;face=0_0_324_436,https://scrap.kakaocdn.net/dn/WlqyS/hyJyvOQnHG/4jZtnxTyokHhv7NJA4KnKK/img.jpg?width=907&amp;height=907&amp;face=0_0_907_907');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title">자바 깊이 알기 / Hash Table 원리와 구현</p> 
+   <p class="og-desc">Hashing / HashTable key 값을 조작해서, 배열의 인덱스와 매핑한다면, key에 해당하는 value 값을 배열의 인덱스에 접근하는 것처럼, O(1)의 비용으로 가져올 수 있을 것이다. 예를들어, 과일 과게에서 과</p> 
+   <p class="og-host">ecsimsw.tistory.com</p> 
+  </div> </a>
+</figure>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

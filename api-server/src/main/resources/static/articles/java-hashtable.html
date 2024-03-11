@@ -1,0 +1,280 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / Hash Table 원리와 구현
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>Hashing / HashTable</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">key 값을 조작해서, 배열의 인덱스와 매핑한다면, key에 해당하는 value 값을 배열의 인덱스에 접근하는 것처럼, O(1)의 비용으로 가져올 수 있을 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">예를들어, 과일 과게에서 과일의 바코드 Id와 과일 명을 담는 테이블을 만든다고 치자.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594628080275" class="java" data-ke-language="java" data-ke-type="codeblock"><code>102 -&gt; apple
+
+543 -&gt; banana
+
+87426 -&gt; orange
+
+9 -&gt; grape </code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">왼쪽이 id, 오른쪽이 상품명이라고 하면, 과일 과게 주인은 다음과 같은 표를 만들 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="324" data-origin-height="436">
+ <span data-url="https://blog.kakaocdn.net/dn/bhPQKm/btqFBK44xsy/Kf3sz6VyLVVQ52Sm8YUhU0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bhPQKm/btqFBK44xsy/Kf3sz6VyLVVQ52Sm8YUhU0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbhPQKm%2FbtqFBK44xsy%2FKf3sz6VyLVVQ52Sm8YUhU0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="242" data-origin-width="324" data-origin-height="436"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">만약 가게 주인이 id에 해당하는 과일 이름을 알고 싶다면, id를 순차적으로 하나씩 확인하고, 해당 id의 과일 이름을 가져와야 하는 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">혹은 이런 표를 만들면 어떨까.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="324" data-origin-height="442">
+ <span data-url="https://blog.kakaocdn.net/dn/crxobM/btqFA5u4wms/EWN0z1T4HwQGjkN6iv3Ikk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/crxobM/btqFA5u4wms/EWN0z1T4HwQGjkN6iv3Ikk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcrxobM%2FbtqFA5u4wms%2FEWN0z1T4HwQGjkN6iv3Ikk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="239" data-origin-width="324" data-origin-height="442"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">id의 끝자리를 인덱스로 해서 아래처럼 표를 그리면 가게 주인은 더이상 표를 쭉 탐색하지 않아도, 규칙에 따라 끝자리에 해당하는 인덱스 칸만 탐색하는 것으로 과일의 이름을 알 수 있는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594628968668" class="java" style="display: block; overflow: auto; padding: 15px; color: #383a42; background: #f6f7f8; font-size: 14px; border-radius: 3px; font-family: Menlo, Consolas, Monaco, monospace; border: 1px solid #dddddd; margin: 20px auto 0px; cursor: default; z-index: 1; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px;" data-ke-language="java" data-ke-type="codeblock"><code>index = key % 10
+
+fruit_name = table[index]</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; </span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 key와 인덱스를 매핑하는 방법을 해싱이라고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1200" data-origin-height="920">
+ <span data-url="https://blog.kakaocdn.net/dn/cxoLUe/btqFBKRwRc8/smLEe8K1hQciddP6WvdlDK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/cxoLUe/btqFBKRwRc8/smLEe8K1hQciddP6WvdlDK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcxoLUe%2FbtqFBKRwRc8%2FsmLEe8K1hQciddP6WvdlDK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="590" data-origin-width="1200" data-origin-height="920"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Collision</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">위의 예시를 이어서, 이번에는 가게에 id가 4529인 멜론이 들어왔다고 가정해보자. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">표의 인덱스 9는 이미 포도가 들어가있어, 가게 주인의 꼼수에 문제가 생겼다. </span><span style="color: #000000;">이렇게 동일한 입력 값이 같은 key 값을 가져 저장하지 못하는 상황을 충돌이라고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이 충돌을 해결하기 위한 방법으로 크게 Separate Chaining 방식과, Open Addressing 방식이 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Separate Chaining&nbsp;</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">충돌 시 해시 테이블 인덱스에 연결 리스트를 이용해서 여러 값을 연결한 형태로 저장한다. </span><span style="color: #000000;">상대적으로 적은 메모리를 사용하나, 해시 함수가 고른 분포를 만들지 못하면 성능에 치명적이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이를 테면, 모든 과일의 hash 값이 한 인덱스에 몰려 모든 value가 연결된다면, </span><span style="color: #000000;">value를 찾아내는데는 연결 리스트를 모두 탐색해야하므로 최악의 경우 O(n)의 성능을 갖을 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="687" data-origin-height="436">
+ <span data-url="https://blog.kakaocdn.net/dn/3eLMd/btqFDxqtVv4/ZIJ0dsiT1DO23VOzRAQWyK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/3eLMd/btqFDxqtVv4/ZIJ0dsiT1DO23VOzRAQWyK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F3eLMd%2FbtqFDxqtVv4%2FZIJ0dsiT1DO23VOzRAQWyK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="443" data-origin-width="687" data-origin-height="436"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Open addressing</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">충돌 시, 연결이 아닌 비어있는 인덱스를 찾아 데이터를 저장하는 방식이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">비어있는 인덱스 중 데이터가 저장될 공간을 찾는 규칙은 다음 세가지 방식으로 할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<table style="border-collapse: collapse; width: 100%;" border="1" data-ke-align="alignLeft"> 
+ <tbody> 
+  <tr> 
+   <td style="width: 100%;"><span><span style="color: #000000;">선형 탐색(Linear Probing) : 비어있는 인덱스 n개를 후의 비어있는 슬롯에 노드를 저장한다. (</span><br><span style="color: #000000;">&nbsp; &nbsp; -&gt; h(k), h(k)+n, h(k)+2n, h(k)+3n</span><br><br><span style="color: #000000;">제곱 탐색(Quadratic Probing): 충돌이 일어난 인덱스의 제곱을 한 해시에 데이터를 저장한다. </span><br><span style="color: #000000;">&nbsp; &nbsp; &nbsp;-&gt; h(k), h(k)+1^2, h(k)+2^2, h(k)+3^2</span><br><br><span style="color: #000000;">이중 해시(Double Hashing): 다른 해시 함수를 한 번 더 적용한 해시에 데이터를 저장한다.</span><br><span style="color: #000000;">&nbsp; &nbsp; &nbsp;-&gt; h(k,i) = (h(k) +i*h'(k)) % m</span></span></td> 
+  </tr> 
+ </tbody> 
+</table> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Linear Probing</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">선형 탐색에서 n=1, 즉 충돌 시 다음 비어있는 공간에 데이터를 넣는 방식으로 위 예시 충돌 상황을 처리해보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="463" data-origin-height="437">
+ <span data-url="https://blog.kakaocdn.net/dn/cQd26Z/btqFDaCiLId/2Wy5bnDVJv1krNuZJ4XjF1/img.png" data-lightbox="lightbox" data-alt="왼쪽이 데이터 추가 전, 오른쪽이 추가 후"><img src="https://blog.kakaocdn.net/dn/cQd26Z/btqFDaCiLId/2Wy5bnDVJv1krNuZJ4XjF1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcQd26Z%2FbtqFDaCiLId%2F2Wy5bnDVJv1krNuZJ4XjF1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="346" data-origin-width="463" data-origin-height="437"></span>
+ <figcaption>
+  왼쪽이 데이터 추가 전, 오른쪽이 추가 후
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">위 그림에서 왼쪽은 원본 예시 상황이고, 여기에 4529 / 13 / 59를 추가하면 오른쪽 그림처럼 데이터가 저장된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">4529는 인덱스 9에서 충돌이 일어나 다음 비어있는 칸, index 0에 저장되고, 13 역시 543의 바로 다음 칸 index 4, 59는 index 9, index 0 모두 값이 존재하므로 그 다음 칸인 index 1 에 저장된 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>선형 탐색에서의 Search</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">선형 탐색에서의 탐색은 원래 해시 값에 해당하는 인덱스를 탐색하고, key가 일치하지 않으면 규칙에 맞춰 다음 칸, 또 다음 칸을 순서대로 탐색하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">만약 탐색하는 칸이 비어있다면, 해당 key는 아직 저장이 안된 것을 알 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이를 수도 코드로 나타내면 다음과 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594647697005" class="java" data-ke-language="java" data-ke-type="codeblock"><code>while(Node != null){  // 탐색 노드가 비어있다면 searchKey가 아직 저장이 안된 것임
+
+  if(Node.key == searchKey) return Node.value;  
+  
+  Node = Node.next;   // 규칙에 맞는 다음 노드
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="374" data-origin-height="437">
+ <span data-url="https://blog.kakaocdn.net/dn/ACKun/btqFCp7vdpx/fgLqS4qzi2ql0BK7JzHuhK/img.png" data-lightbox="lightbox" data-alt="key : 59의 value를 탐색하는 과정"><img src="https://blog.kakaocdn.net/dn/ACKun/btqFCp7vdpx/fgLqS4qzi2ql0BK7JzHuhK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FACKun%2FbtqFCp7vdpx%2FfgLqS4qzi2ql0BK7JzHuhK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="281" data-origin-width="374" data-origin-height="437"></span>
+ <figcaption>
+  key : 59의 value를 탐색하는 과정
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #000000;">선형 탐색의 단점이 여기에 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">1. Primary clustering</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">비어있지 않은 슬롯이 연속하게 되면 탐색에도 오래걸릴 뿐 아니라, 규칙에 따라 다음 빈 곳을 찾는 추가에도 많은 시간이 걸린다. </span><span style="color: #000000;">또 한번 군집이 시작되면 점점 더 커진다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="375" data-origin-height="437">
+ <span data-url="https://blog.kakaocdn.net/dn/c9PiKB/btqFDbBdWtX/d1Yoj9bVSP8IcifkIptkq0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/c9PiKB/btqFDbBdWtX/d1Yoj9bVSP8IcifkIptkq0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fc9PiKB%2FbtqFDbBdWtX%2Fd1Yoj9bVSP8IcifkIptkq0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="299" data-origin-width="375" data-origin-height="437"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">2. 삭제 처리</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">선형 탐색은 데이터 추가 시 규칙에 따라 슬롯을 탐색하고, 처음 만나는 빈 슬롯에 데이터를 저장한다. </span><span style="color: #000000;">그렇기 때문에 탐색 시에도 비어있는 슬롯을 만나면 데이터가 저장되지 않았다고 생각하고 탐색을 종료한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그런데 만약 중간 데이터가 삭제된 상황이라면 어떻게 할 것인가.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="375" data-origin-height="437">
+ <span data-url="https://blog.kakaocdn.net/dn/Tf4Lh/btqFAOAGDF3/o7LWBOhZa4dzkFBFlUoJO1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/Tf4Lh/btqFAOAGDF3/o7LWBOhZa4dzkFBFlUoJO1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FTf4Lh%2FbtqFAOAGDF3%2Fo7LWBOhZa4dzkFBFlUoJO1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="309" data-origin-width="375" data-origin-height="437"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #000000;">선형 탐색으로 해시 테이블을 만든다면 이를 해결하기 위해 삭제된 노드에 Dummy node를 포함시켜 탐색 시 다음 index를 연결하는 역할을 하도록한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이 Dummy node도 너무 많아질 경우 쓸데없는 탐색 시간과 공간이 낭비되므로, hash를 리빌딩하여 Dummy node를 삭제하는 과정이 필요하다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>자바에서의 Hash</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">자바8의 HashMap은 충돌을 어떤 방식으로 처리할까.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">1. Seperate Chaining&nbsp;</span></b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자바7까지 HashMap에 Separate Chaining을 사용한 것은 같지만, 자바8부터는 버킷 당 8개 이상의 데이터가 쌓이면 링크드 리스트에서 트리로 변경한다. (이때 트리 탐색 대소 판단 기준은 해시 함수 값이다.)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 데이터가 삭제되어 6개에 이르면 트리에서 다시 링크드 리스트로 변경한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이는 노드가 많을 경우 탐색 성능을 위해서는 트리가 우수하지만, 노드가 적을 경우에 트리는 리스트보다 메모리 사용량이 많고, 탐색 성능에서도 크게 차이가 없기 때문이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">또, 리스트-&gt;트리, 트리-&gt;리스트를 8/6으로 차이를 둔 것은 만약 차이가 1이라면 한 쌍이 추가, 삭제가 반복될 경우 자료 구조를 매번 변경해야하는 오버헤드를 낳을 수 있어 2개의 차이를 뒀다고 한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span><span style="color: #000000;"></span></p> 
+<p data-ke-size="size16"><b><span style="color: #000000;">2. 해시 버킷 동적 확장</span></b></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">해시 버킷의 개수가 적으면 메모리를 아낄 수 있고, 버킷이 많으면 해시 충돌을 줄여 성능을 높일 수 있을 것이다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자바의 HashMap에서는 데이터의 개수가 일정 개수 이상이 되면 버킷의 개수를 2배로 늘려 성능 손실 문제를 해결한다고 한다. </span><span style="color: #000000;">이때 어느정도 예측 가능한 상황의 경우 버킷의 최초 개수와 임계점을 직접 지정할 수 있다. (디폴트는 16개, 75%이다)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">최초 버킷의 수는 말그대로 최초 Entry 개수를 말하고, 임계점(load Factor)는 현재 Entry 개수의 몇 배수가 되면 버킷 확장을 실행할까를 결정한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">예를 들어, 버킷이 100개이고, load factor가 0.87이면, 데이터의 개수가 87개 이상일 때, 버킷의 개수를 200으로 확장하는 것이다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>구현</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">자바로 간단하게 Seperate Chaining을 구현해봤다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1594629088114" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class HashTable {
+
+    class Node {
+        String key;
+        String value;
+
+        public Node(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    private LinkedList&lt;Node&gt;[] table;
+
+    public HashTable(int size) {
+        table = new LinkedList[size];
+    }
+
+    Long getHashCode(String key) {
+        Long hashCode = 0L;
+
+        for (char c : key.toCharArray()) { hashCode += (long) c; }
+
+        return hashCode;
+    }
+
+    public int getIndex(Long hashCode) {
+        return (int) (hashCode % table.length);
+    }
+
+    Node searchNode(int index, String key) {
+        LinkedList&lt;Node&gt; indexedList = table[index];
+
+        for (Node n : indexedList) {
+            if (n.key == key) { return n; }
+        }
+
+        return null;
+    }
+
+    public void put(String key, String value) {
+        Long hashCode = getHashCode(key);
+        int index = getIndex(hashCode);
+
+        if (table[index] == null) {
+            table[index] = new LinkedList&lt;Node&gt;();
+            table[index].add(new Node(key, value));
+        }
+        else {
+            Node searched = searchNode(index, key);
+
+            if (searched != null) { searched.value = value; }
+            else { table[index].add(new Node(key, value)); }
+        }
+    }
+
+    public String get(String key) {
+        Long hashCode = getHashCode(key);
+        int index = getIndex(hashCode);
+
+        Node searched = searchNode(index, key);
+
+        if (searched == null) { return ""; }
+        else { return searched.value; }
+    }
+}</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp;&nbsp;</span></p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>참고</b></span></h4> 
+<figure id="og_1594650242049" contenteditable="false" data-ke-type="opengraph" data-og-type="article" data-og-title="Hashtable의 이해와 구현 #1" data-og-description="해쉬 테이블의 이해와 구현 (Hashtable) 조대협 (http://bcho.tistory.com) 기본적인 해쉬 테이블에 대한 이해 해쉬 테이블은 Key에 Value를 저장하는 데이타 구조로, value := get(key)에 대한 기능이 매우매우.." data-og-host="bcho.tistory.com" data-og-source-url="https://bcho.tistory.com/1072" data-og-url="https://bcho.tistory.com/1072" data-og-image="https://scrap.kakaocdn.net/dn/bg8iSo/hyGLg091iu/DCWsqmVxbwqtFimacfKQbk/img.png?width=800&amp;height=635&amp;face=0_0_800_635,https://scrap.kakaocdn.net/dn/3EUZd/hyGK1CWMmB/CNgV2I5Hy1DUKZC2OlbkcK/img.png?width=800&amp;height=635&amp;face=0_0_800_635,https://scrap.kakaocdn.net/dn/h2qO3/hyGLafAflZ/4mnA1mCwEo8OvlKAj7Kkn1/img.png?width=932&amp;height=836&amp;face=0_0_932_836">
+ <a href="https://bcho.tistory.com/1072" target="_blank" rel="noopener" data-source-url="https://bcho.tistory.com/1072"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/bg8iSo/hyGLg091iu/DCWsqmVxbwqtFimacfKQbk/img.png?width=800&amp;height=635&amp;face=0_0_800_635,https://scrap.kakaocdn.net/dn/3EUZd/hyGK1CWMmB/CNgV2I5Hy1DUKZC2OlbkcK/img.png?width=800&amp;height=635&amp;face=0_0_800_635,https://scrap.kakaocdn.net/dn/h2qO3/hyGLafAflZ/4mnA1mCwEo8OvlKAj7Kkn1/img.png?width=932&amp;height=836&amp;face=0_0_932_836');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">Hashtable의 이해와 구현 #1</p> 
+   <p class="og-desc" data-ke-size="size16">해쉬 테이블의 이해와 구현 (Hashtable) 조대협 (http://bcho.tistory.com) 기본적인 해쉬 테이블에 대한 이해 해쉬 테이블은 Key에 Value를 저장하는 데이타 구조로, value := get(key)에 대한 기능이 매우매우..</p> 
+   <p class="og-host" data-ke-size="size16">bcho.tistory.com</p> 
+  </div> </a>
+</figure> 
+<figure id="og_1594650446411" contenteditable="false" data-ke-type="opengraph" data-og-type="article" data-og-title="Hash, Hashing, Hash Table(해시, 해싱 해시테이블) 자료구조의 이해" data-og-description="0_HJVxQPQ-eW0Exx7M.jpeg DATA들이 사용하기 쉽게 정리되어 있다. 자료구조는 도대체 무엇일까? 자료구조(Data-Structure)는 데이터들의 모임, 관계, 함수, 명령 등의 집합을 의미한다. 더 쉽게 표현하자면, 1)" data-og-host="velog.io" data-og-source-url="https://velog.io/@cyranocoding/Hash-Hashing-Hash-Table%ED%95%B4%EC%8B%9C-%ED%95%B4%EC%8B%B1-%ED%95%B4%EC%8B%9C%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%9E%90%EB%A3%8C%EA%B5%AC%EC%A1%B0%EC%9D%98-%EC%9D%B4%ED%95%B4-6ijyonph6o" data-og-url="https://velog.io/@cyranocoding/Hash-Hashing-Hash-Table해시-해싱-해시테이블-자료구조의-이해-6ijyonph6o" data-og-image="https://scrap.kakaocdn.net/dn/nuZdk/hyGK3grMxa/3dKpwjJtjK6wzCxsjy0kG1/img.jpg?width=800&amp;height=562&amp;face=0_0_800_562,https://scrap.kakaocdn.net/dn/frmIf/hyGLfHXiCw/hMwU6KZXe57hfnfk1Q4631/img.jpg?width=800&amp;height=562&amp;face=0_0_800_562,https://scrap.kakaocdn.net/dn/b7E9tB/hyGLcdmQ5n/KRi8KzkXDmfPvbHp48hU9k/img.jpg?width=800&amp;height=562&amp;face=0_0_800_562">
+ <a href="https://velog.io/@cyranocoding/Hash-Hashing-Hash-Table%ED%95%B4%EC%8B%9C-%ED%95%B4%EC%8B%B1-%ED%95%B4%EC%8B%9C%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%9E%90%EB%A3%8C%EA%B5%AC%EC%A1%B0%EC%9D%98-%EC%9D%B4%ED%95%B4-6ijyonph6o" target="_blank" rel="noopener" data-source-url="https://velog.io/@cyranocoding/Hash-Hashing-Hash-Table%ED%95%B4%EC%8B%9C-%ED%95%B4%EC%8B%B1-%ED%95%B4%EC%8B%9C%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%9E%90%EB%A3%8C%EA%B5%AC%EC%A1%B0%EC%9D%98-%EC%9D%B4%ED%95%B4-6ijyonph6o"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/nuZdk/hyGK3grMxa/3dKpwjJtjK6wzCxsjy0kG1/img.jpg?width=800&amp;height=562&amp;face=0_0_800_562,https://scrap.kakaocdn.net/dn/frmIf/hyGLfHXiCw/hMwU6KZXe57hfnfk1Q4631/img.jpg?width=800&amp;height=562&amp;face=0_0_800_562,https://scrap.kakaocdn.net/dn/b7E9tB/hyGLcdmQ5n/KRi8KzkXDmfPvbHp48hU9k/img.jpg?width=800&amp;height=562&amp;face=0_0_800_562');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">Hash, Hashing, Hash Table(해시, 해싱 해시테이블) 자료구조의 이해</p> 
+   <p class="og-desc" data-ke-size="size16">0_HJVxQPQ-eW0Exx7M.jpeg DATA들이 사용하기 쉽게 정리되어 있다. 자료구조는 도대체 무엇일까? 자료구조(Data-Structure)는 데이터들의 모임, 관계, 함수, 명령 등의 집합을 의미한다. 더 쉽게 표현하자면, 1)</p> 
+   <p class="og-host" data-ke-size="size16">velog.io</p> 
+  </div> </a>
+</figure> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

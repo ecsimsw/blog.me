@@ -1,0 +1,98 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바는 문자열의 끝을 표시하지 않는다.
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>자바는 문자열의 끝을 표시하지 않는다.</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">C나 C++은 문자열의 끝을 \0로 하여 끝을 표시하였지만, 자바는 길이를 따로 저장해 두는 방식으로 끝을 안다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>문자열 클래스 파일 따라가기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">String.length()가 궁금해서 따라가보았다. 심심해서... </span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">String.java와 StringCoding.java을 그냥 궁금한 부분만 검색해가면서 의식의 흐름 기법으로 정리&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1586711475752" class="java" data-ke-language="java" data-ke-type="codeblock"><code>char[] chars = new char[]{'d','e','s'};
+String s2 = new String(chars);
+System.out.println(s2.length());</code></pre> 
+<pre id="code_1586709624981" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public int length() {
+    return value.length &gt;&gt; coder();
+}</code></pre> 
+<pre id="code_1586710013384" class="java" data-ke-language="java" data-ke-type="codeblock"><code>private final byte[] value;
+
+byte coder() {
+    return COMPACT_STRINGS ? coder : UTF16;
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>** Q) COMPACT_STRINGS는 final boolean이면 무조건 true아닌가,,,? 왜 COMPACT_STRINGS ? coder : UTF16; 이런 코드를 쓰지???</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1586710308804" class="java" data-ke-language="java" data-ke-type="codeblock"><code>static final boolean COMPACT_STRINGS;
+
+static {
+  COMPACT_STRINGS = true;
+}</code></pre> 
+<pre id="code_1586710355903" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public String(char value[]) {
+    this(value, 0, value.length, null);
+ }</code></pre> 
+<pre id="code_1586711395676" class="java" data-ke-language="java" data-ke-type="codeblock"><code> String(char[] value, int off, int len, Void sig) {
+    if (len == 0) {
+        this.value = "".value;
+        this.coder = "".coder;
+        return;
+    }
+    if (COMPACT_STRINGS) {
+        byte[] val = StringUTF16.compress(value, off, len);
+        if (val != null) {
+            this.value = val;
+            this.coder = LATIN1;
+            return;
+        }
+    }
+    this.coder = UTF16;
+    this.value = StringUTF16.toBytes(value, off, len);
+  }
+ </code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>** Q) Void sig를 왜 쓰지?? 어떤 역할을 하는지 모르겠다.</b></span></p> 
+<pre id="code_1586881445883" class="java" data-ke-language="java" data-ke-type="codeblock"><code>  @Native static final byte UTF16  = 1;</code></pre> 
+<pre id="code_1586711704470" class="java" data-ke-language="java" data-ke-type="codeblock"><code>    public static byte[] compress(char[] val, int off, int len) {
+        byte[] ret = new byte[len];
+        if (compress(val, off, ret, 0, len) == len) {
+            return ret;
+        }
+        return null;
+    }</code></pre> 
+<pre id="code_1586711760985" class="java" data-ke-language="java" data-ke-type="codeblock"><code>    public static int compress(char[] src, int srcOff, byte[] dst, int dstOff, int len) {
+        for (int i = 0; i &lt; len; i++) {
+            char c = src[srcOff];
+            if (c &gt; 0xFF) {
+                len = 0;
+                break;
+            }
+            dst[dstOff] = (byte)c;
+            srcOff++;
+            dstOff++;
+        }
+        return len;
+    }
+</code></pre> 
+<pre id="code_1586711582344" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public static byte[] toBytes(char[] value, int off, int len) {
+     byte[] val = newBytesFor(len);
+     for (int i = 0; i &lt; len; i++) {
+         putChar(val, i, value[off]);
+         off++;
+     }
+     return val;
+ }</code></pre> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

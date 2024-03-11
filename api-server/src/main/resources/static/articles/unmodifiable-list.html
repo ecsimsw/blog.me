@@ -1,0 +1,102 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+UnmodifiableList은 만능이 아니다. / 방어적 복사
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>oracle docs - Collections.unmodifiableList()</b><i></i></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><i>Returns an unmodifiable view of the specified list. This method allows modules to provide users with "read-only" access to internal lists. Query operations on the returned list "read through" to the specified list, and attempts to modify the returned list, whether direct or via its iterator, result in an&nbsp;UnsupportedOperationException.</i><i></i></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">UnmodifiableList은<span style="color: #000000; text-align: start;"><span>&nbsp;</span>원본 객체와의 참조를 끊지 않는다.</span></span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Collections.unmodifiableList를 사용해서 반환받은 리스트 레퍼런스가 Read-only라도 이는 원본 컬렉션의 불변성을 보장하지 않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 코드는 final cars가 Collection.unmodifiableList()로 외부의 cars를 받기 때문에, 마치 cars의 사이즈가 변경되지 않음이 보장되는 것처럼 보인다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1613395446694" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Cars {
+    private final List&lt;Car&gt; cars;
+
+    public Cars(final List&lt;Car&gt; cars) {
+        this.cars = Collections.unmodifiableList(cars);
+    }
+
+    public int getSize() {
+        return cars.size();
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">하지만 사실 unmodifiableList는 원본 객체와의 참조를 끊지 않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">unmodifiableList()를 호출로 반환되는 UnmodifiableList의 list를 거슬러 올라가면, 결국 그 참조는 unmodifiableList() 메소드의 인자로 대입된 list와 같게 된다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #000000;">UnmodifiableList 타입이 갖고 있는 list는 unmodifiableList()의 인자로 넘어온 원본 객체를 참조한다는 말이다.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1120" data-origin-height="754">
+ <span data-url="https://blog.kakaocdn.net/dn/ZAmIS/btqXxeUk5FM/mF2uNMtizOnkGj9sfqJGp0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/ZAmIS/btqXxeUk5FM/mF2uNMtizOnkGj9sfqJGp0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FZAmIS%2FbtqXxeUk5FM%2FmF2uNMtizOnkGj9sfqJGp0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="1120" data-origin-height="754"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">따라서 UnmodifiableList 타입으로 리스트의 수정을 막을 순 있지만, 원본 리스트를 수정하는 것을 막지 못한다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 코드처럼 원본 carList에 변화를 주면 Cars의 cars에도 변경이 생긴다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1613400693549" class="java" data-ke-language="java" data-ke-type="codeblock"><code>List&lt;Car&gt; carList = new ArrayList&lt;&gt;();
+carList.add(new Car(0));
+
+Cars cars = new Cars(carList);
+int before = cars.getSize();
+
+carList.remove(0);
+int after = cars.getSize();
+
+System.out.println(before == after);  // false (Cars의 내부 리스트 원소 개수 변경됨)</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">런타임 시점에서 발생되는 에러 여부</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">UnmodifiableList 타입에 set(), add(), remove() 등의 리스트를 수정하는 행위를 호출하면 UnsupportedOperationException()이 발생한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">문제는 이 예외가 RuntimeException()이라 컴파일 시점에선 확인이 안되고, 런타임 도중에 시스템 종료와 함께 예외가 체크된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">방어적 복사를 생각하자</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">변형 자체를 막고 싶다면 방어적 복사를 이용해서 참조를 끊어주는 것도 좋은 해결 방안이 된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">새로운 리스트 객체를 만들어 복사하고 이를 unmodifiableList로 바꿔주거나,</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1613401569521" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Cars {
+    private final List&lt;Car&gt; cars;
+
+    public Cars(final List&lt;Car&gt; cars) {
+        this.cars = Collections.unmodifiableList(new ArrayList&lt;&gt;(cars));
+    }
+
+    public int getSize() {
+        return cars.size();
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">또는 List.copyOf()를 사용할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1613401636039" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Cars_dc {
+    private final List&lt;Car&gt; cars;
+
+    public Cars_dc(final List&lt;Car&gt; cars) {
+        this.cars = List.copyOf(cars);
+    }
+
+    public int getSize() {
+        return cars.size();
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20">&nbsp;</h4>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

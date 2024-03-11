@@ -1,0 +1,375 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / Enum의 원리와 구현
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>자바에서의 열거형(enums)</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">처음 자바를 배웠을 때, annotation와 함께 가장 신기한 개념이었다. 어떻게 동작하는지도 모르고, 그저 사용 방식을 외워 사용해왔던 것 같아, 이번 포스팅을 정리하면서 좀 더 스스로 명확히 할 수 있도록 공부하려고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">더하여 열거형의 조상 java.lang.Enum 타입을 흉내 내 보았다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>타입에 안전한 열거형 (Typesafe enum)</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">C언어의 Enum은 단순히 이름과 상수를 매핑하는 것에 가깝다. 이를 테면, 아래 C언어에서의 열거형 예시에서 DayOfweek.Tuesday와 Numers.Three 둘 다 상수 2가 할당이 되어있으므로, 논리적으로는 맞지 않으나 C언어에서는 '같다'로 처리된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612270672456" class="c++ arduino" data-ke-language="c++" data-ke-type="codeblock"><code>#include &lt;stdio.h&gt;
+
+enum DayOfWeek {  
+    Sunday = 0,        
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday
+};
+
+enum Numbers {  
+    One = 0,        
+    Two,
+    Three,
+    Four,
+    Five
+};
+
+int main()
+{    
+    printf("%d\n", Three == Tuesday);    // true??
+    return 0;
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">반면 자바에서는 서로 다른 Enum 타입의 비교는 컴파일 에러를 낳는다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612271381824" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Typesafe_자바의Enum{
+    enum DayOfWeek {
+        Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday
+    }
+
+    enum Numbers {
+        One,Two,Three,Four,Five
+    }
+
+    public static void main(String[] args) {
+        System.out.println(DayOfWeek.Tuesday == Numbers.Three); // ERROR!!
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">별거 아닌 것 같은 차이라고 넘길 수 있지만 개인적으로 Typesafe하다는 점은 굉장히 중요한 포인트라고 생각한다. 사용자의 입력을 열거형을 이용해서 받는다고 할 때를 가정해보자. &nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612271951803" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Sample{
+
+    enum UserInputButton {
+        Yes, No
+    }
+    
+    public static void main(String[] args) {
+        UserInputButton input = getUserInput();
+
+        if(input == 0){
+           // Typesafe하지 않는, 0은 매직 넘버
+        }
+        
+        if(input == MyErrorCode.IllegalArgumentException){
+           // Typesafe하지 않는, 비논리적
+        }
+
+        if(input == UserInputButton.Yes){
+           // Typesafe한 
+        }
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">main 함수에서 if(input == 0) 과 같은 꼴은 상수 코드를 매직넘버로 사용한다. Yes와 No 뿐이라 크게 불편함을 느끼지 않겠지만, 대답의 유형이 많아지거나 상수 코드가 자주 바뀔 때 가독성을 해칠 뿐 아니라 유지 보수를 어렵게 만들 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Typesafe하지 않은 꼴에서는 if(input == MyErrorCode.IllegalArgumentException) 같은 비논리적인 비교를 컴파일 에러로 거르지 않기 때문에 안전하지 못한 코드를 만들기 십상이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">'Typesafe 하다'의 의미는 더 공부하고, 경험하면서 계속 고민하고, 생각해봐야겠다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>관련된 속성과 행위 묶기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">자바의 열거형은 멤버를 가질 수 있다. '관련된 속성과 행위 묶기'라는 소제목을 사용한 이유는 멤버를 갖을 수 있다는 문법 자체보다, '코드 응집을 위한 설계'에 포인트를 주고 싶었기 때문이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">(단순히 문법을 공부하기보다 사용해야 하는 이유에 집중하고 싶다는 말인데, 위 문장은 작성한 나조차 어렵고 막연한 것 같다. 최대한 쉽고 간단하게 설명해야 하는데..)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 코드처럼 Vehicle 열거형을 정의하면서 각 열거형 상수에 속성을 추가할 수 있다. 물론 여러 값을 지정할 수 도 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612279879765" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum Vehicle{
+    BUS(1500), AIRPLANE(300000), TAXI(3000);
+
+    private int price;
+
+    Vehicle(int price){
+        this.price = price;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사용하는 이유에 집중하고 싶다고 했다. 이걸 언제 사용할 수 있을까? 왜 사용해야 할까. 내가 생각한 그 이유가 바로 '관련된 것끼리의 응집'이었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">탈 것에 따라 다른 금액으로, 비용을 계산하는 로직을 짠다고 생각해보자.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612281228378" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum Vehicle{
+   BUS, AIRPLANE, TAXI;
+}
+
+int calculateAmount(int person, Vehicle vehicleType){
+   return getFee(vehicleType) * person;
+}
+
+int getFee(Vehicle vehicleType){
+   if(vehicleType == VehicleType.BUS){
+      return 1500;
+   }
+   
+   if(vehicleType == VehicleType.AIRPLANE){
+      return 300000;
+   }
+   
+   if(vehicleType == VehicleType.TAXI){
+     return 3000;
+   }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 하면 결국엔 Vehicle 열거형은 열거형대로, 요금 조회와 계산은 또 다른 함수대로 별도의 메소드나 클래스를 필요로 하게 된다. 코드가 길어질 뿐 아니라, 탈 것의 유형이나 금액에 변경이 생길 때마다 메소드가 변경되어야 한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Enum에서 멤버를 추가하면 다음처럼 관련된 코드를 묶을 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612281856180" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum Vehicle{
+    BUS(1500), AIRPLANE(30000), TAXI(30000);
+
+    private int fee;
+
+    Vehicle(int fee){
+        this.fee = fee;
+    }
+    
+    int calculateAmount(int person){
+        return fee * person;
+    }
+}
+
+public static void main(String[] args) {
+    Vehicle.BUS.calculateAmount(3);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">또는 멤버로 Collection 자료형이나 아래처럼 함수형 인터페이스를 추가할 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612282179858" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum VehicleType{
+    BUS(1500, ()-&gt; System.out.println("DRIVING")),
+    AIRPLANE(300000, ()-&gt;System.out.println("FLYING")),
+    TAXI(30000, ()-&gt;System.out.println("DRIVING"));
+
+    private int fee;
+    private Runnable go;
+
+    VehicleType(int fee, Runnable go){
+        this.fee = fee;
+        this.go = go;
+    }
+    
+    int calculateAmount(int person){
+        return fee * person;
+    }
+
+    void run(){
+        go.run();
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">위 코드에서 요금을 계산하는 방식이 person * fee로 각 운송 수단마다 똑같다는 점이 불만족스럽다. 각 수단마다 반드시 요금 계산 방식을 정의하도록 하고 싶을 때는 추상 메소드를 사용할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612282669778" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum VehicleType {
+    BUS(1500) {
+        @Override
+        int calculateAmount(int person) {
+            return person * fee;
+        }
+    },
+    AIRPLANE(300000) {
+        @Override
+        int calculateAmount(int person) {
+            int additionalFee = 30000;
+            return person * fee + additionalFee * person;
+        }
+    },
+    TAXI(30000) {
+        @Override
+        int calculateAmount(int person) {
+            return fee;
+        }
+    };
+
+    //private  int fee;
+    protected int fee;
+    
+    VehicleType(int fee) {
+        this.fee = fee;
+    }
+
+    abstract int calculateAmount(int person);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">추상 메소드 calculateAmount를 각 열거형 상수마다 정의하도록 강제하여 요금 계산 방식을 정의한다. 이때 fee는 protected이어야 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">다음 파트에서는 왜 이런 문법이 적용되었는지, 동작 원리가 뭔지를 설명하겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Enum의 원리</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">위 Enum 문법이 명확하게 와 닿지 않았다. 그래서 그 동작 원리를 알고 싶었다. 동작 원리를 알면 왜 이런 문법을 사용해야 하는지를 알 수 있을 것 같았다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">일단 열거형의 조상 java.lang.Enum을 흉내내기 앞서, Enum 또한 클래스 문법과 같다는 사실을 생각하고 시작해야 한다. 결국 class의 규칙을 똑같이 따른다. 아래 코드를 보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612283016092" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum Vehicle{
+    BUS(1500), AIRPLANE(300000), TAXI(3000);
+
+    private int price;
+
+    Vehicle(int price){
+        this.price = price;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">열거형 상수부터 이해해야 한다. 사실 각 열거형 상수가 Vehicle 객체이다. 왜 뜬금없이 아래에 생성자를 정의하는지 이해가 되는가. 왜 static final로 정의하는지는 직접 고민해보길 바란다.&nbsp; &nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612283196730" class="java" data-ke-language="java" data-ke-type="codeblock"><code>abstract class Vehicle extends MyEnum {
+    public static final Vehicle BUS = new MyVehicleType("BUS", 1500);
+    public static final Vehicle AIRPLANE = new MyVehicleType("AIRPLANE", 300000);
+    public static final Vehicle TAXI = new MyVehicleType("TAXI", 30000);
+
+    private int fee;
+
+    Vehicle(String name, int fee) {
+        super(name);
+        this.price = fee;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그렇다면 왜 abstract 클래스로 Vehicle이 정의되었을까. 추상 메소드를 멤버로 추가하는 상황을 생각해보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612283670270" class="java" data-ke-language="java" data-ke-type="codeblock"><code>abstract class Vehicle extends MyEnum {
+    public static final Vehicle BUS = new Vehicle("BUS", 1500) {
+        @Override
+        int calculateAmount(int person) {
+            return person * fee;
+        }
+    };
+    public static final Vehicle AIRPLANE = new Vehicle("AIRPLANE", 300000) {
+        @Override
+        int calculateAmount(int person) {
+            int additionalFee = 30000;
+            return person * fee + additionalFee * person;
+        }
+    };
+    public static final Vehicle TAXI = new Vehicle("TAXI", 30000) {
+        @Override
+        int calculateAmount(int person) {
+            return fee;
+        }
+    };
+
+    protected int fee;
+
+    Vehicle(String name, int fee) {
+        super(name);
+        this.fee = fee;
+    }
+
+    abstract int calculateAmount(int person);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Vehicle을 추상 클래스로 정의하여 calculateAmount를 정의하지 않은 채로 두고, 각 열거형 상수 (Vehicle 객체)는 Vehicle 클래스의 익명 클래스로 인스턴스 되는 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그래서 앞선 예시 코드에서 추상 클래스를 정의한 enum일 때만 fee를 private으로 둬선 안된다고 언급했던 것이다. fee는 익명 클래스가 생성될 때 calculateAmount를 정의하면서 사용될 것이기 때문에 마치 자식 클래스에 권한을 주는 것처럼 protected로 선언해야 했던 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이 배경을 알고 보면 앞선 Enum 문법이 조금은 덜 이상하고 신기해 보일 것이라고 생각한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612284053880" class="java" data-ke-language="java" data-ke-type="codeblock"><code>enum VehicleType {
+    BUS(1500) {
+        @Override
+        int calculateAmount(int person) {
+            return person * fee;
+        }
+    },
+    AIRPLANE(300000) {
+        @Override
+        int calculateAmount(int person) {
+            int additionalFee = 30000;
+            return person * fee + additionalFee * person;
+        }
+    },
+    TAXI(30000) {
+        @Override
+        int calculateAmount(int person) {
+            return fee;
+        }
+    };
+
+    protected int fee;
+    
+    VehicleType(int fee) {
+        this.fee = fee;
+    }
+
+    abstract int calculateAmount(int person);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>java.lang.Enum 흉내 내기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">마지막으로 java.lang.Enum을 흉내내 보려고 한다. enum의 기본적인 메소드 (compareTo(), equals(), <s>valueOf(), values()</s>, ordinal(), name())을 구현해보았다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1612112638564" class="java" data-ke-language="java" data-ke-type="codeblock"><code>abstract class MyEnum&lt;T extends MyEnum&gt; implements Comparable&lt;T&gt;{
+    //private static int index = 0;
+    private int ordinal;
+    private String name;
+
+    protected MyEnum(String name, int ordinal){
+        this.name = name;
+        this.ordinal = ordinal;
+    }
+
+    protected String name(){
+        return name;
+    }
+
+    protected int ordinal(){
+        return ordinal;
+    }
+
+    // XXX :: values()와 valueOf()는 컴파일러가 생성한다.
+
+    @Override
+    public boolean equals(Object object){
+        return object == this;
+    }
+    
+    @Override
+    public int compareTo(T o) {
+       if(this.getClass() != o.getClass()){
+            throw new ClassCastException();
+       }
+
+       return this.ordinal - o.ordinal();
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><s>index(현재 등록된 열거형 상수 개수)와 enumList를 클래스 변수로 두어 상속한 열거형 타입의 상수 개수와 객체들을 공용으로 관리할 수 있도록 하였다. </s><s>객체를 저장한 List에서 매개변수로 들어온 이름에 해당하는 객체를 찾아 반환한다. 존재하지 않을 경우 예외를 발생시킨다.</s></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b><i>위 코드에서 enum의 values()와 valueOf() 메소드를 잘못 구현했었다가 댓글을 확인하고 정정하였습니다.</i></b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b><i>enum의 values()와 valueOf()는 컴파일러가 자동 생성합니다.</i></b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">비교되는 객체가 o를 MyEnum을 상속한 클래스 객체로 제한하기 위해 MyEnum&lt;T extends MyEnum&gt; implements Comparable&lt;T&gt; 꼴로 T를 지정하였다. o.ordinal가 포함됨을 보장할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>정리</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">우아한테크코스 프리코스를 준비하면서 코드의 가독성을 위해 Enum을 사용했다. </span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사실 이전까지 Enum이 있다는 것을 알았지 왜 써야 하는지, 어떤 점이 좋은지 생각해본 적 없었다. 객체지향 프로그래밍을 고민하면서 느낀 Enum의 사용 이유를 동작 원리와 함께 정리하고 싶었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Enum을 직접 구현하는 것이 재밌었다. 아직 흉내 정도지만 왜 Enum 문법이 그렇게 되었나를 생각하면서 반대로 거슬러 올라가 이렇게 짜였지 않았을까 고민하는 시간이 공부가 많이 되었던 것 같다.</span></p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

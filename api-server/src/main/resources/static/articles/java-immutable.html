@@ -1,0 +1,288 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / Immutable 객체와 메모리 구성
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><b><span style="color: #000000;">자바&nbsp;깊이&nbsp;알기&nbsp;/&nbsp;Immutable&nbsp;객체와&nbsp;메모리&nbsp;구성</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 코드를 먼저보고 출력 값을 고민해보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606055274180" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class App2 {
+    public static void main(String[] args) throws Exception{
+        Integer i = 10;
+        
+        changeInteger(i);
+        
+        System.out.println(i);
+    }
+    
+    static void changeInteger(Integer a){
+        a = 20;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Integer는 int와 다르다. 참조 타입이기 때문에 힙 영역에 있는 객체를 참조할 것이고, changeInteger 에서 a는 힙에 있는 그 객체 자체를 가리키기 때문에 i 값이 변경되어야 하는건 아닐까.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/9AuRX/btqNZM7JkCb/WWjTMlDkz6oK9iJ5J7iBk0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/9AuRX/btqNZM7JkCb/WWjTMlDkz6oK9iJ5J7iBk0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F9AuRX%2FbtqNZM7JkCb%2FWWjTMlDkz6oK9iJ5J7iBk0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="682" height="398" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">틀렸다. Integer는 Immutable 형이다. Integer class를 까보면 아래와 같다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606056300578" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public final class Integer extends Number implements Comparable&lt;Integer&gt; {
+    public static final int MIN_VALUE = -2147483648;
+    public static final int MAX_VALUE = 2147483647;
+    private final int value;
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">일단 이 부분만으로 좀 해석하면 Integer 클래스는 Number를 상속하였고, Comparable&lt;Integer&gt;를 구현했다. class 앞에 final class로 상속을 제한하였다.MIN_VALUE와 MAX_VALUE는 public static final 상수로, Integer 클래스 전체에서 최대, 최소 값으로 고정이 되어 있는 값이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">가장 중요한 value는 private final int 타입 변수였다. 최초 한 회 정수 값이 대입되고 이후로는 변경이 불가능한 객체인 것을 확인할 수 있다. final이 오는데 static이 안붙어 이상한가. 전혀 문제 있는, 이상한 부분이 아니다. MIN_VALUE 처럼 static final로 값을 클래스 전체에서 고정하는 상수가 많긴 하지만, final이라도 static이 반드시 붙어야하는건 아니다. value가 클래스 멤버였으면 모든 Integer 객체가 같은 값을 갖으니 말도 안된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">어쨌든, 이렇게 생성 이후 상태가 변할 수 없는 객체를 불변(Immutable) 객체라고 한다. 하지만 위 코드에서 Integer 형이 불변 객체라 i의 값이 변화되지 않는게 아니다. 다시 아래 코드를 보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606062127751" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class App2 {
+    public static void main(String[] args) throws Exception{
+        MyClass i = new MyClass(10);
+
+	changeInteger(i);
+
+        System.out.println(i.value);
+    }
+
+    static void changeInteger(MyClass a){
+        a.value = 20;
+    }
+}
+
+class MyClass{
+    public Integer value;
+
+    public MyClass(int x){
+        value = x;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 코드의 출력 값은 20으로 생성 시 i.value는 10에서 함수 호출 후 20으로 변경된 것이다. 불변이라면서 이번에는 또 바뀌었다. 이 두 코드의 동작 원리를 메모리 구조와 함께 알아보려고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">메모리 구조 : 예제 1번</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">먼저 안바뀌었던 첫 번째 코드이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606062262828" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class App2 {
+    public static void main(String[] args) throws Exception{
+        Integer i = 10;
+        
+        changeInteger(i);
+        
+        System.out.println(i);
+    }
+    
+    static void changeInteger(Integer a){
+        a = 20;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사실 아까 메모리 구조도 맞긴 맞지만 Integer a 에 20을 대입하는 부분이 빠졌다. 우선 changeInteger를 호출하면 Integer a = i으로, a가 heap 영역에서 value가 10인 Integer 객체를 같이 참조하는 것까지는 맞다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/9AuRX/btqNZM7JkCb/WWjTMlDkz6oK9iJ5J7iBk0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/9AuRX/btqNZM7JkCb/WWjTMlDkz6oK9iJ5J7iBk0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F9AuRX%2FbtqNZM7JkCb%2FWWjTMlDkz6oK9iJ5J7iBk0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="642" height="375" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 a에 20을 대입한 순간 Integer는 불변 객체기 때문에 위 그림에서 10이 20으로 변하는 것이 아니라 value가 20인 Integer 객체가 하나 더 생겨 a가 그 객체를 참조한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/coOVdZ/btqNZNMoDPo/03YKjOmQVE4SwrUHf8Xeu0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/coOVdZ/btqNZNMoDPo/03YKjOmQVE4SwrUHf8Xeu0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcoOVdZ%2FbtqNZNMoDPo%2F03YKjOmQVE4SwrUHf8Xeu0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="648" height="378" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">객체 identityHashCode를 출력해보면 예상했던 것과 같음을 알 수 있고, 그래서 changeInteger frame이 pop 되더라도, i가 참조하는 객체는 value가 10으로 그대로 이므로 변화가 없는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606063146860" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class App2 {
+    public static void main(String[] args) throws Exception{
+        Integer i = 10;
+        System.out.println("before i : "+System.identityHashCode(i));
+        changeInteger(i);
+        System.out.println("after i : "+System.identityHashCode(i));
+    }
+
+    static void changeInteger(Integer a){
+        System.out.println("before a : "+System.identityHashCode( a));
+        a = 20;
+        System.out.println("after a : "+ System.identityHashCode(a));
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606063321803" class="java" data-ke-language="java" data-ke-type="codeblock"><code>before i : 1607521710
+before a : 1607521710
+after a : 1389133897
+after i : 1607521710</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">메모리 구조 : 예제 2번</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">이번에는 class를 끼고 value를 변경하면 메모리가 어떻게 변할지 보여주겠다. 다시 아래 코드를 보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606063503829" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class App2 {
+    public static void main(String[] args) throws Exception{
+        MyClass i = new MyClass(10);
+
+	changeInteger(i);
+
+        System.out.println(i.value);
+    }
+
+    static void changeInteger(MyClass a){
+        a.value = 20;
+    }
+}
+
+class MyClass{
+    public Integer value;
+
+    public MyClass(int x){
+        value = x;
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">changeInteger가 호출되기 이전의 그림은 다음과 같다. MyClass 객체가 Heap에 생기고 frame_main의 i는 그 객체를 참조한다. MyClass 객체는 다시 value가 10인 Integer를 참조한다.</span><span style="color: #000000;"></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/r7NaQ/btqNWg3kuuU/xV7HW3zMO4rrf5ziX3Xmo1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/r7NaQ/btqNWg3kuuU/xV7HW3zMO4rrf5ziX3Xmo1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fr7NaQ%2FbtqNWg3kuuU%2FxV7HW3zMO4rrf5ziX3Xmo1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="658" height="384" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">changeInteger가 실행되면 MyClass 형 변수 a에 i가 대입되면서 a는 i가 가리키는 객체를 같이 가리키게된다. 여기까지는 위 예시와 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/bqhUVu/btqNYw5dI4U/3MogsYXgFITJMYs1XxzxJk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bqhUVu/btqNYw5dI4U/3MogsYXgFITJMYs1XxzxJk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbqhUVu%2FbtqNYw5dI4U%2F3MogsYXgFITJMYs1XxzxJk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="625" height="365" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 a.value = 20이 대입되면 마찬가지로 heap에 value가 20인 새로운 Integer 객체를 생성하여 a와 i가 참조하고 있는 MyClass의 value가 참조하게 된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/HQaAJ/btqN02buoXX/RUUxQ2ajcThmlWHk5UPDJK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/HQaAJ/btqN02buoXX/RUUxQ2ajcThmlWHk5UPDJK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FHQaAJ%2FbtqN02buoXX%2FRUUxQ2ajcThmlWHk5UPDJK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="645" height="376" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">따라서 changeInteger 프레임이 종료되어도 i가 가리키고 있는 MyClass의 value 값은 20으로 고정되는 것이다.&nbsp;</span><span style="color: #000000;"></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/64Vet/btqNZNr5WTH/Lq5nxOahIZIutQ0kZXLYC1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/64Vet/btqNZNr5WTH/Lq5nxOahIZIutQ0kZXLYC1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F64Vet%2FbtqNZNr5WTH%2FLq5nxOahIZIutQ0kZXLYC1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="658" height="384" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Immutable을 사용하는 이유</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">정리하면서 불변 객체가 왜 필요할까 고민해보았다. 스레드에 안전하다, 보안에 좋다 등의 얘기를 다른 블로그에서 찾을 수 있었지만, 그 중에서도 가장 와닿았던건 재사용을 위한 캐싱이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">예를 들면 String이 중복이 많은 경우, 모든 String 변수의 문자열 값을 위해 heap에 String 객체가 마구 만들어지는 것이 아니라, 사용한 String을 StringPool에 저장하고, 이 후 그 값을 사용하게 된다면 그 곳을 동일하게 참조하게 하면 되도록 한다. 반대로 중복이 적고 변화가 많은 경우 StringBuilder 처럼 가변 객체를 사용해서 캐시 없이 객체로 관리할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">StringBuilder와 String, StringPool을 모른다면 맨 아래 링크를 참조하길 바란다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Integer의 캐시</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">그럼 Integer에도 캐시가 사용되었던 걸까. 그렇다. 아래 코드에서 a와 b는 같은 Integer 객체를 참조한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606065924458" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class App2 {
+    public static void main(String[] args) throws Exception{
+        Integer a = 10;
+        Integer b = 10;
+
+        System.out.println(System.identityHashCode(a)); //1607521710
+        System.out.println(System.identityHashCode(b)); //1607521710
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/bpemjS/btqNXGmGU8c/RPckoz4LHkhXQKCSadTBw1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bpemjS/btqNXGmGU8c/RPckoz4LHkhXQKCSadTBw1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbpemjS%2FbtqNXGmGU8c%2FRPckoz4LHkhXQKCSadTBw1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="664" height="387" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Integer는 클래스 내에서 -128~127 사이의 값을 캐시 처리한다. 그 부분은 Java 11 기준으로 다음과 같이 구현되어 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606066078304" class="java" data-ke-language="java" data-ke-type="codeblock"><code>private static class IntegerCache {
+        static final int low = -128;
+        static final int high;
+        static final Integer[] cache;
+
+        private IntegerCache() {
+        }
+
+        static {
+            int h = 127;
+            String integerCacheHighPropValue = VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
+            int i;
+            if (integerCacheHighPropValue != null) {
+                try {
+                    i = Integer.parseInt(integerCacheHighPropValue);
+                    i = Math.max(i, 127);
+                    h = Math.min(i, 2147483518);
+                } catch (NumberFormatException var4) {
+                }
+            }
+
+            high = h;
+            cache = new Integer[high - -128 + 1];
+            i = -128;
+
+            for(int k = 0; k &lt; cache.length; ++k) {
+                cache[k] = new Integer(i++);
+            }
+
+            assert high &gt;= 127;
+        }
+    }</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1606066363752" class="java" data-ke-language="java" data-ke-type="codeblock"><code>@HotSpotIntrinsicCandidate
+public static Integer valueOf(int i) {
+  return i &gt;= -128 &amp;&amp; i&lt;=Integer.IntegerCache.high ? Integer.IntegerCache.cache[i + 128] : new Integer(i);
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">초기화 블럭에서 Integer 배열을 생성하고, Integer 를 미리 넣어두고, 받을 객체의 value가 범위 내의 값이면 cache에서 꺼내 반환, 범위 밖의 경우에는 새로 Integer 객체를 생성하여 반환하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">정리</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">개인적으로 굉장히 중요한 내용이라고 생각한다. Immutable 개념도 중요하지만, 직접 메모리가 어떻게 사용되는지, 어떻게 값이나 객체가 참조되는지 그려보는 시간이 필요하다고 생각한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">'자바 깊이 알기'를 정리하면서 나에게 정말 많은 도움이 되었고, 가장 애착이 있는 포스팅들인 것 같다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자바를 처음 공부하는 사람들이 놓칠 수 있지만 사실은 중요한 원리를 다루고 싶다. 다른 사람들이 내 '자바 깊이 알기'에 도움을 받으면 기쁠 것 같다.&nbsp;&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<figure id="og_1606065362298" contenteditable="false" data-ke-type="opengraph" data-og-type="article" data-og-title="자바 / String , StringBuffer, StringBuilder / String Pool" data-og-description="StringBuffer / StringBuilder 의 차이 StringBuffer는 멀테스레드에 안전하도록 동기화가 되어있으나, 성능을 떨어트릴 수 있으므로, 모든 기능이 똑같지만 동기화 기능만 없는 StringBuilder를 사용할 수 있다" data-og-host="ecsimsw.tistory.com" data-og-source-url="https://ecsimsw.tistory.com/entry/%EC%9E%90%EB%B0%94-String-StringBuffer-StringBuilder" data-og-url="https://ecsimsw.tistory.com/entry/%EC%9E%90%EB%B0%94-String-StringBuffer-StringBuilder" data-og-image="https://scrap.kakaocdn.net/dn/bFf6Dd/hyIkCai2Bw/kKzotP2WMwYtxCYC91kpV1/img.png?width=800&amp;height=662&amp;face=0_0_800_662,https://scrap.kakaocdn.net/dn/doCJDP/hyIkLd1eoP/M1XMDQb9IlPYKSvQO7gT70/img.png?width=800&amp;height=662&amp;face=0_0_800_662,https://scrap.kakaocdn.net/dn/chiSbM/hyIkI2GOF9/63KdQpf0a7XuF7Nxy7t75K/img.jpg?width=730&amp;height=730&amp;face=0_0_730_730">
+ <a href="https://ecsimsw.tistory.com/entry/%EC%9E%90%EB%B0%94-String-StringBuffer-StringBuilder" target="_blank" rel="noopener" data-source-url="https://ecsimsw.tistory.com/entry/%EC%9E%90%EB%B0%94-String-StringBuffer-StringBuilder"> 
+  <div class="og-image" style="background-image: url('https://scrap.kakaocdn.net/dn/bFf6Dd/hyIkCai2Bw/kKzotP2WMwYtxCYC91kpV1/img.png?width=800&amp;height=662&amp;face=0_0_800_662,https://scrap.kakaocdn.net/dn/doCJDP/hyIkLd1eoP/M1XMDQb9IlPYKSvQO7gT70/img.png?width=800&amp;height=662&amp;face=0_0_800_662,https://scrap.kakaocdn.net/dn/chiSbM/hyIkI2GOF9/63KdQpf0a7XuF7Nxy7t75K/img.jpg?width=730&amp;height=730&amp;face=0_0_730_730');">
+   &nbsp;
+  </div> 
+  <div class="og-text"> 
+   <p class="og-title" data-ke-size="size16">자바 / String , StringBuffer, StringBuilder / String Pool</p> 
+   <p class="og-desc" data-ke-size="size16">StringBuffer / StringBuilder 의 차이 StringBuffer는 멀테스레드에 안전하도록 동기화가 되어있으나, 성능을 떨어트릴 수 있으므로, 모든 기능이 똑같지만 동기화 기능만 없는 StringBuilder를 사용할 수 있다</p> 
+   <p class="og-host" data-ke-size="size16">ecsimsw.tistory.com</p> 
+  </div> </a>
+</figure> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

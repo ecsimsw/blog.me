@@ -1,0 +1,199 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / 자바는 항상 Call by Value.
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>자바는 항상 Call by Value</b><b></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">자바 Call by value, Call by reference를 검색하면 많은 블로그에서 의견이 분분하다. </span><span style="color: #000000;">Call by reference라는 블로그도 있고, 잘못된 예시로 설명하는 글도 보였다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">결론부터 말하면 자바는 Call by value이다.</span><span style="color: #000000;"></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">이번 포스팅에서는 Call by value인 이유와 헷갈릴 수 있는 예시를 메모리 구조를 그려보며 하나씩 짚어볼 생각이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>변함과 변하지 않음</b><b></b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">컴퓨터 공학을 전공하고 C언어 수업을 들었다면 swap 예시를 꼭 한번은 봤을 것이다.&nbsp;</span><span style="color: #000000;">함수로 main의 a,b 값이 변하지 않는 것을 보여주면서 Call by value를, 주소를 직접 넘겨 a,b 값이 변하는 것을 보여주면서 Call by reference를 배웠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Call by value와 Call by reference를 변하는 것과 변하지 않는 것으로 외워버렸고, 그 어설프게 정리된 규칙이 자바로 넘어와 헷갈리게 만들었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1610210289137" class="c++ arduino" data-ke-language="c++" data-ke-type="codeblock"><code>#include &lt;stdio.h&gt;
+
+void swap(int a, int b){
+	int temp = a;
+	a = b;
+	b = temp;
+}
+
+int main(){
+	int a = 10;
+	int b = 20;
+	
+	printf("before : %d, %d\n", a, b);
+	
+	swap(a, b);
+	
+	printf("after : %d, %d\n", a, b);
+	
+	return 0;
+}
+
+/*
+  before : 10, 20
+  after : 10, 20
+*/</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1610210311090" class="c++ arduino" data-ke-language="c++" data-ke-type="codeblock"><code>#include &lt;stdio.h&gt;
+
+void swap(int *a, int *b){
+	int temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+int main(){
+	int a = 10;
+	int b = 20;
+	
+	printf("before : %d, %d\n", a, b);
+	
+	swap(&amp;a, &amp;b);
+	
+	printf("after : %d, %d\n", a, b);
+	
+	return 0;
+}
+
+/*
+  before : 10, 20
+  after : 20, 10
+*/</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>헷갈리게 만드는 예시</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">이 잘못된 규칙으로 아래 예시를 보자.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1610202734260" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class Example {
+    public static void main(String[] args) {
+        Person p = new Person(10);
+
+        System.out.println("before : "+ p.age);
+
+        getOlder(p);
+
+        System.out.println("after : "+ p.age);
+    }
+
+    private static void getOlder(Person p){
+        p.age++;
+    }
+}
+
+/*
+  before : 10
+  after : 11
+*/</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">p는 바뀌었고 그렇기 때문에 자바는 Call by reference라는 결론을 내선 안된다. </span><span style="color: #000000;">정확히는 p의 상태가 바뀌었지, p 값은 바뀌지 않았다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">메모리 상황을 그려보자. getOlder 이전의 stack은 다음과 같을 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/b8fwQM/btqS4MBtAGk/yiP2XtUuECO7UmlvkWumX1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/b8fwQM/btqS4MBtAGk/yiP2XtUuECO7UmlvkWumX1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fb8fwQM%2FbtqS4MBtAGk%2FyiP2XtUuECO7UmlvkWumX1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="647" height="377" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 getOlder가 호출되면 getOlder의 Person p도 똑같은 0x0004를 참조하여 age의 값을 바꾸게 된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/bay9JW/btqS3aQoR3U/CYdMK2HZi1oFKr9VkZxvm0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bay9JW/btqS3aQoR3U/CYdMK2HZi1oFKr9VkZxvm0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fbay9JW%2FbtqS3aQoR3U%2FCYdMK2HZi1oFKr9VkZxvm0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="649" height="379" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그림이 이해 되었다면 위 코드를 다시 보자. p 값이 바뀌었다고 말할 것인가, 아니면 p 값이 안 바뀌었다고 말할 것인가. </span><span style="color: #000000;"><b>상태 값이 바뀌는 것과 헷갈려선 안된다. p의 값은 힙 영역의 0x0004 주소로 바뀌지 않았다.&nbsp;</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Call by value이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>그렇다면 올바른 예시는?</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">올바르게 Call by reference가 아님을 확인하고 싶다면, 직접 p의 값(주소)가 바뀌는지 확인해야 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1610212938116" class="java" data-ke-language="java" data-ke-type="codeblock"><code>class 객체변화Example {
+    public static void main(String[] args) throws Exception{
+        Person p = new Person(10);
+
+        System.out.println("before : "+ p.age);
+
+        changePerson(p);
+
+        System.out.println("after : "+ p.age);
+    }
+
+    private static void changePerson(Person p){
+        p = new Person(50);
+    }
+}
+
+/*
+   출력을 먼저 고민해보셨으면 좋겠습니다.
+*/</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">changePerson이 호출되고, 매개변수 p에 인자 p가 대입했을 때까지를 그리면 다음과 같을 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/bYS4kh/btqS1UUAaXQ/0FMm59hMxDBqxqaUDZxbFK/img.png" data-lightbox="lightbox" data-alt="p = new Person(50); 이 호출되기 이전, 매개변수 p에 인자 p가 대입된 순간"><img src="https://blog.kakaocdn.net/dn/bYS4kh/btqS1UUAaXQ/0FMm59hMxDBqxqaUDZxbFK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbYS4kh%2FbtqS1UUAaXQ%2F0FMm59hMxDBqxqaUDZxbFK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="706" height="412" data-origin-width="1044" data-origin-height="609"></span>
+ <figcaption>
+  p = new Person(50); 이 호출되기 이전, 매개변수 p에 인자 p가 대입된 순간
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이후 p = new Person(50);으로 p가 다른 인스턴스를 참조하도록 하여 아예 p값을 바꾼다면 아래처럼 그려질 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/cpcckj/btqS1WETnXn/1TlAXwXc9jhbKQFQEjPVH0/img.png" data-lightbox="lightbox" data-alt="changePerson이 종료되기전, p가 다른 인스턴스를 참고하고 있음"><img src="https://blog.kakaocdn.net/dn/cpcckj/btqS1WETnXn/1TlAXwXc9jhbKQFQEjPVH0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fcpcckj%2FbtqS1WETnXn%2F1TlAXwXc9jhbKQFQEjPVH0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="684" height="399" data-origin-width="1044" data-origin-height="609"></span>
+ <figcaption>
+  changePerson이 종료되기전, p가 다른 인스턴스를 참고하고 있음
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">여기가 중요하다. changePerson이 종료된 이후 main의 p가 0x000C로 변할까?&nbsp;</span><span style="color: #000000;">changeOlder 함수가 종료되면 frame_changePerson이 사라지면서 p = 0x0004 그대로 남을 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>함수의 파라미터에 p 값을 대입하는 것으로 frame_main의 p 값에 변화를 줄 수 있는 방법은 없다.</b> 그래서 자바는 항상 Call by value이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1044" data-origin-height="609">
+ <span data-url="https://blog.kakaocdn.net/dn/cHsspr/btqS6YaBsyh/i5bTqVIENyikrU4zfUVe00/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/cHsspr/btqS6YaBsyh/i5bTqVIENyikrU4zfUVe00/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcHsspr%2FbtqS6YaBsyh%2Fi5bTqVIENyikrU4zfUVe00%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="689" height="402" data-origin-width="1044" data-origin-height="609"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그래서 앞선 코드의 출력 역시 before : 10 / after : 10으로 동일하다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>정리</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">더 배우고 싶은데 뭘 공부해야 할지 모르겠을 때, 뭐가 중요한 개념인지 모르겠을 때, 나는 면접에서 묻는 개념인가를 살핀다. <b>중요한 개념이니 사람을 평가하는 기준</b>이 되었을 테니까 말이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Call by value, Call by reference는 인터뷰 질문으로 정말 많이 본 개념이었다. 저게 뭘 그렇게 중요하지 싶었고, 자바를 쓰는 게 중요하지 Call by ~ 개념을 아는 것이 뭐가 중요할지 싶었다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이 글을 정리하다 보니 느낀 게 있다면, 면접관이 진짜 묻고 싶은 것은 자바가 Call by value인 것을 아는지보다 <b>메모리가 어떻게 쌓이고, 참조가 이뤄지는지 생각할 수 있는가</b>가 아닐까 싶다. 또 반대로 생각하면 그게 중요하다는 말일 것이고 말이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Call by value와 Call by reference가 헷갈리는 사람들이 내 그림을 보고 조금이나마 이해가 쉬웠으면 좋겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 그보다 더 뿌듯할 것은 비슷한 개념으로 메모리가 어떻게 구성되는지를 생각해야 하는 자리에서<b> 이 포스팅을 생각하며 똑같이 그림을 그리는 사람이 있다면 너무 좋을 것 같다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그럼 긴 글 읽어주셔서 감사합니다 :)</span></p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

@@ -1,0 +1,107 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+가독성 있는 자바 코드를 위한 나만의 규칙
+                 </div>
+                 <div class="article-view">
+                     <p data-ke-size="size18"><span style="color: #000000;"><b>0. '좋은 코드'을 먼저 정의하자.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">성능이 우선시 되어야 하는 상황, 가독성이 우선시 되어야 하는 상황</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">꼼꼼한 예외처리와 테스트가 우선시 되어야하는 상황, 빠르게 구현이 먼저 필요한 상황</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">객체지향, 테스트 코드, 성능을 생각하다가 가독성이 떨어지는 상황을 만들고 싶진 않다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>1. 불변 객체를 만들자</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #000000;"><span style="caret-color: #000000;">객체를 신뢰할 수 있다.</span></span></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">Thread-safe하다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">참조가 꼬이는 일이 없다.</span></p> 
+<p data-ke-size="size16"><b>Collections.unmodifiableList 보다는 방어적 복사를 사용한다. (참조 자체를 끊는다)</b></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>2. 컨트롤러의 다이어트가 필요하다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">컨트롤러는 조립하는 역할로 생각한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">컨트롤러에 속성를 두지 않는다. / 상태를 만들지 않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">컨트롤러가 더럽다면 로직을 추상화해서 관련 객체와 로직을 포함하는 도메인 객체 또는 서비스 레이어로 뺄 생각을 해보자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>3. 인스턴스 변수를 생성자 호출과 동시에 초기화 할 수 있는 방법을 고민하자.&nbsp;</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">객체의 다른 메소드에서 해당 변수를 사용할 때 null 여부를 확인하지 않을 수 있도록.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">다른 메소드의 호출 여부에 영향을 받지 않도록 메소드를 작성할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>4. 초기화는 하나의 메인 생성자에서 할 수 있도록 한다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">메인 생성자를 지정하여 변수를 초기화를 하고, 나머지 다른 생성자들은 해당 메인 생성자를 호출하는 꼴이 안전하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>5. 원시값을 포장한다. 일급 컬렉션을 사용한다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">값 자체를 믿을 수 있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">값에 직접 접근을 제한할 수 있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">불변 객체를 만들기 유리하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">속성을 다루는 로직과 관련된 상태를 묶음으로써,&nbsp;값을 포장하는 객체와 컬렉션(또는 포장 객체)를 사용하는 객체의 구분을 명확히 할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>6. 메서드 앞에 부정연산자(!)를 사용하면 가독성이 떨어진다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">차라리 메소드를 부정으로 만들던가 가급적 긍정으로 사용하자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>7. 객체에 메시지를 보낸다. 객체에 역할을 부여한다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>8. 상속보다는 조합을 사용한다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>9. 추상 메소드보다는 인터페이스를 사용한다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">코드 재정의가 주 목적인 경우는 상속을, 협력을 위한 행위 목록을 정의하고 싶은 것이라면 인터페이스를.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">default는 하위 호환을 위해 생긴 키워드이다. 가급적 사용하지 않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #000000;"><span style="caret-color: #000000;">코드 중복 제거를 위해 추상메소드가 필수적이라면 인터페이스를 상속한 추상클래스를 사용하는 것을 고려하자.</span></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>10. 표준 예외를 사용한다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">커스텀 예외보다 오히려 표준 예외를 사용함이 협업을 위해 더 편할 &nbsp;수 있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">기존의 표준 예외와 메시지로 충분히 예외 표시가 가능하고, 너무 많은 커스텀 예외는 오히려 로딩에 비효율적일 수 있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">한 로직 내에서 각각 다른 예외를 다르게 처리해야하는 필수적인 경우 외에는 표준 예외를 고려하자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>11. 배열보다는 리스트를 사용한다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>12. Enum을 사용한다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">가독성에 좋다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">타입 체크를 컴파일 시점에서 할 수 있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">상태와 행위를 한 곳에서 관리할 수 있다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">-&gt; 단, Enum 필드가 유동적인 경우 또는 너무 많은 필드를 갖는 경우에는 Enum으로 관리가 오히려 힘들 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>13. 도메인에서는 DTO의 존재를 모르는게 좋다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>14. 클래스 메소드를 사용하지 않는다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">클래스 메소드는 객체 지향 프로그래밍을 방해한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">유틸성 클래스와 정적 팩토리 메소드를 제외하곤, 클래스 메소드를 가급적 사용하지 않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>15. 접근 제한자와 final 키워드를 항상 생각하면서 코드를 작성한다.&nbsp;</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">수정되어야하는 경우를 제외하곤 파라미터에 반드시 final 처리</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">유틸성 클래스의 생성자는 private으로 막는 것 잊지 않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>16. 변수명에 자료형 이름을 넣지 않는다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>17. 이미 컨벤션으로 자리 잡힌 네이밍을 깨지 않는다.</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">정적 팩토리 메소드 네이밍, boolean 반환 메소드 네이밍 등의 컨벤션으로 자리 잡힌 네이밍은 따른다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>18. 책임의 위치가 헷갈린다면, 책임에 사용되는 속성을 갖는 객체를 우선으로 생각한다.</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>19. 전역보다 지역 변수를 우선으로 생각하되, 인자 중복이 너무 많을 경우 필드 분리를 생각한다.</b></span></p> 
+<p data-ke-size="size18">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>+ 객체 지향 생활 체조 9가지 원칙</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">규칙&nbsp;1:&nbsp;한&nbsp;메소드에&nbsp;오직&nbsp;한&nbsp;단계의&nbsp;들여쓰기만&nbsp;한다.</span><br><span style="color: #000000;">규칙&nbsp;2:&nbsp;else&nbsp;예약어를&nbsp;쓰지&nbsp;않는다.</span><br><span style="color: #000000;">규칙&nbsp;3:&nbsp;모든&nbsp;원시값과&nbsp;문자열을&nbsp;포장한다.</span><br><span style="color: #000000;">규칙&nbsp;4:&nbsp;한&nbsp;줄에&nbsp;점을&nbsp;하나만&nbsp;찍는다.</span><br><span style="color: #000000;">규칙&nbsp;5:&nbsp;줄여쓰지&nbsp;않는다(축약&nbsp;금지).</span><br><span style="color: #000000;">규칙&nbsp;6:&nbsp;모든&nbsp;엔티티를&nbsp;작게&nbsp;유지한다.</span><br><span style="color: #000000;">규칙&nbsp;7:&nbsp;2개&nbsp;이상의&nbsp;인스턴스&nbsp;변수를&nbsp;가진&nbsp;클래스를&nbsp;쓰지&nbsp;않는다.</span><br><span style="color: #000000;">규칙&nbsp;8:&nbsp;일급&nbsp;콜렉션을&nbsp;쓴다.</span><br><span style="color: #000000;">규칙&nbsp;9:&nbsp;게터/세터/프로퍼티를&nbsp;쓰지&nbsp;않는다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1492" data-origin-height="820">
+ <span data-url="https://blog.kakaocdn.net/dn/bUnvhM/btrcA2dSCzc/BNh7gR8YG3uslveL6FdR20/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bUnvhM/btrcA2dSCzc/BNh7gR8YG3uslveL6FdR20/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbUnvhM%2FbtrcA2dSCzc%2FBNh7gR8YG3uslveL6FdR20%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="731" height="402" data-origin-width="1492" data-origin-height="820"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

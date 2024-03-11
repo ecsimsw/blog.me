@@ -1,0 +1,27 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+작은 수는 int 보다 short 이 성능상 유리하지 않을까?
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>Int vs Short / Byte</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">작은 수를 저장할 변수의 타입은 4 바이트까지 과한거 아닌가?. Byte형은 혹시 모르고, 2 바이트 정도면 충분할 거 같은데 Short를 쓰는게 이득 아닐까??</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">JVM의 Operand stack은 피연산자를 4 바이트로 저장하기 때문에, 그 보다 작은 작료형은 오히려 4Byte로 변환하여 계산된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">=&gt; 성능을 고려한다면 int, 정말 공간을 효율적으로 사용해야한다면, 그땐 short나 byte 타입을 생각하자.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

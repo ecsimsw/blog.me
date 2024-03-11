@@ -1,0 +1,324 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+Socket API와 Java NIO로 구현해본 멀티플렉싱 서버
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>Web server with socket API</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">Socket API를 이용하여 Http 형식의 요청을 처리, 응답할 수 있는 웹 서버를 제작한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">github : <a style="color: #000000;" href="https://github.com/ecsimsw/multiplexing-server" target="_blank" rel="noopener&nbsp;noreferrer">https://github.com/ecsimsw/multiplexing-server</a></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Steps</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">1. Socket API를 구현한 간단한 Socket Server를 제작한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; &nbsp;- Socket server를 구현하고 client 연결, 메시지를 처리한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; &nbsp;- Http 요청, 응답 포맷을 확인하고 Socket Server가 이를 해석, 처리, 반환할 수 있도록 한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; &nbsp;- Jsoup을 이용하여 html 파일을 변환, 사용자의 접근에 따른 동적인 페이지를 반환한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">2. Multi-Threading을 이용한 비동기 요청 처리를 구현한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">3. Selector를 이용한 Multiplexing server를 구현한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">4. K6를 이용하여 Single-Thread / Multi-Thread / Multiplexing server 각각을 테스트한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Step1 :&nbsp;Socket API를 구현한 간단한 Socket Server를 제작한다.</b></span></h4> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>1. TCP connection / Socket server</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; - socket() : Server socket을 생성한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; - bind() : 지정된 포트 번호를 사용할 것을 OS에 알린다. 중복 포트 여부를 확인한다.&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; - listen() : 클라이언트에 의한 연결 요청이 수신될 때까지 대기한다. 수신 또는 에러 발생으로 blocking에서 벗어난다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; - accept() : 연결 요청을 받아들여 소켓 간 연결을 수립한다. 이때 클라이언트 소켓과 통신할 새로운 소켓 인스턴스를 반환한다. (Client socket)</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; - send() / recv() : 데이터를 송수신한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; - close() : 소켓 연결을 종료한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>2. Backlog</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Backlog는 연결 대기할 수 있는 큐의 사이즈이다. 사용자와 연결이 완료되었지만 애플리케이션에서 처리하지 못하는 상황인 경우 (ex, 동기 처리 또는 사용 가능한 스레드 부족)에 연결을 큐에 담아두는데, 그 사이즈를 말한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">보다 자세히 TCP의 3way Handshake를 보면 아래 그림과 같다. 서버는 클라이언트로부터 전달받은 SYN을 syn_queue에 저장해 두고, SYN+ACK 패킷을 클라이언트에 전달하게 된다. 이때 지정한 시간 동안 클라이언트에서 ACK 패킷이 제대로 오지 않는다면, 이 syn_queue 안에 연결을 확인하여 클라이언트에 다시 지정된 시간 간격으로, 지정된 횟수 재시도하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그리고 이렇게 ACK 패킷을 전달받은 요청이 완료된 연결을 accept_queue에 저장하고, 서버에서 accept가 가능해질 경우, accept_queue에서 연결을 꺼내와 전달하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">즉 이 두 큐의 사이즈가 작고 트래픽이 몰려 큐가 가득 찬다면, 그 이후의 연결들은 소실되게 된다. 반대로 큐의 사이즈가 트래픽에 비해 너무 크면 사용되는 큐에 비해 메모리만 차지하는 꼴이 된다. 이런 syn_queue와 accept_queue의 사이즈를 socket API의 listen() 함수 backlog 파라미터로 지정하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1362" data-origin-height="1178">
+ <span data-url="https://blog.kakaocdn.net/dn/bce1U8/btryXbGLPia/kXgDn9KzkDZTH621WeDSR1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bce1U8/btryXbGLPia/kXgDn9KzkDZTH621WeDSR1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fbce1U8%2FbtryXbGLPia%2FkXgDn9KzkDZTH621WeDSR1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="702" height="608" data-origin-width="1362" data-origin-height="1178"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>2-1. SYN - Flood</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이런 syn_queue의 특성을 이용해서 서버를 공격하는 것이 가능하다. 클라이언트 측에서 SYN 패킷을 전송하고, ACK 패킷을 전송하지 않는 것을 반복하면, 서버의 syn_queue에는 공격 자의 syn 연결 정보로만 가득 찰 것이고, 그 외 다른 사용자의 요청을 수립하지 못하게 된다. 이런 공격 방식을 SYN-Flood라고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">대표적인 대응 방식으로는 SYN_Cookie를 이용할 수 있다. 앞선 그림에서 SYN 패킷을 syn_queue에 저장하는 것이 아니라, SYN_ACK에 연결 수립에 필요한 데이터를 포함하고, 클라이언트의 ACK 요청에서 해당 정보를 확인하는 것이다. 또는 동일 클라이언트의 연결 요청의 수를 제한하는 방화벽을 두는 것도 SYN-Flood를 대응할 수 있는 방법이 된다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Cloudflare Blog : <a style="color: #000000;" href="https://blog.cloudflare.com/syn-packet-handling-in-the-wild/" target="_blank" rel="noopener">SYN packet handling in the wild</a></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">Cloudflare Docs : <a style="color: #000000;" href="https://www.cloudflare.com/ko-kr/learning/ddos/syn-flood-ddos-attack/" target="_blank" rel="noopener">SYN 폭주 DDoS 공격</a></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>3. Http와 요청 처리</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>3-1) 구현 Http status code&nbsp;</b></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; OK(200), &nbsp; CREATE(201), &nbsp; NO_CONTENT(204), </span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; BAD_QUEST(400), &nbsp; NOT_FOUND(404), </span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">&nbsp; INTERNAL_SERVER_ERROR(500)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>3-2) 동적 페이지 처리와 출력 화면</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">페이지는 간단하게 index.html, user_count.html, not_found.html, bad_request.html 4개의 페이지를 구성하였다. 그 중 user_count.html을 <b>JSOUP 라이브러리</b>를&nbsp;사용해서 동적으로 페이지 내용을 수정하여 요청 횟수 기록 숫자를 수정하여 응답하도록 하였다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>3-3) Http request, response 형식</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Http 스펙을 모든 요청, 응답 정보를 파싱하지 않았다.&nbsp;요청 포맷에서는 Http method, url Path와 query parameter, http version을, 응답 포맷에서는 http version, status code와 메시지, 응답 바디와 content-length를 처리하고 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">즉, Http request의 요청 메서드 종류를 읽고, url path와 query parameter로 원하는 요청을 처리하고 그에 맞는 상태 코드와 http version, 응답 바디와 content-length를 처리하고 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>3-4) Sample API [/userCount]</b></span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1942" data-origin-height="716">
+ <span data-url="https://blog.kakaocdn.net/dn/EPK7i/btryRnO1vzm/CL2zz0aoDUaeN2FNNldRiK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/EPK7i/btryRnO1vzm/CL2zz0aoDUaeN2FNNldRiK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FEPK7i%2FbtryRnO1vzm%2FCL2zz0aoDUaeN2FNNldRiK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="952" height="351" data-origin-width="1942" data-origin-height="716"></span>
+</figure> 
+<p></p> 
+<h4 data-ke-size="size20">&nbsp;</h4> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Step2 Multi-threading을 이용한 비동기 요청 처리</b></span></h4> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>1. Synchronized server</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">기존의 동기 통신으로는 동시 사용자 요청 처리가 불가능하다. 서버 소켓은 한 스레드 안에서 클라이언트 요청을 대기하고, 요청 처리가 완료된 이후에나 다음 요청을 대기, 처리할 수 있기 때문에 그러하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 사진은 Muliti-threading을 구현하지 않은 단일 스레드로 서버가 동작하는 상황에서 4개의 요청이 들어온 상황이다. Accept부터 Close까지 한 연결이 완료된 이후에야 다음번 연결을 Accept 해서 처리하고 있다. 4개의 미리 보낸 요청을 뒤늦게 처리할 수 있는 것은 앞서 말한 Queueing 덕분이다. 한 요청이 완료되고 나서야 accept_queue에서 다음 연결을 찾는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1064" data-origin-height="932">
+ <span data-url="https://blog.kakaocdn.net/dn/bbiuDD/btrySNHkZMb/pLFhPeGKXjIGt6ZWEGcof1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bbiuDD/btrySNHkZMb/pLFhPeGKXjIGt6ZWEGcof1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbbiuDD%2FbtrySNHkZMb%2FpLFhPeGKXjIGt6ZWEGcof1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="512" height="449" data-origin-width="1064" data-origin-height="932"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">소켓을 대기하는 흐름과 소켓의 메시지를 처리하는 흐름을 나누는 것은 어떨까? 이렇게 흐름을 나눠 소켓의 메시지를 처리 하는 방식, 즉 Http에서 요청 당 흐름을 나누는 방식으로 프로세스 자체를 나누는 방식과 스레드를 나누는 방식, 이 두 가지를 쉽게 떠올릴 수 있을 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>2. Multi-process / 요청 당 프로세스</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">처음 웹 서비스가 유행하고, 동적인 페이지가 서비스되는 방법으로 CGI (common gateway interface) 를 규격으로 하는 프로그램들이 생겼고, 이런 초창기 프로그램들은 요청 당 프로세스를 만들어 동시 요청을 처리하였다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1034" data-origin-height="268">
+ <span data-url="https://blog.kakaocdn.net/dn/boI6Ja/btryRQ5l7ZR/1EOMxbyDvOptU8A95fwcS0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/boI6Ja/btryRQ5l7ZR/1EOMxbyDvOptU8A95fwcS0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FboI6Ja%2FbtryRQ5l7ZR%2F1EOMxbyDvOptU8A95fwcS0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="667" height="173" data-origin-width="1034" data-origin-height="268"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이런 멀티 프로세스의 경우, 요청 시마다 본인 프로세스를 복제해야 했기에 이 시간이 매번 소요되어 서버에 부하를 낳기 쉬웠고, 소모되는 공간 자원도 많다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1240" data-origin-height="970">
+ <span data-url="https://blog.kakaocdn.net/dn/c7aire/btryUgJHxQK/CQbAwnCEOtX7ekypp9OXXK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/c7aire/btryUgJHxQK/CQbAwnCEOtX7ekypp9OXXK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fc7aire%2FbtryUgJHxQK%2FCQbAwnCEOtX7ekypp9OXXK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="576" height="451" data-origin-width="1240" data-origin-height="970"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>3. Multi-thread / 요청 당 스레드</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">따라서 한 프로세스 안에서 자원을 나눠 사용하고, 프로세스 복제보다 부하가 더 적은 멀티 스레드 방식으로 동시 요청을 처리했다. 사용자 요청 당 1개의 스레드를 생성하여 사용자의 요청을 처리하는 동안 다른 소켓의 연결을 대기할 수 있어진 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1298" data-origin-height="960">
+ <span data-url="https://blog.kakaocdn.net/dn/HlniP/btry2lWIKjj/v3HBreBTlHenIpDA0J3cc0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/HlniP/btry2lWIKjj/v3HBreBTlHenIpDA0J3cc0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FHlniP%2Fbtry2lWIKjj%2Fv3HBreBTlHenIpDA0J3cc0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="606" height="448" data-origin-width="1298" data-origin-height="960"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래 사진은 이 멀티 스레드를 적용하여 위와 마찬가지로 동시에 4개 요청이 들어오는 상황이다. 1번 요청이 다 만료되기 전에 2번 요청이 ACCEPT 되어 처리되고 있는 모습을 확인할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1108" data-origin-height="932">
+ <span data-url="https://blog.kakaocdn.net/dn/W8Gch/btrySOTLyrX/X6XEb2Ni8ZySyJ45bgKpHK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/W8Gch/btrySOTLyrX/X6XEb2Ni8ZySyJ45bgKpHK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FW8Gch%2FbtrySOTLyrX%2FX6XEb2Ni8ZySyJ45bgKpHK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="507" height="426" data-origin-width="1108" data-origin-height="932"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>4. 스레드 풀</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">요청 당 스레드 방식은 물론 요청 시마다 프로세스를 복제하는 것보다는 더 적은 자원이 필요, 더 적은 부하가 있겠지만 그래도 스레드를 다루는 것에도 많은 부담이 필요하다. 요청에 따라 매번 스레드를 생성, 제거하는 것이 큰 성능 저하를 야기할 뿐 아니라, 너무 많은 스레드 관리는 컨텍스트 스위칭에도 큰 오버헤드 발생하고, 서버 자원에 비해 너무 많은 스레드를 생성할 경우 서버가 다운될 여지도 있다.&nbsp;</span><br><br></p> 
+<p data-ke-size="size16"><span style="color: #000000;">스레드 풀은 애플리케이션에서 사용할 스레드를 미리 생성해두고, pool에서 스레드를 꺼내 사용, 반납하는 방식으로 스레드를 관리하는 패턴 또는 공간을 말한다. 스레드를 다뤄야할 때마다 매번 생성, 제거하지 않아도 되고, 스레드 수를 지정하여 초기화하기 때문에 최대 스레드 개수를 제한할 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">스레드 풀 사이즈 이상의 요청을 동시에 처리할 수 없기 때문에, 스레드 풀에서 남아있는 IDLE 상태의 스레드가 없는 경우 요청이 처리되지 못한다. 그런 경우에 대비하여 요청을 저장하는 Queue를 생성하여 요청을 담고, 스레드 풀에 스레드가 반납되는 경우 하나씩 꺼내 요청을 처리한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇기 때문에 서버의 자원과 트래픽의 유형에 따른 Thread pool 사이즈 설정이 매우 중요하다. 스레드 풀 사이즈가 너무 작다면 많은 동시 요청을 처리하지 못하게 되고, 스레드 풀의 사이즈가 동시 요청에 비해 너무 크다면 사용되지 않는 유휴 자원이 많아지고, 괜한 자원 낭비만 될 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1302" data-origin-height="948">
+ <span data-url="https://blog.kakaocdn.net/dn/bIYscy/btryZan0kRD/AMvMm2QP3eKodfUAQYXHbk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bIYscy/btryZan0kRD/AMvMm2QP3eKodfUAQYXHbk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbIYscy%2FbtryZan0kRD%2FAMvMm2QP3eKodfUAQYXHbk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="615" height="448" data-origin-width="1302" data-origin-height="948"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Step3 Non-blocking IO 와 IO 다중화(Multiplexing)</b></span></h4> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>1. Blocking I/O 와 Non-blocking I/O</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Blocking IO는 IO 작업이 진행되는 동안 사용자 흐름이 대기/중단되는 것을 말한다.&nbsp;지금까진 이런 Blocking network IO에서 동시 사용자 요청 처리 방식을 구현해보았다. 연결된 소켓의 메시지를 기다리고 처리하는 다른 흐름(프로세스 또는 스레드)를 사용하는 것이 그 방법이었다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1190" data-origin-height="478">
+ <span data-url="https://blog.kakaocdn.net/dn/7nQPW/btryVa9BR8Y/USKjaq5lirvyP247mohab1/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/7nQPW/btryVa9BR8Y/USKjaq5lirvyP247mohab1/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F7nQPW%2FbtryVa9BR8Y%2FUSKjaq5lirvyP247mohab1%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="678" height="272" data-origin-width="1190" data-origin-height="478"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Non blocking IO는 반대로 IO 작업이 진행되는 동안 사용자 흐름이 끊기지 않는다. 사용자가 커널에 read를 호출하면, Kernel은 데이터 준비 여부에 상관없이 응답하는 것에 차이가 있다. 아래 그림에서처럼 준비가 되어있지 않다면 준비가 아직 안됐음을 반환하고, 준비가 되었다면 해당 데이터를 반환한다. 응답이 바로 오기 때문에 메인 흐름에서는 데이터를 기다릴(block) 필요 없이 다른 작업을 이어 갈 수 있게 되는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="1772" data-origin-height="1206">
+ <span data-url="https://blog.kakaocdn.net/dn/C3Sie/btry2TzbVIY/hovPcmvjCQQj31nE3Ue7wK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/C3Sie/btry2TzbVIY/hovPcmvjCQQj31nE3Ue7wK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FC3Sie%2Fbtry2TzbVIY%2FhovPcmvjCQQj31nE3Ue7wK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="717" height="488" data-origin-width="1772" data-origin-height="1206"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>2. Non-blocking IO의 한계</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">앞서 설명한 Non-blocking 방식이라면 여러 Socket connection을 다루는데 문제가 없을까? Non-blocking IO 방식으로 흐름이 끊기지 않더라도, 현재 I/O 작업이 완료되었는지 알 방법이 없다는 문제가 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">데이터 준비 상태를 확인해야하기 때문에 그 자체도 비용이 되면서, 그 확인의 주기가 너무 길면 data read 후 처리되는 시간이 너무 느려진다는 문제가 생기고, 반대로 그 확인 주기가 너무 짧으면 kernel 은 준비되지 않는 데이터에 매번 에러를 응답하며 무의미한 자원 사용, I/O 처리 지연을 야기하게 된다. 그래서 Non-blocking I/O로 여러 개의 Socket connection을 다룬다고 하면 결국 Multi-process 또는 Multi-thread의 비동기 방식을 고려해야 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2460" data-origin-height="1122">
+ <span data-url="https://blog.kakaocdn.net/dn/ce9br3/btry2SAnJ5O/UghdOnoQXqWP3D00V4yznk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/ce9br3/btry2SAnJ5O/UghdOnoQXqWP3D00V4yznk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fce9br3%2Fbtry2SAnJ5O%2FUghdOnoQXqWP3D00V4yznk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="930" height="424" data-origin-width="2460" data-origin-height="1122"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"><b>3.&nbsp;IO 다중화(Multiplexing)</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Multiplexing은 하나의 흐름()으로 여러 파일(I/O)을 관리하는 기법이다. 다중 IO 작업들의 파일 디스크립터 변화를 확인하고 read 준비 완료된 작업이 생기면 이를 반환하여 요청을 처리하는 방식이다. 즉 한 스레드 (혹은 프로세스) 안에서 연결들을 돌아가면 확인하는 것이 아닌,&nbsp;Kernel이 연결 소켓들의 파일 디스크립터를 확인하고 완료된 소켓을 반환해주면 이를 처리하겠다는 것이다. Kernel은 이런 다중 파일 디스크립터를 모니터링하는 System call을 제공하고 있고, Select, Poll, Epoll 등이 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">Java 1.4부터는 NIO(new I/O) 가 도입되면서 Non-blocking IO 와 Selector를 사용할 수 있다. 이를 다음과 같이 이용하여 Multiplexing server를 구현할 수 있었다. (github : <a style="color: #000000;" href="https://github.com/ecsimsw/socket-server/blob/develop/src/main/java/com/ecsimsw/server/MultiPlexingServer.java" target="_blank" rel="noopener">ecsimsw/socket-server/MultiPlexingServer.java</a>)</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<pre id="code_1649614827800" class="java" data-ke-language="java" data-ke-type="codeblock"><code>public void run() throws IOException {
+    final ByteBuffer buffer = ByteBuffer.allocate(256);
+
+    while (true) {
+        selector.select();
+        
+        final Iterator&lt;SelectionKey&gt; iterator = selector.selectedKeys().iterator();
+        
+        while (iterator.hasNext()) {
+            final SelectionKey key = iterator.next();
+            iterator.remove();
+
+            if (key.isAcceptable()) {
+                final SocketChannel client = serverSocket.accept();
+                client.configureBlocking(false);
+                client.register(selector, SelectionKey.OP_READ);
+            }
+
+            if (key.isReadable()) {
+                try (SocketChannel client = (SocketChannel) key.channel()) {
+                    client.write(RESPONSE_MSG);
+                    buffer.clear();
+                }
+            }
+        }
+    }
+}</code></pre> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">네이버 클라우드 플랫폼 :<span style="background-color: #ffffff;">&nbsp;<a style="color: #000000;" href="https://blog.naver.com/n_cloudplatform/222189669084" target="_blank" rel="noopener">IO Multiplexing 기본 개념부터 심화까지 -1부</a></span></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">Everything is a File : <a style="color: #000000;" href="https://en.wikipedia.org/wiki/Everything_is_a_file" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Everything_is_a_file</a></span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">Baeldung &nbsp;: <a style="color: #000000;" href="https://www.baeldung.com/java-nio-selector" target="_blank" rel="noopener">Java NIO selector example</a></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>Step4 서버 부하 테스트 with K6</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">K6라는 부하 테스트 툴을 이용하여 간단한 동시 유저 처리 사이즈를 확인해보았다. K6로 테스트 부하 상황과 성공 여부를 정의하는 것으로 그 부하 상황에서, 지정한 성공 여부에 따라 성공/실패 여부를 확인할 수 &nbsp;있다.</span></p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthOrigin" data-origin-width="2294" data-origin-height="938">
+ <span data-url="https://blog.kakaocdn.net/dn/byvpuy/btry68YujKM/YUJiDvZC1SwkKXqlxRXnhk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/byvpuy/btry68YujKM/YUJiDvZC1SwkKXqlxRXnhk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fbyvpuy%2Fbtry68YujKM%2FYUJiDvZC1SwkKXqlxRXnhk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" data-origin-width="2294" data-origin-height="938"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16"><span style="color: #000000;">위는 Mulitiplexing server에 1000명의 가상 유저를 30초 동안 요청 반복한 부하 테스트의 결과이다. 성공 여부는 응답 코드가 200인 것으로 했다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">결과지에서 주요 지표를 읽으면, 총 18026개의 요청을 전송(http_reqs)하고, 1.9%가 실패(http_req_failed)하였으며, 평균 20ms가 대기 시간(http_req_waiting)에 소요되었다. 이후 테스트에서는 세 가지 버전의 웹 서버에 실험 변수를 달리하여 주요 지표를 확인한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">K6 Docs :&nbsp;<a style="color: #000000;" href="https://k6.io/docs/getting-started/running-k6/%20">getting-started/running-k6</a></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"># Test 설명</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">테스트 대상 : 구현한 Single-thread, Multi-thread, Multiplexing 3가지 버전을 테스트한다.</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">테스트 변인 : &nbsp;virtual user,&nbsp;handling latency</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">응답 성공 여부 정의 : Http status code를 200(OK)으로 반환했는지 확인한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"># Test1 : 처리 가능 VirtualUser &nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">첫 번째 테스트에서는 각 구현체가 VirtualUser를 몇 명이나 처리할 수 있는지 확인한다. 가상 유저 50명까지는 세 개의 웹 서버 모두 failed 없이 테스트가 완료되었다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>1. Virtual User = 100, duration = 30</b></span></p> 
+<pre id="code_1649675674624" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code># single-thread
+http_req_failed................: 1.10% 
+http_req_waiting...............: avg=18.37ms
+http_reqs......................: 2900
+vus............................: 2      min=2      max=100
+
+
+# multi-thread without thread pool
+http_req_failed................: 0.71%
+http_req_waiting...............: avg=190.24ms
+http_reqs......................: 2518
+vus............................: 100    min=100     max=100
+
+
+# multiplexing
+http_req_failed................: 0.27%
+http_req_waiting...............: avg=5.89ms
+http_reqs......................: 2953
+vus............................: 100    min=100     max=100</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">세 버전 모두 1% 안팎에서 큰 실패를 내지 않고 있다. 성능 자체는 multiplexing &gt; multi-thread &gt; single-thread 순이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>2. Virtual User = 1000, duration = 30</b></span></p> 
+<pre id="code_1649674970099" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code># single-thread
+http_req_failed................: 6.64%
+http_req_waiting...............: avg=8.97ms
+http_reqs......................: 18764
+vus............................: 2      min=2        max=1000
+
+# multi-thread without thread pool
+http_req_failed................: 30.43%
+http_req_waiting...............: avg=23.7s
+http_reqs......................: 1370
+vus............................: 327    min=327     max=1000
+
+# multiplexing
+http_req_failed................: 3.56% 
+http_req_waiting...............: avg=8.05ms
+http_reqs......................: 18372
+vus............................: 4      min=4        max=1000</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">이번에는 가상 유저를 1000으로 늘려보았다. 세 버전 모두 이전보다 더 많은 실패가 나고 있지만, multi-thread의 경우 single-thread 보다도 더 안 좋은 성능을 보이고 있다. 요청 처리량이 적고, 요청 처리 대기 시간, 실패율이 월등히 늘었다. 이는 매번 요청마다 thread를 생성하고 닫는 것이 큰 오버 헤드를 야기할뿐더러, 자원 한계가 있기 때문에 동시에 만들 수 있는 Thread의 개수도 한계가 있다. 이런 문제로 약 300개 이상의 가상 유저에 있어서 모든 요청을 처리하지 못하고 큰 loss를 보이고 있다. 이런 서버 자원의 한계와 트래픽 분포를 분석하여 적당한 사이즈의 Thread pool을 설정하는 게 중요하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size18"><span style="color: #000000;"># Test2 : 응답 속도 추가</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>1. Virtual User = 100, duration = 30, additional sleep = 400ms</b></span></p> 
+<pre id="code_1649678057842" class="html xml" data-ke-language="html" data-ke-type="codeblock"><code># single-thread
+http_req_failed................: 83.50% 
+http_req_waiting...............: avg=11.35s
+http_reqs......................: 200    4.584714/s
+vus............................: 2      min=2      max=100
+
+# multi-thread without thread pool
+http_req_failed................: 4.48%
+http_req_waiting...............: avg=694.49ms
+http_reqs......................: 1583   
+vus............................: 1      min=1       max=100
+
+# multiplexing
+http_req_failed................: 14.20% 
+http_req_waiting...............: avg=18.04s 
+http_reqs......................: 169 
+vus............................: 12     min=12     max=100</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">서버 처리 시간으로 임의로 400ms의 sleep time을 임의로 추가해보았다. 구현한 multiplexing server의 경우, 요청을 처리하는 것은 Blocking I/O -Single Thread server와 마찬가지로 동기식이기 때문에 비동기로 요청을 병렬적으로 처리하는 multi-thread server보다 더 많은 loss와 적은 처리량을 보이는 것은 명확하다. 다만 Blocking I/O - Single thread와 다른 점은 multiplexing server는&nbsp;한 스레드로 여러 networkI/O(connected socket)을 모니터링하고 있어 한 스레드로 동작함에도 여러 socket의 데이터를 커널 측에서 read 하고 있을 수 있다는 점이 이런 큰 차이를 낳고 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><b>2. Multiplexing server &lt; Multi-thread server with thread pool ??</b></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">그렇다면 Multiplexing 방식은 스레드 풀을 이용한 Multi-thread 비동기 방식보다 못하다는 것일까? 그렇게 생각하지 않는다. 스레드 풀로 스레드 생성의 한계를 제한하고, 생성/소멸 과정을 줄인다고 하더라도 스레드를 관리하는 것은 큰 일인 것은 분명하다. 연결된 소켓에서 data를 read 하는 방식만큼은 매번 스레드를 다루는 것보다 Non-blocking-Select를 이용하는 것이 더 효율적이라고 생각하고 있다. 예를 들면 채팅 서버에 있어, 연결된 클라이언트 수대로 thread를 만들어 데이터 read를 blocking으로 확인하는 것보다 Select로 한 번에 관리하여 데이터 준비 이벤트를 받아 처리하는 것이 훨씬 더 효율적일 테니 말이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">또 테스트 결과에서 볼 수 있듯, 처리해야 하는 요청은 많으나 응답에 많은 시간이 필요하지 않은 경우, 즉 단순 자원만을 반환하는 서버의 경우에, 여러 요청을 처리하기 위에 thread를 사용하지 않고 한 Thread로 보다 나은 성능을 기대할 수 있을 것이라 생각한다.</span></p> 
+<h4 data-ke-size="size20">&nbsp;</h4> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

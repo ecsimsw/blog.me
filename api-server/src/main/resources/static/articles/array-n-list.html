@@ -1,0 +1,44 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+배열과 리스트, 어떤 것을 쓰시겠습니까?
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><span style="color: #000000;"><b>배열,&nbsp;리스트&nbsp;선택의 근거&nbsp;잡기</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">같은 타입의 여러 객체를 단순히 참조만 하는 용도에는 배열이 좋다고 생각했다. 리스트보다 배열이 메모리 관리에 유리하다는 자료구조 책의 한 문장을 기억했지 그 이상을 알려하지 않았다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">배열과 리스트 중 어떤 것을 사용해야하는 지 선택의 근거를 나름대로 잡아보려 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>배열보다는 리스트를 사용하라</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">'Effective Java 규칙 28. 배열보다는 리스트를 사용하라'는 배열보다 리스트 사용을 권장하고 있다. 그 이유를 공부해왔다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">아래처럼 배열을 사용할 경우, ArrayStroreException을 컴파일 시점에선 알 수 없다. 배열은 공변형이고, 런타임에서야 원소의 자료형이 결정되기 때문에, 런타임에서야 그 실수가 드러난다.</span></p> 
+<pre id="code_1613404449706" class="java" data-ke-language="java" data-ke-type="codeblock"><code>Object[] objArr = new Long[1];
+objArr[0] = "I don't fit it";</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">** 공변(Covariant) :&nbsp;sub가&nbsp;super의&nbsp;하위&nbsp;타입이라면,&nbsp;sub[]는&nbsp;super[]의&nbsp;하위&nbsp;타입이다.</span><br><span style="color: #000000;">** 실체화(reify) :&nbsp;원소의&nbsp;자료형이&nbsp;런타임에서&nbsp;결정된다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">반면 리스트/제네릭를 사용하면 incompatible types임을 컴파일 시점에서 확인할 수 있다.</span></p> 
+<pre id="code_1613405771717" class="java" data-ke-language="java" data-ke-type="codeblock"><code>List&lt;Object&gt; objList = new LinkedList&lt;Long&gt;();
+objList.add("I don't fit it");</code></pre> 
+<p data-ke-size="size16"><span style="color: #000000;">** 불공변(Invariant) : sub가 super의 하위 타입이라도, List&lt;sub'&gt;는 List&lt;super&gt;와 무관하다.&nbsp;</span></p> 
+<p data-ke-size="size16"><span style="color: #000000;">** 소거(erasure) : 원소 자료형을 컴파일에만 검사하고 런타임시에는 삭제한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b>무조건 리스트?</b></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">사실 위 내용을 공부하고도 리스트와 배열 사용의 명확한 기준을 잡지 못 했다. 위 내용을 안다는 것만으로 '앞으로 무조건 리스트만을 쓰겠어' 라는 언제나 진리인 규칙은 없을테니 말이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">다만 리스트와 배열을 중 어느 것을 사용하면 좋을지를 고민할 때 결정의 근거가 되는 한가지 요소를 더 알았다는 것에 의의를 두려고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이전보다 조금은 더 논리를 갖고 배열 또는 리스트를 고민한다면, 그리고 그런 경험과 다른 지식이 더 쌓여간다면, 언젠가는 Effective java에서 벗어나 나만의 규칙이 만들어지지 않을까 생각한다.</span></p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>

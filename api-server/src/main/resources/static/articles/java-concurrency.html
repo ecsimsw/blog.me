@@ -1,0 +1,114 @@
+    <meta charset="utf-8">
+    <html lang="ko">
+    <link rel="stylesheet" type="text/css" href="/static/article-style.css"/>
+    <body>
+    <div class="wrap-right">
+        <div class="main ">
+            <div class="area-main">
+                 <div class="article-header">
+                     <a href="/" class="link_post">ecsimsw</a>
+자바 깊이 알기 / 자바의 동기화 방식
+                 </div>
+                 <div class="article-view">
+                     <h4 data-ke-size="size20"><b><span style="color: #000000;">자바의&nbsp;Thread&nbsp;Safe</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">여러 스레드를 사용하면 시스템 자원의 사용, 응답시간, Context Switch 횟수를 줄일 수 있다는 장점을 얻을 수 있다. 대신 데이터의 충돌 문제가 발생할 수 있다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">여러 테스크가 동시에 처리되도록 구현하는 것을 <b>동시성 프로그래밍</b>, 데이터 충돌과 같은 동시성 프로그래밍으로 발생되는 이슈를 피하는 방법을 <b>동시성 보장</b>이라고 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이번 포스팅에서는 자바의 동시성 보장 방식, 가장 기본적인 synchronized, volatile, atomic 세 가지 키워드를 정리하고자 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">가시성 문제와 volatile</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">가시성 문제는 여러 개의 스레드가 사용됨에 따라, cache memory와 Ram의 데이터가 서로 일치하지 않아 생기는 문제를 의미한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">한 스레드가 변경된 값을 cache memory에서 ram에 데이터를 저장하기 전, 다른 스레드에서 Ram에서 해당 값을 읽어 변경되기 이전의 값을 처리하게 되는 상황을 가시성이 보장되지 않는다 라고 말한다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="816" data-origin-height="608">
+ <span data-url="https://blog.kakaocdn.net/dn/bAz14z/btqRlHC9FZB/6mk8kLeYTxo2GyRWK20f30/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bAz14z/btqRlHC9FZB/6mk8kLeYTxo2GyRWK20f30/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbAz14z%2FbtqRlHC9FZB%2F6mk8kLeYTxo2GyRWK20f30%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="458" height="341" data-origin-width="816" data-origin-height="608"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">가시성을 이해했다면 가시성을 보장하기 위한 방식도 쉽게 떠올릴 수 있을 것이다.&nbsp;</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">가시성이 보장되어야하는 변수를 cache memory에서 읽는 것이 아니라, Ram에서만 읽도록 보장하는 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="816" data-origin-height="608">
+ <span data-url="https://blog.kakaocdn.net/dn/bLWwSW/btqRptqp9RK/rL4yGIT5y5iKQvGpk3zXTK/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/bLWwSW/btqRptqp9RK/rL4yGIT5y5iKQvGpk3zXTK/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbLWwSW%2FbtqRptqp9RK%2FrL4yGIT5y5iKQvGpk3zXTK%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="484" height="361" data-origin-width="816" data-origin-height="608"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">volatile은 이런 방식으로 동시성 프로그래밍에서 가시성을 보장할 수 있도록 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">가시성 보장과 동시성 보장</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">가시성만 보장되면 동시성이 보장되는 것 같지만 사실 그렇지 않다. 그 이유를 예시로 설명해보겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">전철 비용을 계산하는 프로그램을 짜보자. 이때 나이에 따라서 70세 미만과 70세 이상의 표 값이 다른 상황이고, 날짜를 실시간으로 반영하여 비용을 계산해야 한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="1040" data-origin-height="278">
+ <span data-url="https://blog.kakaocdn.net/dn/buBy5T/btqRrPMW98G/HwvLgKNJLimH9ZYntgytk0/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/buBy5T/btqRrPMW98G/HwvLgKNJLimH9ZYntgytk0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbuBy5T%2FbtqRrPMW98G%2FHwvLgKNJLimH9ZYntgytk0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="662" height="177" data-origin-width="1040" data-origin-height="278"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">가시성을 해결하여 기뻤던 개발자는 volatile만을 믿고 위 그림처럼 로직을 짰다. 문제는 해가 바뀌는 시점에서 발생한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="894" data-origin-height="608">
+ <span data-url="https://blog.kakaocdn.net/dn/caXqer/btqRol0zalv/1N4FuWsvkvyIOE5RmxwiUk/img.png" data-lightbox="lightbox"><img src="https://blog.kakaocdn.net/dn/caXqer/btqRol0zalv/1N4FuWsvkvyIOE5RmxwiUk/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcaXqer%2FbtqRol0zalv%2F1N4FuWsvkvyIOE5RmxwiUk%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="648" height="441" data-origin-width="894" data-origin-height="608"></span>
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">69세이신 고객이 계산을 진행할 때 첫 번째 스레드에서는 Ram에서 나이가 69세임을 가져와 이를 철썩같이 믿고 나이에 따라 비용을 계산하는 메소드를 실행하려 한다. 마침 해가 딱 바뀌어 년 바뀜을 계산하는 두 번째 스레드에서 Ram에 해당 고객의 나이가 70세임을 수정한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">첫 번째 스레드는 age를 69세로 계산하여 전철 비용을 계산했고, 70세로 바뀐 것을 모르고 잘못된 비용을 반환한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이렇게 <b>가시성 보장은 동시성 보장을 의미하지 않는다. </b></span><span style="color: #000000;">가시성 보장의 경우, 한 스레드만 '쓰기'하고, 나머지 스레드는 '읽기'만 하는 상황에서 동시성 보장이 가능하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">여러 스레드가 동시에 '쓰기'하는 경우는 아예 서로 다른 스레드가 동시에 실행되는 상황을 막아야한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">Blocking과 synchronized</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">쓰기가 빈번한 공유 데이터를 사용할 때는 여러 스레드가 동시에 사용할 수 없도록 하면 데이터 충돌을 피할 수 있을 것이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">synchronized 키워드는 메소드 또는 블록에 붙여, 해당 자원을 사용할 때 다른 스레드가 동시에 사용할 수 없도록 Lock을 걸고 사용을 마친 후 Lock을 풀 수 있도록 하는 키워드이다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">synchronized 메소드를 사용하면 해당 메소드를 호출하는 인스턴스 객체를 기준으로, synchronized 블록을 사용하면 블록에 전달 받은 객체를 기준으로 동기화가 이뤄진다. 즉 객체가 사용되는 동시에 다른 스레드가 해당 객체를 사용할 수 없다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">사용에 편리하지만 다른 스레드를 완전히 차단시킨다는 문제가 있다. 자바 버전이 올라가며 Lock의 성능이 점점 좋아졌지만 여전히 큰 비용을 사용한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><span style="color: #000000;"><b><span style="color: #000000;">원자성 보장과 Atomic&nbsp;</span></b><span style="color: #000000;"></span></span></h4> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #000000;">의문점이 생긴다. 그냥 Ram 값을 사용하기 전 한번 더 비교하면 안되는 것일까.</span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;"><span style="color: #000000;">앞선 지하철 예시로, 동시성을 해결하기 위해서 synchronized를 사용한다면 나이 계산 스레드와 해 변경 스레드를 동시에 사용하는 것을 막는다는 말인데, <b>그냥 나이 계산 스레드에서 age를 사용할 때 한번 더 확인하면 안돼?</b> 라는 생각이 들었다.</span><span style="color: #000000;"></span></span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p></p>
+<figure class="imageblock alignCenter" data-ke-mobilestyle="widthContent" data-origin-width="894" data-origin-height="608">
+ <span data-url="https://blog.kakaocdn.net/dn/bv4c23/btqRqcolYPH/Dck1fbEODq0cZ9HAz9obk0/img.png" data-lightbox="lightbox" data-alt="제가 전철 비용 예시를 고민하면서 들었던 생각 로직입니다. CAS 실제 방식과 다를 수 있습니다."><img src="https://blog.kakaocdn.net/dn/bv4c23/btqRqcolYPH/Dck1fbEODq0cZ9HAz9obk0/img.png" srcset="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fbv4c23%2FbtqRqcolYPH%2FDck1fbEODq0cZ9HAz9obk0%2Fimg.png" onerror="this.onerror=null; this.src='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png'; this.srcset='//t1.daumcdn.net/tistory_admin/static/images/no-image-v1.png';" width="656" height="446" data-origin-width="894" data-origin-height="608"></span>
+ <figcaption>
+  제가 전철 비용 예시를 고민하면서 들었던 생각 로직입니다. CAS 실제 방식과 다를 수 있습니다.
+ </figcaption> 
+</figure> 
+<p></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">자바의 <a style="color: #000000;" href="https://docs.oracle.com/javase/8/docs/api/index.html?java/util/concurrent/package-summary.html" target="_blank" rel="noopener">concurrent 패키지</a>의 타입들은 이렇게 현재 스레드에서 사용되는 값이 Ram의 값과 같은지 비교하고 불일치한다면 업데이트된 값을 가져와 계산하는 <a style="color: #000000;" href="https://en.wikipedia.org/wiki/Compare-and-swap" target="_blank" rel="noopener">CAS 알고리즘</a> 을 이용해 원자성을 보장한다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이 경우 synchronized와 달리 병렬성을 해치지 않으면서 동시성을 보장하기 때문에 더 좋은 성능을 가져올 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">대표적인 타입으로 ConcurrentHashMap이 있다. HashMap을 동시성을 보장하면서 사용하고 싶을 때, HashTable은 synchronized으로 blocking을 사용하지만, ConcurrentHashMap은 blocking없이 동시성을 보장할 수 있어 유용하다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16"><span style="color: #000000;">이 밖의 ConcurrentLinkedQueue, AtomicInteger, AtomicBoolean 등의 타입을 사용할 수 있다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<h4 data-ke-size="size20"><b><span style="color: #000000;">정리&nbsp;</span></b></h4> 
+<p data-ke-size="size16"><span style="color: #000000;">상황을 잘 생각해서 가시성만 보장되면 해결될 수 있는 문제인지, 원자성 보장 프로그래밍이 가능한지 고민해야겠다.</span></p> 
+<p data-ke-size="size16">&nbsp;</p> 
+<p data-ke-size="size16">&nbsp;</p>
+                 </div>
+            </div>
+        </main>
+    </div>
+    </body>
+    </html>>
