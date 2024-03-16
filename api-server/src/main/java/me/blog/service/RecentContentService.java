@@ -1,8 +1,11 @@
 package me.blog.service;
 
+import static me.blog.config.MemoryCacheType.Cached.RECENT_ARTICLES;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import me.blog.config.MemoryCacheType;
 import me.blog.config.MemoryCacheType.Cached;
 import me.blog.crawler.TistoryIndexPage;
 import me.blog.domain.RecentArticleRepository;
@@ -23,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecentContentService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecentContentService.class);
-    private static final int TTL_RECENT_ARTICLE_DATA_HOUR = 2;
+    private static final int TTL_RECENT_CONTENT_DATA_HOUR = 2;
 
     private final TistoryIndexPage indexPage;
     private final RecentArticleRepository recentArticleRepository;
@@ -39,46 +42,27 @@ public class RecentContentService {
         this.recentCommentRepository = recentCommentRepository;
     }
 
-    @Cacheable(value = Cached.RECENT_ARTICLES, key = "#n")
+    @Cacheable(value = RECENT_ARTICLES, key = "#n")
     @Transactional
     public List<RecentArticleResponse> recentArticles(int n) {
-        var articles = recentArticleRepository.findAll(PageRequest.of(0, n)).getContent();
-        return RecentArticleResponse.listOf(articles);
-    }
-
-    @Transactional
-    public List<RecentCommentResponse> recentComments(int n) {
-        var comments = recentCommentRepository.findAll(PageRequest.of(0, n)).getContent();
-        return RecentCommentResponse.listOf(comments);
-    }
-
-    @Transactional
-    public void update() {
-        if (hasRecentData()) {
-            return;
-        }
-        LOGGER.info("crawl recent contents");
-
+        LOGGER.info("crawl recent articles");
         var articles = indexPage.articles().stream()
             .map(TistoryArticleResponse::toRecentArticle)
             .toList();
         recentArticleRepository.deleteAll();
         recentArticleRepository.saveAll(articles);
+        return RecentArticleResponse.listOf(articles.subList(0, n));
+    }
 
+    @Cacheable(value = Cached.RECENT_COMMENTS, key = "#n")
+    @Transactional
+    public List<RecentCommentResponse> recentComments(int n) {
+        LOGGER.info("crawl recent comments");
         var comments = indexPage.comments().stream()
             .map(TistoryCommentResponse::toRecentComment)
             .toList();
         recentCommentRepository.deleteAll();
         recentCommentRepository.saveAll(comments);
-    }
-
-    @Transactional
-    public boolean hasRecentData() {
-        var firstPage = recentArticleRepository.findAll(PageRequest.of(0, 1));
-        if (!firstPage.hasContent()) {
-            return false;
-        }
-        var firstIndex = firstPage.getContent().get(0);
-        return ChronoUnit.HOURS.between(firstIndex.getUpdated(), LocalDateTime.now()) < TTL_RECENT_ARTICLE_DATA_HOUR;
+        return RecentCommentResponse.listOf(comments.subList(0, n));
     }
 }
