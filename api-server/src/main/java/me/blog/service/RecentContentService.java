@@ -81,6 +81,4 @@ public class RecentContentService {
         var firstIndex = firstPage.getContent().get(0);
         return ChronoUnit.HOURS.between(firstIndex.getUpdated(), LocalDateTime.now()) < TTL_RECENT_ARTICLE_DATA_HOUR;
     }
-
-
 }

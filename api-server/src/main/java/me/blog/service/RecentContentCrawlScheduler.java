@@ -14,7 +14,7 @@ public class RecentContentCrawlScheduler {
 
     private final RecentContentService recentContentService;
 
-    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.HOURS)
     public void getRecentArticle() {
         recentContentService.update();
     }
