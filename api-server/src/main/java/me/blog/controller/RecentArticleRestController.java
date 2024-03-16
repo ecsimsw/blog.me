@@ -2,7 +2,8 @@ package me.blog.controller;
 
 import lombok.RequiredArgsConstructor;
 import me.blog.dto.RecentArticleResponse;
-import me.blog.service.RecentArticleService;
+import me.blog.dto.RecentCommentResponse;
+import me.blog.service.RecentContentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,11 +22,17 @@ import java.util.List;
 @RestController
 public class RecentArticleRestController {
 
-    private final RecentArticleService recentArticleService;
+    private final RecentContentService recentContentService;
 
-    @GetMapping("/api/article/recent")
+    @GetMapping("/api/recent/article")
     public ResponseEntity<List<RecentArticleResponse>> recentArticle(int n) {
-        var result = recentArticleService.getAll(n);
+        var result = recentContentService.recentArticles(n);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/api/recent/comment")
+    public ResponseEntity<List<RecentCommentResponse>> recentComment(int n) {
+        var result = recentContentService.recentComments(n);
         return ResponseEntity.ok(result);
     }
 }

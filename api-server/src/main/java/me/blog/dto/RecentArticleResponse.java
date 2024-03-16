@@ -18,6 +18,6 @@ public record RecentArticleResponse(
                 i + 1,
                 recentArticles.get(i).getTitle(),
                 recentArticles.get(i).getLink()
-            )).collect(Collectors.toList());
+            )).toList();
     }
 }

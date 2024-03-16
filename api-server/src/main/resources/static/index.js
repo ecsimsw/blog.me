@@ -6,6 +6,7 @@ const NUMBER_OF_PAGE_BTN_IN_A_PAGE = 10
 const PAGE_SIZE = 13
 const MOST_VIEWED_SIZE = 5
 const RECENT_ARTICLE_SIZE = 5
+const RECENT_COMMENT_SIZE = 5
 
 let currentPage = 1
 let currentCategory = DEFAULT_CATEGORY_POST_ALL
@@ -17,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loadMostViewArticle()
     loadCategories()
     updateRecentPosts()
+    updateRecentComments()
     loadPosts(DEFAULT_CATEGORY_POST_ALL, currentPage, PAGE_SIZE)
     updatePaginationBar();
 });
@@ -69,7 +71,7 @@ function loadMostViewArticle() {
 
 // 최근 글 목록을 업데이트 하는 함수
 function updateRecentPosts() {
-    fetchData(SERVER_URL + "/api/article/recent?n=" + RECENT_ARTICLE_SIZE, function (posts) {
+    fetchData(SERVER_URL + "/api/recent/article?n=" + RECENT_ARTICLE_SIZE, function (posts) {
         const recentArticles = document.getElementById("recent-posts");
         let i = 1
         posts.forEach(function (post) {
@@ -80,6 +82,25 @@ function updateRecentPosts() {
             a.textContent = post.title
             a.className = "recent-posts-item"
             a.textContent = post.title
+            li.appendChild(a)
+            recentArticles.appendChild(li)
+        })
+    })
+}
+
+// 최근 댓글 목록을 업데이트 하는 함수
+function updateRecentComments() {
+    fetchData(SERVER_URL + "/api/recent/comment?n=" + RECENT_COMMENT_SIZE, function (posts) {
+        const recentArticles = document.getElementById("recent-comments");
+        let i = 1
+        posts.forEach(function (post) {
+            const li = document.createElement("li")
+            const a = document.createElement("a")
+            li.id = "recent-comments-" + i++
+            a.href = post.url
+            a.textContent = post.comment
+            a.className = "recent-comments-item"
+            a.textContent = post.comment
             li.appendChild(a)
             recentArticles.appendChild(li)
         })

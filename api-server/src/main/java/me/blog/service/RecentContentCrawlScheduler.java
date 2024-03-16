@@ -7,15 +7,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
-@ConditionalOnProperty(value = "schedule.crawl.recent.posts", havingValue = "true")
+@ConditionalOnProperty(value = "schedule.crawl.recent.contents", havingValue = "true")
 @RequiredArgsConstructor
 @Service
-public class RecentArticleCrawlScheduler {
+public class RecentContentCrawlScheduler {
 
-    private final RecentArticleService recentArticleService;
+    private final RecentContentService recentContentService;
 
-    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.HOURS)
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)
     public void getRecentArticle() {
-        recentArticleService.update();
+        recentContentService.update();
     }
 }
