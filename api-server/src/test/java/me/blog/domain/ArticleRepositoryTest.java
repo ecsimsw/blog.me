@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class ArticlesTest {
+class ArticleRepositoryTest {
 
     private static final List<Article> MOCK_ARTICLE_DATA = List.of(
         new Article(1, "A", 1, "A.html"),
@@ -18,18 +18,18 @@ class ArticlesTest {
         new Article(6, "G", 2, "G.html")
     );
 
-    private Articles articles;
+    private ArticleRepository articleRepository;
 
     @BeforeEach
     public void initArticles() {
-        this.articles = new Articles(MOCK_ARTICLE_DATA);
+        this.articleRepository = new ArticleRepository(MOCK_ARTICLE_DATA);
     }
 
     @DisplayName("Id 로 글을 조회한다.")
     @Test
     void getById() {
         var index = 1;
-        var searched = articles.findById(index);
+        var searched = articleRepository.findById(index);
         var expected = MOCK_ARTICLE_DATA.get(0);
         assertEquals(expected, searched);
     }
@@ -39,7 +39,7 @@ class ArticlesTest {
     void findAll() {
         var pageSize = 2;
         var pageNumber = 2;
-        var searched = articles.findAllOrderByIndexDesc(pageSize, pageNumber);
+        var searched = articleRepository.findAllOrderByIndexDesc(pageSize, pageNumber);
         var expected = List.of(MOCK_ARTICLE_DATA.get(1), MOCK_ARTICLE_DATA.get(0));
         assertEquals(expected, searched);
     }
@@ -49,7 +49,7 @@ class ArticlesTest {
     void findAllByCategory() {
         var pageSize = MOCK_ARTICLE_DATA.size();
         var pageNumber = 0;
-        var searched = articles.findAllByCategoryOrderByIndexDesc(2, pageSize, pageNumber);
+        var searched = articleRepository.findAllByCategoryOrderByIndexDesc(2, pageSize, pageNumber);
         var expected =
             List.of(MOCK_ARTICLE_DATA.get(5), MOCK_ARTICLE_DATA.get(4));
         assertEquals(expected, searched);
@@ -61,7 +61,7 @@ class ArticlesTest {
         var searchKeyword = "A";
         var pageSize = MOCK_ARTICLE_DATA.size();
         var pageNumber = 0;
-        var searched = articles.findAllTitleContainsOrderByIndexDesc(searchKeyword, pageSize, pageNumber);
+        var searched = articleRepository.findAllTitleContainsOrderByIndexDesc(searchKeyword, pageSize, pageNumber);
         var expected = List.of(MOCK_ARTICLE_DATA.get(0));
         assertEquals(expected, searched);
     }
@@ -70,7 +70,7 @@ class ArticlesTest {
     @Test
     void countByCategory() {
         var categoryId = 1;
-        var searched = articles.countByCategory(categoryId);
+        var searched = articleRepository.countByCategory(categoryId);
         var expected = MOCK_ARTICLE_DATA.stream().filter(it -> it.categoryId() == categoryId).count();
         assertEquals(expected, searched);
     }
@@ -78,7 +78,7 @@ class ArticlesTest {
     @DisplayName("전체 글 개수를 반환한다.")
     @Test
     void count() {
-        var searched = articles.count();
+        var searched = articleRepository.count();
         var expected = MOCK_ARTICLE_DATA.size();
         assertEquals(expected, searched);
     }

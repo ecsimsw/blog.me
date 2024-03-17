@@ -1,16 +1,13 @@
 package me.blog.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.jackson.io.JacksonDeserializer;
 import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.lang.Maps;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
@@ -28,22 +25,16 @@ public class JwtUtils {
             .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
             .setClaims(payloads)
             .setExpiration(expiration)
-//            .setSubject("user-auto")
             .signWith(key)
             .compact();
     }
 
     public static void validate(String secret, String token) {
-        try {
-            var key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-            Jws<Claims> claimsJws = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token);
-        } catch (Exception e) {
-            System.out.println("invalid");
-            System.out.println(e.getCause());
-        }
+        var key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        Jwts.parserBuilder()
+            .setSigningKey(key)
+            .build()
+            .parseClaimsJws(token);
     }
 
     public static <T> T getClaimValue(String secret, String token, String claimName, Class<T> requiredType) {

@@ -6,11 +6,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Articles {
+public class ArticleRepository {
 
     private final List<Article> articles;
 
-    public Articles(List<Article> articles) {
+    public ArticleRepository(List<Article> articles) {
         if (articles.isEmpty()) {
             throw new NoSuchElementException("File data is empty");
         }

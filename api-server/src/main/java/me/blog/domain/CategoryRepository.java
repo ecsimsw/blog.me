@@ -1,15 +1,14 @@
 package me.blog.domain;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class Categories {
+public class CategoryRepository {
 
     private final List<Category> categories;
 
-    public Categories(List<Category> categories) {
+    public CategoryRepository(List<Category> categories) {
         if (categories.isEmpty()) {
             throw new NoSuchElementException("File data is empty");
         }

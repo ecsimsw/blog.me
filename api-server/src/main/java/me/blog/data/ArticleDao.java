@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Component
 public class ArticleDao {
 
@@ -25,14 +24,7 @@ public class ArticleDao {
         @Autowired ResourceLoader resourceLoader,
         @Value("${data.article.file.path}") String dataFilePath
     ) throws IOException {
-        try {
-            Resource resource = resourceLoader.getResource("classpath:" + dataFilePath);
-            file = resource.getFile();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new IllegalArgumentException();
-        }
+        this.file = resourceLoader.getResource("classpath:" + dataFilePath).getFile();
     }
 
     public List<Article> readDataFile() {
@@ -40,10 +32,7 @@ public class ArticleDao {
             return Files.readLines(file, Charsets.UTF_8).stream()
                 .skip(1)
                 .filter(it -> !it.isBlank())
-                .map(it -> {
-                    log.info("read article data :" + it);
-                    return ArticleRowMapper.toEntity(it.split("\\|"));
-                })
+                .map(ArticleRowMapper::toEntity)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to load data file", e);

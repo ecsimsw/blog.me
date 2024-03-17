@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import me.blog.domain.Articles;
-import me.blog.domain.Categories;
+import me.blog.domain.ArticleRepository;
+import me.blog.domain.CategoryRepository;
 import me.blog.dto.CategoryResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,15 +18,15 @@ import org.springframework.data.domain.PageRequest;
 
 class ContentServiceTest {
 
-    private Articles articles;
-    private Categories categories;
+    private ArticleRepository articleRepository;
+    private CategoryRepository categoryRepository;
     private ContentService contentService;
 
     @BeforeEach
     public void initService() {
-        this.articles = new Articles(MOCK_ARTICLE_DATA);
-        this.categories = new Categories(MOCK_CATEGORY_DATA);
-        this.contentService = new ContentService(articles, categories);
+        this.articleRepository = new ArticleRepository(MOCK_ARTICLE_DATA);
+        this.categoryRepository = new CategoryRepository(MOCK_CATEGORY_DATA);
+        this.contentService = new ContentService(articleRepository, categoryRepository);
     }
 
     @DisplayName("글 제목으로 검색할 수 있다.")
@@ -36,7 +36,7 @@ class ContentServiceTest {
         var pageSize = 2;
         var searchKeyword = "A";
         var result = contentService.search(searchKeyword, PageRequest.of(pageNumber, pageSize));
-        var expected = articles.findAllTitleContainsOrderByIndexDesc(searchKeyword, pageSize, pageNumber);
+        var expected = articleRepository.findAllTitleContainsOrderByIndexDesc(searchKeyword, pageSize, pageNumber);
         assertEquals(expected, result);
     }
 
@@ -48,8 +48,8 @@ class ContentServiceTest {
         var categoryOpt = Optional.of("B");
         var result = contentService.articlesInCategory(categoryOpt, PageRequest.of(pageNumber, pageSize));
 
-        var category = categories.getByName(categoryOpt.orElseThrow());
-        var expected = articles.findAllByCategoryOrderByIndexDesc(category.id(), pageSize, pageNumber);
+        var category = categoryRepository.getByName(categoryOpt.orElseThrow());
+        var expected = articleRepository.findAllByCategoryOrderByIndexDesc(category.id(), pageSize, pageNumber);
         assertEquals(expected, result);
     }
 
@@ -59,7 +59,7 @@ class ContentServiceTest {
         var pageNumber = 0;
         var pageSize = 2;
         var result = contentService.articlesInCategory(Optional.empty(), PageRequest.of(pageNumber, pageSize));
-        var expected = articles.findAllOrderByIndexDesc(pageSize, pageNumber);
+        var expected = articleRepository.findAllOrderByIndexDesc(pageSize, pageNumber);
         assertEquals(expected, result);
     }
 
@@ -79,8 +79,8 @@ class ContentServiceTest {
         var optCategory = Optional.of("B");
         var result = contentService.countArticleIn(optCategory);
 
-        var category = categories.getByName(optCategory.orElseThrow());
-        var expected = articles.countByCategory(category.id());
+        var category = categoryRepository.getByName(optCategory.orElseThrow());
+        var expected = articleRepository.countByCategory(category.id());
         assertEquals(expected, result);
     }
 
@@ -96,11 +96,11 @@ class ContentServiceTest {
     @Test
     void categories() {
         var result = contentService.categories();
-        var expectedCategories = categories.findAll().stream()
+        var expectedCategories = categoryRepository.findAll().stream()
             .map(it -> new CategoryResponse(
                 it.id(),
                 it.name(),
-                articles.countByCategory(it.id()))
+                articleRepository.countByCategory(it.id()))
             ).collect(Collectors.toList());
         assertEquals(result, expectedCategories);
     }
@@ -110,7 +110,7 @@ class ContentServiceTest {
     void getPathById() {
         var articleId = 1;
         var result = contentService.getPathById(articleId);
-        var expected = articles.findById(articleId).orElseThrow().path();
+        var expected = articleRepository.findById(articleId).orElseThrow().path();
         assertEquals(expected, result);
     }
 }
