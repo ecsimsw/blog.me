@@ -2,12 +2,9 @@ package me.blog.service;
 
 import static me.blog.config.MemoryCacheType.Cached.RECENT_ARTICLES;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import me.blog.config.MemoryCacheType;
 import me.blog.config.MemoryCacheType.Cached;
-import me.blog.crawler.TistoryIndexPage;
+import me.blog.utils.TistoryIndexPage;
 import me.blog.domain.RecentArticleRepository;
 import me.blog.domain.RecentCommentRepository;
 import me.blog.dto.RecentArticleResponse;
@@ -18,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

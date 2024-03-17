@@ -1,4 +1,4 @@
-package me.blog.crawler;
+package me.blog.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;

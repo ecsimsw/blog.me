@@ -1,4 +1,4 @@
-package me.blog.crawler;
+package me.blog.utils;
 
 import com.google.common.io.Files;
 import org.jsoup.Jsoup;
