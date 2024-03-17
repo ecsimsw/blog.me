@@ -1,5 +1,7 @@
 package me.blog.data;
 
+import static me.blog.config.DataConfig.DATA_SAFEBOX_FILE_PATH;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.io.File;
@@ -20,11 +22,8 @@ public class SafeBoxDao {
 
     private final File file;
 
-    public SafeBoxDao(
-        @Autowired ResourceLoader resourceLoader,
-        @Value("${data.safebox.file.path}") String dataFilePath
-    ) throws IOException {
-        this.file = resourceLoader.getResource("classpath:" + dataFilePath).getFile();
+    public SafeBoxDao(ResourceLoader resourceLoader) throws IOException {
+        this.file = resourceLoader.getResource("classpath:" + DATA_SAFEBOX_FILE_PATH).getFile();
     }
 
     public List<SafeBox> readDataFile() {

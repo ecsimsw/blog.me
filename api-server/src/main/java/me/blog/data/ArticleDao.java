@@ -1,5 +1,7 @@
 package me.blog.data;
 
+import static me.blog.config.DataConfig.DATA_ARTICLE_FILE_PATH;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +22,8 @@ public class ArticleDao {
 
     private final File file;
 
-    public ArticleDao(
-        @Autowired ResourceLoader resourceLoader,
-        @Value("${data.article.file.path}") String dataFilePath
-    ) throws IOException {
-        this.file = resourceLoader.getResource("classpath:" + dataFilePath).getFile();
+    public ArticleDao(ResourceLoader resourceLoader) throws IOException {
+        this.file = resourceLoader.getResource("classpath:" + DATA_ARTICLE_FILE_PATH).getFile();
     }
 
     public List<Article> readDataFile() {

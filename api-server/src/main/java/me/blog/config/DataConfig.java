@@ -12,6 +12,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DataConfig {
 
+    public static final String DATA_ARTICLE_FILE_PATH = "database/data-article.txt";
+    public static final String DATA_CATEGORY_FILE_PATH = "database/data-category.txt";
+    public static final String DATA_SAFEBOX_FILE_PATH = "database/data-safebox.txt";
+
     @Bean
     public ArticleRepository articles(ArticleDao articleDao) {
         var entities = articleDao.readDataFile();
