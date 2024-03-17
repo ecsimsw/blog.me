@@ -28,7 +28,6 @@ public class ArticleGlobalAdvice {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> unhandledServerError(IllegalArgumentException e) {
-        e.printStackTrace();
         alertManagerChain.alert(e.getMessage());
         return ResponseEntity.internalServerError().body("interval server error");
     }

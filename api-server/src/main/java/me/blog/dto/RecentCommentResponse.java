@@ -9,7 +9,6 @@ public record RecentCommentResponse(
     String comment,
     String url
 ) {
-
     public static List<RecentCommentResponse> listOf(List<RecentComment> comments) {
         return IntStream.range(0, comments.size())
             .mapToObj(i -> new RecentCommentResponse(

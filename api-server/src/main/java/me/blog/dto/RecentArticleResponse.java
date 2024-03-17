@@ -11,7 +11,6 @@ public record RecentArticleResponse(
     String title,
     String url
 ) {
-
     public static List<RecentArticleResponse> listOf(List<RecentArticle> recentArticles) {
         return IntStream.range(0, recentArticles.size())
             .mapToObj(i -> new RecentArticleResponse(

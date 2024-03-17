@@ -6,7 +6,6 @@ public record TistoryArticleResponse(
     String title,
     String link
 ) {
-
     public RecentArticle toRecentArticle() {
         return new RecentArticle(title, link);
     }
