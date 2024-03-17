@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecentContentService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecentContentService.class);
-    private static final int TTL_RECENT_CONTENT_DATA_HOUR = 2;
 
     private final TistoryIndexPage indexPage;
     private final RecentArticleRepository recentArticleRepository;
