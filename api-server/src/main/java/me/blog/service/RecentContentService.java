@@ -45,11 +45,13 @@ public class RecentContentService {
     @Cacheable(value = RECENT_ARTICLES, key = "#n")
     @Transactional
     public List<RecentArticleResponse> recentArticles(int n) {
+        var oldArticles = recentArticleRepository.findAll();
+        recentArticleRepository.deleteAll(oldArticles);
+
         LOGGER.info("crawl recent articles");
         var articles = indexPage.articles().stream()
             .map(TistoryArticleResponse::toRecentArticle)
             .toList();
-        recentArticleRepository.deleteAll();
         recentArticleRepository.saveAll(articles);
         return RecentArticleResponse.listOf(articles.subList(0, n));
     }
@@ -57,11 +59,13 @@ public class RecentContentService {
     @Cacheable(value = Cached.RECENT_COMMENTS, key = "#n")
     @Transactional
     public List<RecentCommentResponse> recentComments(int n) {
+        var oldComments = recentCommentRepository.findAll();
+        recentCommentRepository.deleteAll(oldComments);
+
         LOGGER.info("crawl recent comments");
         var comments = indexPage.comments().stream()
             .map(TistoryCommentResponse::toRecentComment)
             .toList();
-        recentCommentRepository.deleteAll();
         recentCommentRepository.saveAll(comments);
         return RecentCommentResponse.listOf(comments.subList(0, n));
     }
