@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
 @ControllerAdvice
-public class ArticleGlobalAdvice {
+public class GlobalControllerAdvice {
 
     private final AlertManagerChain alertManagerChain;
 

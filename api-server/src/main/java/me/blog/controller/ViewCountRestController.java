@@ -31,9 +31,7 @@ public class ViewCountRestController {
     private final ViewCountService viewCountService;
 
     @GetMapping("/api/view/daily")
-    public ResponseEntity<Integer> viewCountDaily(
-        @DateTimeFormat(iso = ISO.DATE) LocalDate date
-    ) {
+    public ResponseEntity<Integer> viewCountDaily(@DateTimeFormat(iso = ISO.DATE) LocalDate date) {
         var viewCount = viewCountService.viewCountAt(date);
         return ResponseEntity.ok(viewCount);
     }
@@ -45,10 +43,7 @@ public class ViewCountRestController {
     }
 
     @GetMapping("/api/view/top/daily")
-    public ResponseEntity<List<Article>> topNArticle(
-        @DateTimeFormat(iso = ISO.DATE) LocalDate date,
-        int top
-    ) {
+    public ResponseEntity<List<Article>> topNArticle(@DateTimeFormat(iso = ISO.DATE) LocalDate date, int top) {
         var topNDailyCount = viewCountService.findTopNArticle(top, date);
         var topNArticle = topNDailyCount.stream()
             .map(it -> contentService.findById(it.getArticleId()))

@@ -1,21 +1,22 @@
 package me.blog.controller;
 
 import static me.blog.config.FilePathVariables.ARTICLE_FILE_ROOT_PATH;
-import static me.blog.config.AuthConfig.TOKEN_COOKIE_KEY;
+import static me.blog.config.AuthTokenConfig.TOKEN_COOKIE_KEY;
+import static me.blog.config.FilePathVariables.LOGIN_FILE_PATH;
 
 import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import me.blog.dto.PasswordRequest;
+import me.blog.exception.InvalidAccessException;
 import me.blog.service.AuthService;
 import me.blog.service.ContentService;
 import me.blog.service.DailyCountCacheService;
 import me.blog.utils.AuthToken;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RequiredArgsConstructor
 @Controller
@@ -28,25 +29,23 @@ public class ArticleFileController {
     @GetMapping("/api/article/{id}")
     public String serveArticleFile(
         @AuthToken(tokenKey = TOKEN_COOKIE_KEY) Optional<String> authToken,
-        @PathVariable int id
+        @PathVariable int id,
+        RedirectAttributes redirectAttributes
     ) {
         countService.count(id, 1);
-        authService.validateAccess(id, authToken);
-        var filePath = contentService.getPathById(id);
-        return "forward:" + ARTICLE_FILE_ROOT_PATH + filePath;
+        try {
+            authService.validateAccess(id, authToken);
+            var filePath = contentService.getPathById(id);
+            return "forward:" + ARTICLE_FILE_ROOT_PATH + filePath;
+        } catch (InvalidAccessException e) {
+            redirectAttributes.addAttribute("articleId", id);
+            return "redirect:" + LOGIN_FILE_PATH;
+        }
     }
 
     @PostMapping("/api/login")
-    public String requireToken(
-        @RequestBody String password,
-        @RequestParam(required = false) Optional<Integer> articleId,
-        HttpServletResponse response
-    ) {
+    public ResponseEntity<String> requireToken(@RequestBody PasswordRequest password, HttpServletResponse response) {
         authService.authenticate(password, response);
-        if (articleId.isEmpty()) {
-            return "redirect:/";
-        } else {
-            return "redirect:/api/article/" + articleId.orElseThrow();
-        }
+        return ResponseEntity.ok().build();
     }
 }

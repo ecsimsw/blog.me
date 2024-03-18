@@ -1,18 +1,15 @@
 package me.blog.service;
 
-import static me.blog.config.AuthConfig.JWT_EXPIRED_TIME_MS;
-import static me.blog.config.AuthConfig.JWT_PAYLOAD;
-import static me.blog.config.AuthConfig.TOKEN_COOKIE_EXPIRED_MS;
-import static me.blog.config.AuthConfig.TOKEN_COOKIE_HTTP_ONLY;
-import static me.blog.config.AuthConfig.TOKEN_COOKIE_KEY;
-
 import java.util.Optional;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import me.blog.domain.SafeBoxRepository;
+import me.blog.dto.PasswordRequest;
+import me.blog.exception.InvalidAccessException;
 import me.blog.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import static me.blog.config.AuthTokenConfig.*;
 
 @Service
 public class AuthService {
@@ -39,18 +36,16 @@ public class AuthService {
             var tokenValue = optToken.orElseThrow();
             JwtUtils.validate(tokenSecret, tokenValue);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Auth needed");
+            throw new InvalidAccessException("Auth needed");
         }
     }
 
-    public void authenticate(String requestPassword, HttpServletResponse response) {
-        if (!this.password.equals(requestPassword)) {
-            throw new IllegalArgumentException("Wrong password" + requestPassword + " " + password);
+    public void authenticate(PasswordRequest requestPassword, HttpServletResponse response) {
+        if (!password.equals(requestPassword.password())) {
+            throw new InvalidAccessException("Wrong password");
         }
         var token = JwtUtils.createToken(tokenSecret, JWT_PAYLOAD(), JWT_EXPIRED_TIME_MS);
-        var cookie = new Cookie(TOKEN_COOKIE_KEY, token);
-        cookie.setMaxAge(TOKEN_COOKIE_EXPIRED_MS);
-        cookie.setHttpOnly(TOKEN_COOKIE_HTTP_ONLY);
+        var cookie = TOKEN_COOKIE(token);
         response.addCookie(cookie);
     }
 }
