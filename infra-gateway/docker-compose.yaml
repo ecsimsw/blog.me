@@ -1,6 +1,6 @@
 version: '3'
 services:
-  my-blog-gateway:
+  gateway-nginx:
     image: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
