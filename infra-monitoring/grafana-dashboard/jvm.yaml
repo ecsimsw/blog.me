@@ -178,7 +178,7 @@
           "expr": "sum(jvm_memory_max_bytes{application=\"$application\", instance=\"$instance\", area=\"heap\"})",
           "hide": false,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "max",
           "range": true,
           "refId": "C"
         }
@@ -482,8 +482,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -1111,8 +1110,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1487,6 +1485,6 @@
   "timezone": "browser",
   "title": "blog-ecsimsw",
   "uid": "c20bafb4-a68d-4da3-92d2-c202a3a1f0ac",
-  "version": 10,
+  "version": 11,
   "weekStart": ""
 }
