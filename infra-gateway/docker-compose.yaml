@@ -16,6 +16,6 @@ services:
     image: nginx/nginx-prometheus-exporter:0.11.0
     command:
       - -nginx.scrape-uri
-      - http://127.0.0.1:80/metrics
+      - http://host.docker.internal/metrics
     extra_hosts:
       - "host.docker.internal:host-gateway"
