@@ -12,6 +12,8 @@
 2. 카테고리 별 글을 확인할 수 있다.
 3. 게시물 별 조회수를 확인할 수 있다.
 4. 전체 혹은 날짜 별 최다 조회수 게시물을 집계 할 수 있다.
+5. 최근 업로드된 글, 댓글을 확인할 수 있다.
+6. 비공개 글을 작성할 수 있다.
 
 ## 기록 
 
@@ -170,7 +172,8 @@ JIB, Github actions, GHCR
 ## 스크린 샷
 
 ### 1. 메인 페이지
-![image](https://github.com/ecsimsw/ecsimsw.blog/assets/46060746/3e1a8731-d8ca-4411-8696-3fbcb946a9e5)
+![image](https://github.com/ecsimsw/blog.me/assets/46060746/9c7ce6d2-249a-4b03-99c3-640459aa33e3)
+
 
 ### 2. 게시물 페이지
 <img width="1381" alt="image" src="https://github.com/ecsimsw/ecsimsw.blog/assets/46060746/f6e8b432-f645-4e2b-9b4a-361669bbea8e">
