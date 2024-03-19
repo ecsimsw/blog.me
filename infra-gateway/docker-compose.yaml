@@ -12,3 +12,10 @@ services:
       - "443:443"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.11.0
+    command:
+      - -nginx.scrape-uri
+      - http://127.0.0.1:80/stub_status
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
