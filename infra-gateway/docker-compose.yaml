@@ -18,6 +18,6 @@ services:
       - -nginx.scrape-uri
       - http://host.docker.internal/metrics
     ports:
-      - "9080:9113"
+      - "9113:9113"
     extra_hosts:
       - "host.docker.internal:host-gateway"
