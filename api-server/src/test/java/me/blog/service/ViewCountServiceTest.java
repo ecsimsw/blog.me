@@ -71,7 +71,7 @@ class ViewCountServiceTest {
     @Test
     void getTotalViewCountOf() {
         var articleId = 1;
-        var totalViewCountOf = viewCountService.getTotalViewCountOf(articleId);
+        var totalViewCountOf = viewCountService.viewCountOf(articleId);
         var expected = totalCountRepository.findById(articleId).map(it -> it.getCount()).orElse(0);
         assertEquals(expected, totalViewCountOf);
     }

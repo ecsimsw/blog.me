@@ -11,7 +11,7 @@ import me.blog.dto.PasswordRequest;
 import me.blog.exception.InvalidAccessException;
 import me.blog.service.AuthService;
 import me.blog.service.ContentService;
-import me.blog.service.DailyCountCacheService;
+import me.blog.service.ViewCountCacheService;
 import me.blog.utils.AuthToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,7 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ArticleFileController {
 
     private final ContentService contentService;
-    private final DailyCountCacheService countService;
+    private final ViewCountCacheService countService;
     private final AuthService authService;
 
     @GetMapping("/api/article/{id}")

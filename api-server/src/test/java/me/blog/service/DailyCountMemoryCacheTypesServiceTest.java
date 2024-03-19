@@ -18,14 +18,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 class DailyCountMemoryCacheTypesServiceTest {
 
     private final DailyCountRepository dailyCountRepository;
-    private final DailyCountCacheService dailyCountCacheService;
+    private final ViewCountCacheService viewCountCacheService;
 
     public DailyCountMemoryCacheTypesServiceTest(
         @Autowired DailyCountRepository dailyCountRepository,
         @Autowired TotalCountRepository totalCountRepository
     ) {
         this.dailyCountRepository = dailyCountRepository;
-        this.dailyCountCacheService = new DailyCountCacheService(
+        this.viewCountCacheService = new ViewCountCacheService(
             new ViewCountService(dailyCountRepository, totalCountRepository)
         );
     }
@@ -35,9 +35,9 @@ class DailyCountMemoryCacheTypesServiceTest {
     public void count() {
         var articleId = 1;
         var addCount = 2;
-        var before = dailyCountCacheService.getCached(articleId);
-        dailyCountCacheService.count(articleId, addCount);
-        var after = dailyCountCacheService.getCached(articleId);
+        var before = viewCountCacheService.getCached(articleId);
+        viewCountCacheService.count(articleId, addCount);
+        var after = viewCountCacheService.getCached(articleId);
         assertEquals(before + addCount, after);
     }
 
@@ -52,7 +52,7 @@ class DailyCountMemoryCacheTypesServiceTest {
         for (var i = 0; i < numberOfThreads; i++) {
             service.execute(() -> {
                 try {
-                    dailyCountCacheService.count(articleId, addCount);
+                    viewCountCacheService.count(articleId, addCount);
                 } catch (Exception ignored) {
                 } finally {
                     latch.countDown();
@@ -60,7 +60,7 @@ class DailyCountMemoryCacheTypesServiceTest {
             });
         }
         latch.await();
-        assertEquals(numberOfThreads * addCount, dailyCountCacheService.getCached(articleId));
+        assertEquals(numberOfThreads * addCount, viewCountCacheService.getCached(articleId));
     }
 
     @DisplayName("일정한 주기로 캐시 내용을 DB에 반영하고, 반영된 cache는 제거된다.")
@@ -69,15 +69,15 @@ class DailyCountMemoryCacheTypesServiceTest {
         var articleId = 1;
         var addCount = 2;
         var date = LocalDate.now();
-        var beforeCacheCount = dailyCountCacheService.getCached(articleId);
+        var beforeCacheCount = viewCountCacheService.getCached(articleId);
         var beforeDbCount = dailyCountRepository.findByArticleIdAndDate(articleId, date)
             .orElse(new DailyCount(articleId, addCount, date))
             .getCount();
 
-        dailyCountCacheService.count(articleId, addCount);
-        dailyCountCacheService.schedule();
+        viewCountCacheService.count(articleId, addCount);
+        viewCountCacheService.schedule();
 
-        var afterCacheCount = dailyCountCacheService.getCached(articleId);
+        var afterCacheCount = viewCountCacheService.getCached(articleId);
         var afterDbCount = dailyCountRepository.findByArticleIdAndDate(articleId, date)
             .orElse(new DailyCount(articleId, addCount, date))
             .getCount();

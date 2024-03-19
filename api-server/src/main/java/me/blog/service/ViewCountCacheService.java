@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
-public class DailyCountCacheService {
+public class ViewCountCacheService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DailyCountCacheService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ViewCountCacheService.class);
 
     private final ViewCountService viewCountService;
     private final ConcurrentMap<Integer, Integer> countCachePerArticle = new ConcurrentHashMap<>();

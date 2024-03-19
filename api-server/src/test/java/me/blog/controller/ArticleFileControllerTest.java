@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import me.blog.alert.AlertManagerChain;
 import me.blog.service.ContentService;
-import me.blog.service.DailyCountCacheService;
+import me.blog.service.ViewCountCacheService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ class ArticleFileControllerTest {
     private ContentService contentService;
 
     @MockBean
-    private DailyCountCacheService cacheService;
+    private ViewCountCacheService cacheService;
 
     @MockBean
     private AlertManagerChain alertManagerChain;
