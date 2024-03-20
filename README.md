@@ -38,7 +38,7 @@ public void count(int articleId, int count) {
 
 - DB 저장 시에 조회에 락을 걸어 동시성 문제를 처리한다.    
 - {articleId, date}로 인덱스를 설정하고 row lock 처리하여, 트랜잭션의 {게시물:날짜}에 해당하는 데이터 외에 다른 row 처리에서 영향이 없도록 하였다.     
-- DB 데이터 업데이트가 잦지 않아 동시에 발생할 일이 극히 드물고, 그 트랜잭션의 처리 시간이 적기에 재시도 로직이 불필요하고 처리가 확실한 비관적 락을 선택했다.    
+- DB 데이터 업데이트가 잦지 않아 조회 자체와 동시 처리 경우가 극히 드물고, 그 트랜잭션의 처리 시간이 적기에 재시도 로직이 불필요하고 처리가 확실한 비관적 락을 선택했다.    
 
 ``` java
 public interface DailyCountRepository extends JpaRepository<DailyCount, Long> {
@@ -47,40 +47,33 @@ public interface DailyCountRepository extends JpaRepository<DailyCount, Long> {
 }
 ```
 
-### 2. 집계 정보 캐시
-- 최다 조회 게시글 순위, 어제 전체 조회수, 가장 최신 등록 글 등, 집계에 비용이 들지만 매번 계산할 필요가 없는 데이터가 많았다. 이를 메모리에 캐시로 저장해두고 사용하고 싶었다.
-- 조회수 갱신이 아니라 2시간에 한번 최다 조회 게시물 집계, 일에 한번 어제 전체 조회수 집계 등 데이터 업데이트가 아니라, Miss가 될 때 집계하는 방식을 택했다.     
-- TTL에 의해 자동으로 캐시가 만기 되고, Cache miss 가 났을 때 계산으로 재집계가 처리되었으면 했다.    
-- ConccurentHashMap은 TTL은 지원하지 않기에, Caffeine cache를 CacheManager로 사용한다.    
+### 2. Nginx 액세스 로그로 응답 시간 모니터링, 튜닝
+- Nginx access log 에 응답 시간을 추가하고 이를 모니터링에 사용할 수 있도록 하였다.
+- WAS 뿐만 아니라, Nginx 에서 직접 처리하는 요청도 응답 속도, 개수를 모니터링 할 수 있게 되었다.
+- 부하테스트와 waterfall를 이용하여 개선 여지를 확인했다.
+
+![image](https://github.com/ecsimsw/blog.me/assets/46060746/d43c4f4f-c2e2-4a70-81a3-a0f64b6a0548)
+
+### 3. ShutDown 라이브러리
+
+- 임시 서버에선 DB를 사용하지 않는다. 메인 서버와 DB가 같은 노드에 있어, 메인 서버와 DB가 함께 다운되기에 의미가 없었다.
+- 최소한의 주요 서비스 (게시물 조회, 카테고리 조회)를 남기고 나머지 API는 "사용 불가"를 요청한다.
+- 임시 서버 API를 위한 코드 변경과 하드 코딩을 최소화하기 위해 ShutDown 필터를 개발했다.
 
 ``` java
-@Cacheable(value = Cached.DAILY_VIEW_COUNT, key = "#date")
-@Transactional
-public int viewCountAt(LocalDate date) {
-    return dailyCountRepository.findAllByDate(date).stream()
-        .mapToInt(DailyCount::getCount)
-        .sum();
-}
+@ShutDown(
+    conditionOnActiveProfile = "failover",
+    message = "service unavailable",
+    status = HttpStatus.SERVICE_UNAVAILABLE,
+    contentType = "application/json"
+)
+@RequiredArgsConstructor
+@RestController
+public class ViewCountRestController {
 ```
 
-- 분산 환경을 고려하지 않았다. WAS가 여러 개라면 캐시에 싱크가 어긋나 응답이 WAS마다 다른 상황이 발생할 것이다.           
-- 당장의 부하는 WAS 한 개로 충분하다고 생각했고, 분산 환경을 고려하여 WAS 간 공유를 위한 자원, 인프라를 추가하고 싶지 않았다.     
-
-
-### 3. 게시물 파일 포워딩
-
-- 사용자가 게시물을 조회하는 경우 게시물 html 파일에 직접 접근을 피하고, 파일 경로를 숨기고 싶었다.
-- 게시물 조회를 원할 경우 WAS에 조회하는 게시물 Id를 전달하면, WAS는 그 Id로 DB에서 해당 게시물의 물리 경로를 찾고 그 파일 응답으로 Forwarding 한다.
-- 사용자로부터 파일 경로를 숨기고, 파일 조회 시 로직을 추가할 수 있었다. (ex, 비공개 게시물, 게시물별 조회수 계산)     
-
-``` java
-@GetMapping("/api/article/{id}")
-public String serveArticleFile(@PathVariable int id) {
-    cacheService.count(id, 1);
-    var filePath = contentService.getPathById(id);
-    return "forward:/" + fileRootDirectory + filePath;
-}
-```
+- @ShutDown 어노테이션에 조건과 응답 내용을 정의하면, 그 조건에 따라 해당 Controller 의 API 핸들러를 읽고 임시 응답을 반환하는 필터가 등록된다.
+- 프로젝트에선 failover profile 일 경우, ViewCountRestController의 핸들러에 요청이 들어올 경우, 503 과 응답 메시지로 사용 불가를 알린다.
 
 ### 4. GSLB와 DNS 상태 검사
 - 비용을 아끼고자 메인 서버는 홈 서버로 하고, 가장 저렴한 클라우드 pc에 임시 서버를 운영한다.
@@ -106,29 +99,40 @@ server {
 - Route53은 30초마다 메인 서버의 상태를 확인하고, 이상이 있다면 DNS 쿼리에 임시 서버의 ip를 반환한다. 
 - Route53의 기본 상태 검사 프로토콜(Http)을 사용하기 위해 80번 포트에 헬스 체크용 API를 열고, 나머지 요청은 https로 리다이렉트 시킨다.
 
-
-### 5. ShutDown 라이브러리
-
-- 임시 서버에선 DB를 사용하지 않는다. 메인 서버와 DB가 같은 노드에 있어, 메인 서버와 DB가 함께 다운되기에 의미가 없었다.
-- 최소한의 주요 서비스 (게시물 조회, 카테고리 조회)를 남기고 나머지 API는 "사용 불가"를 요청한다.
-- 임시 서버 API를 위한 코드 변경과 하드 코딩을 최소화하기 위해 ShutDown 필터를 개발했다.
+### 5. 집계 정보 캐시
+- 최다 조회 게시글 순위, 어제 전체 조회수, 가장 최신 등록 글 등, 집계에 비용이 들지만 매번 계산할 필요가 없는 데이터가 많았다. 이를 메모리에 캐시로 저장해두고 사용하고 싶었다.
+- 조회수 갱신이 아니라 2시간에 한번 최다 조회 게시물 집계, 일에 한번 어제 전체 조회수 집계 등 데이터 업데이트가 아니라, Miss가 될 때 집계하는 방식을 택했다.     
+- TTL에 의해 자동으로 캐시가 만기 되고, Cache miss 가 났을 때 계산으로 재집계가 처리되었으면 했다.    
+- ConccurentHashMap은 TTL은 지원하지 않기에, Caffeine cache를 CacheManager로 사용한다.    
 
 ``` java
-@ShutDown(
-    conditionOnActiveProfile = "failover",
-    message = "service unavailable",
-    status = HttpStatus.SERVICE_UNAVAILABLE,
-    contentType = "application/json"
-)
-@RequiredArgsConstructor
-@RestController
-public class ViewCountRestController {
+@Cacheable(value = Cached.DAILY_VIEW_COUNT, key = "#date")
+@Transactional
+public int viewCountAt(LocalDate date) {
+    return dailyCountRepository.findAllByDate(date).stream()
+        .mapToInt(DailyCount::getCount)
+        .sum();
+}
 ```
 
-- @ShutDown 어노테이션에 조건과 응답 내용을 정의하면, 그 조건에 따라 해당 Controller 의 API 핸들러를 읽고 임시 응답을 반환하는 필터가 등록된다.
-- 프로젝트에선 failover profile 일 경우, ViewCountRestController의 핸들러에 요청이 들어올 경우, 503 과 응답 메시지로 사용 불가를 알린다.
+- 분산 환경을 고려하지 않았다. WAS가 여러 개라면 캐시에 싱크가 어긋나 응답이 WAS마다 다른 상황이 발생할 것이다.           
+- 당장의 부하는 WAS 한 개로 충분하다고 생각했고, 분산 환경을 고려하여 WAS 간 공유를 위한 자원, 인프라를 추가하고 싶지 않았다.     
 
-### 6. 리버스 프록시와 Nginx
+### 6. 게시물 파일 포워딩
+- 사용자가 게시물을 조회하는 경우 게시물 html 파일에 직접 접근을 피하고, 파일 경로를 숨기고 싶었다.
+- 게시물 조회를 원할 경우 WAS에 조회하는 게시물 Id를 전달하면, WAS는 그 Id로 DB에서 해당 게시물의 물리 경로를 찾고 그 파일 응답으로 Forwarding 한다.
+- 사용자로부터 파일 경로를 숨기고, 파일 조회 시 로직을 추가할 수 있었다. (ex, 비공개 게시물, 게시물별 조회수 계산)     
+
+``` java
+@GetMapping("/api/article/{id}")
+public String serveArticleFile(@PathVariable int id) {
+    cacheService.count(id, 1);
+    var filePath = contentService.getPathById(id);
+    return "forward:/" + fileRootDirectory + filePath;
+}
+```
+
+### 7. 리버스 프록시와 Nginx
 - WAS 전면에 Nginx 를 리버스 프록시로 두었다. 이 프로젝트에서 리버스 프록시의 역할은 다음과 같다.
 1. TLS 설정을 WAS 전면에 한다. Http 요청을 Https 요청으로 넘긴다.
 2. 정적 자원을 응답한다. WAS까지 가지 않아도 되는 기본적인 html, css, js 파일을 Nginx 에서 직접 응답한다.
@@ -153,7 +157,7 @@ location /static/ {
 }
 ```
 
-### 7. 글 수집
+### 8. 글 수집
 - Jsoup 으로 티스토리 작성 글의 html 을 수집한다.        
 - 게시물의 html 을 파싱하여 글 제목과 본문을 수집하고, 미리 만들어둔 html 템플릿과 css 파일에 이를 삽입하고 파일로 저장한다.     
 
