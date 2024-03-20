@@ -20,7 +20,7 @@ services:
       - ./exporter/prometheus-nginxlog-exporter.yaml:/config/prometheus-nginxlog-exporter.yaml
     command:
       - -config-file
-      - prometheus-nginxlog-exporter.yaml
+      - /config/prometheus-nginxlog-exporter.yaml
     ports:
       - "4040:4040"
     extra_hosts:
