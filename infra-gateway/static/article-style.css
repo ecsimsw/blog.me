@@ -1480,7 +1480,8 @@ body {
 
 /* 뷰페이지 사진 밑 여백 티스토리 스타일 수정 */
 figure.imageblock.alignCenter {
-    margin: 0 auto 39px !important; }
+    margin: 30px auto 30px !important;
+}
 
 
 /* container */

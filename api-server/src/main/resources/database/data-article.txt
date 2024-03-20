@@ -1,4 +1,5 @@
 |id|category_id|title|path|
+|75|1|Nginx 액세스 로그로 응답 시간 모니터링, 개선 여지 확인하기|nginx-access-log.html|
 |52|1|비관적 락의 DB 커넥션 점유 문제를 해결하는 과정들|db-lock.html|
 |54|1|천만 개 데이터로 조회 성능 확인, 쿼리 튜닝하기|picup-db-tunning.html|
 |55|1|파일 삭제 중 예외시 롤백 불가 문제를 풀이하는 과정들|picup-image-rollback.html|
