@@ -13,6 +13,18 @@ services:
       - "443:443"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  nginx-log-exporter:
+    image: ghcr.io/martin-helmich/prometheus-nginxlog-exporter/exporter:v1.11-amd64
+    volumes:
+      - ~/dev/data/nginx:/var/log/nginx
+      - ./exporter/prometheus-nginxlog-exporter.yaml:/config/prometheus-nginxlog-exporter.yaml
+    command:
+      - -config-file
+      - prometheus-nginxlog-exporter.yaml
+    ports:
+      - "4040:4040"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.11.0
     command:
