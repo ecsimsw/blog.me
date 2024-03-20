@@ -7,6 +7,7 @@ services:
       - ./route-blog.conf:/etc/nginx/conf.d/route-blog.conf
       - ./static/:/static
       - /etc/letsencrypt:/etc/letsencrypt
+      - ~/dev/data/nginx:/var/log/nginx
     ports:
       - "80:80"
       - "443:443"
