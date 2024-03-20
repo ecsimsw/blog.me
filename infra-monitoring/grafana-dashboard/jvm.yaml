@@ -72,24 +72,24 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 12,
+            "fillOpacity": 6,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": 3600000,
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
             },
             "lineWidth": 1,
-            "pointSize": 8,
+            "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "never",
+            "showPoints": "auto",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -119,7 +119,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 24,
         "x": 0,
         "y": 1
@@ -192,11 +192,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 11
       },
       "id": 168,
       "panels": [],
-      "title": "WAS - Network I/O",
+      "title": "Network I/O",
       "type": "row"
     },
     {
@@ -207,7 +207,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "palette-classic-by-name"
           },
           "custom": {
             "axisBorderShow": false,
@@ -231,8 +231,8 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "never",
-            "spanNulls": true,
+            "showPoints": "auto",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -252,32 +252,19 @@
               },
               {
                 "color": "red",
-                "value": 0.2
+                "value": 0.3
               }
             ]
           },
           "unit": "s"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byType",
-              "options": "time"
-            },
-            "properties": [
-              {
-                "id": "custom.axisPlacement",
-                "value": "hidden"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 7,
+        "w": 12,
         "x": 0,
-        "y": 10
+        "y": 12
       },
       "id": 177,
       "links": [],
@@ -288,7 +275,7 @@
           ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
@@ -322,14 +309,14 @@
           },
           "editorMode": "code",
           "expr": "max(http_server_requests_seconds_max{application=\"$application\", instance=\"$instance\", status!~\"5..\"})",
-          "hide": false,
+          "hide": true,
           "instant": false,
           "legendFormat": "HTTP - MAX",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "HTTP response duration",
+      "title": "Response time - was",
       "type": "timeseries"
     },
     {
@@ -347,10 +334,124 @@
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 211,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "c79b290a-1679-4fea-97df-2840a61a648c"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(nginx_http_response_time_seconds_sum[1m])) / sum(rate(nginx_http_response_time_seconds_count[1m])) ",
+          "instant": false,
+          "legendFormat": "avg",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "c79b290a-1679-4fea-97df-2840a61a648c"
+          },
+          "editorMode": "code",
+          "expr": "nginx_http_response_time_seconds{quantile=\"0.90\"}",
+          "hide": true,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Response time - nginx",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "c79b290a-1679-4fea-97df-2840a61a648c"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
             "axisPlacement": "left",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 6,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -392,10 +493,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 7,
+        "w": 12,
         "x": 0,
-        "y": 18
+        "y": 19
       },
       "id": 184,
       "options": {
@@ -403,7 +504,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -429,7 +530,7 @@
           "useBackend": false
         }
       ],
-      "title": "Request count per 1m",
+      "title": "Request count per min - was",
       "type": "timeseries"
     },
     {
@@ -447,10 +548,10 @@
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
-            "axisPlacement": "left",
+            "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 8,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -459,9 +560,6 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineStyle": {
-              "fill": "solid"
-            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -482,27 +580,31 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
-          },
-          "unit": "none"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 26
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 19
       },
-      "id": 193,
+      "id": 205,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -517,19 +619,31 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "exemplar": false,
-          "expr": "sum by(instance) (ceil(increase(http_server_requests_seconds_count{instance=\"$instance\", status=\"500\"}[1m])))",
+          "expr": "sum(rate(nginx_http_response_time_seconds_count[1m]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "api-1",
+          "legendFormat": "{{label_name}}",
           "range": true,
           "refId": "A",
           "useBackend": false
         }
       ],
-      "title": "Server error response count per 1m",
+      "title": "Request count per sec - nginx",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 199,
+      "panels": [],
+      "title": "Gateway - Network I/O",
+      "type": "row"
     },
     {
       "collapsed": false,
@@ -541,7 +655,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 27
       },
       "id": 142,
       "panels": [],
@@ -578,7 +692,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 28
       },
       "hiddenSeries": false,
       "id": 106,
@@ -709,7 +823,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 35
       },
       "hiddenSeries": false,
       "id": 32,
@@ -852,7 +966,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 42
       },
       "hiddenSeries": false,
       "id": 124,
@@ -936,7 +1050,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 49
       },
       "id": 143,
       "panels": [],
@@ -969,7 +1083,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 50
       },
       "hiddenSeries": false,
       "id": 101,
@@ -1110,7 +1224,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1125,7 +1240,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 58
       },
       "id": 196,
       "options": {
@@ -1182,7 +1297,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 73
+        "y": 66
       },
       "hiddenSeries": false,
       "id": 3,
@@ -1301,7 +1416,7 @@
       }
     }
   ],
-  "refresh": "10s",
+  "refresh": "5s",
   "schemaVersion": 38,
   "tags": [],
   "templating": {
@@ -1485,6 +1600,6 @@
   "timezone": "browser",
   "title": "blog-ecsimsw",
   "uid": "c20bafb4-a68d-4da3-92d2-c202a3a1f0ac",
-  "version": 11,
+  "version": 16,
   "weekStart": ""
 }
